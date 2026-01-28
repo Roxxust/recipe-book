@@ -4,7 +4,8 @@ how to use:<br/>
 download file<br/>
 open in browser<br/>
 edit/add new recipes as you desire<br/>
-export to save them locally(in case of cache clear etc.)<br/>
+export to save them locally(in case of cache clear, or transfer to mobile)<br/>
+import saved recipes if lost<br/>
 
 <img width="1682" height="943" alt="image" src="https://github.com/user-attachments/assets/51ccc596-2f18-4f40-b85b-636db4a782dd" />
 <img width="1682" height="943" alt="image" src="https://github.com/user-attachments/assets/e83e9a74-eb11-427e-80e0-dc105a0474c5" />
