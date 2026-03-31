@@ -1,13 +1,17 @@
 # recipe-book
-an html recipe book with images, adding/editing recipes, saving/exporting them locally. compatible with pc and mobile. <br/>
+an html recipe book with images, adding/editing recipes, search, tags, favorites, indexedDB for increased recipe capacity, saving/exporting them locally, includes a timer. compatible with pc and mobile. <br/>
 how to use:<br/>
-download file<br/>
+download recipe-book.html<br/>
 open in browser<br/>
 edit/add new recipes as you desire<br/>
-export to save them locally(in case of cache clear, or transfer to mobile)<br/>
-import saved recipes if lost<br/>
+export to save them locally(in case of browser clear, or transfer to mobile)<br/>
+import saved recipes if lost or transfer to mobile<br/>
 
-<img width="1682" height="943" alt="image" src="https://github.com/user-attachments/assets/51ccc596-2f18-4f40-b85b-636db4a782dd" />
-<img width="1682" height="943" alt="image" src="https://github.com/user-attachments/assets/e83e9a74-eb11-427e-80e0-dc105a0474c5" />
-<img width="1682" height="943" alt="image" src="https://github.com/user-attachments/assets/e03af45e-7a5c-4e82-88fe-52a5b339166b" />
-<img width="1682" height="943" alt="image" src="https://github.com/user-attachments/assets/09511a32-cc6b-4070-bf4f-a7fc6b64691f" />
+<img width="1675" height="942" alt="image" src="https://github.com/user-attachments/assets/f91a23b7-c6ae-47de-a9d6-44a426761e6f" />
+
+<img width="1675" height="942" alt="image" src="https://github.com/user-attachments/assets/394d69de-aba0-4954-a7ce-4e2a15e8c58a" />
+
+<img width="1675" height="942" alt="image" src="https://github.com/user-attachments/assets/2efdb44f-7533-402d-8dc9-dbce6204ee04" />
+
+<img width="1675" height="942" alt="image" src="https://github.com/user-attachments/assets/ced9ee2d-9b6b-4de6-85b6-fde211aae0ec" />
+
