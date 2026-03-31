@@ -70,7 +70,6 @@
   .recipe-tag{background:#2a2a2a;padding:2px 8px;border-radius:12px;font-size:.75rem;color:var(--text-secondary)}
   .recipe-tag::before{content:'#';color:var(--accent);margin-right:2px}
 
-  /* FIXED: Consistent scroll system - JavaScript controlled */
   .recipe-description-container{
     margin-bottom:0;
     height:4.5em;
@@ -84,9 +83,7 @@
     white-space:normal;
     line-height:1.5em;
     margin:0;
-    /* No CSS animation - controlled by JavaScript */
   }
-  /* FIXED: Consistent bottom meta spacing - 3px top and bottom padding */
   .recipe-meta{
     display:flex;
     gap:4px;
@@ -100,7 +97,6 @@
   }
   .recipe-meta .meta-item{display:inline-flex;align-items:center;gap:2px;white-space:nowrap}
 
-  /* FIXED LIST MODE: Image on left, content on right with proper constraints */
   .view-list .recipes-grid{grid-template-columns:1fr}
   .view-list .recipe-card{
     display:flex;
@@ -147,7 +143,6 @@
   .ingredient-row.placeholder{background:rgba(111,184,255,0.06);border:2px dashed var(--accent);min-height:44px;display:flex;align-items:center;padding:0 10px}
   .ingredient-row.dragging{box-shadow:0 10px 30px rgba(0,0,0,0.65);opacity:0.98}
 
-  /* Toast Notifications */
   .toast-container{position:fixed;bottom:100px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:10px;pointer-events:none}
   .toast{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;min-width:280px;max-width:400px;box-shadow:0 8px 30px rgba(0,0,0,0.5);display:flex;align-items:center;gap:12px;pointer-events:auto;animation:slideIn 0.3s ease;opacity:0;transform:translateX(100%)}
   .toast.show{opacity:1;transform:translateX(0)}
@@ -164,7 +159,6 @@
   @keyframes slideIn{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
   @keyframes slideOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(100%)}}
 
-  /* Modal */
   .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.8);z-index:1000;opacity:0;visibility:hidden;transition:all .18s}
   .modal.active{opacity:1;visibility:visible}
   .modal-content{background:var(--card-bg);width:95%;max-width:900px;border-radius:12px;max-height:90vh;overflow:auto;border:1px solid var(--border);-webkit-overflow-scrolling:touch}
@@ -181,7 +175,6 @@
   .ingredients-list li.state-added{background:rgba(47,224,198,.06);border-left:4px solid var(--success)}
   .ingredients-list li .converted-amount{color:var(--text-secondary);font-size:.85rem;margin-left:8px;padding:2px 6px;background:#1a1a1a;border-radius:4px}
 
-  /* Recipe Scaling */
   .scaling-controls{display:flex;align-items:center;gap:8px;margin:12px 0;padding:12px;background:#202020;border-radius:10px;flex-wrap:wrap}
   .scaling-controls label{color:var(--text-secondary);font-size:.9rem}
   .scaling-btn{padding:8px 14px;border-radius:6px;background:#2a2a2a;border:none;color:var(--text);cursor:pointer;font-size:.9rem;transition:all 0.2s}
@@ -189,7 +182,6 @@
   .scaling-btn.active{background:var(--accent);color:#000}
   .scaling-display{color:var(--text);font-weight:bold;min-width:60px;text-align:center}
 
-  /* Cook Timer */
   .timer-section{margin-top:12px;padding:12px;background:#202020;border-radius:10px}
   .timer-display{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
   .timer-input{width:100px;padding:10px;border-radius:8px;background:#151515;border:1px solid var(--border);color:var(--text);text-align:center;font-size:1.1rem;font-variant-numeric:tabular-nums}
@@ -204,7 +196,6 @@
   .timer-alert-info{color:var(--text-secondary);font-size:.85rem;margin-top:8px}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
 
-  /* Form & Edit UI */
   .form-container,.edit-ui{background:var(--card-bg);padding:14px;border-radius:12px;border:1px solid var(--border);margin-top:14px;overflow:hidden}
   .form-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
   .form-title{color:var(--accent)}
@@ -229,35 +220,29 @@
   .form-actions{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
   .empty-state{padding:24px;border:1px dashed var(--border);border-radius:10px;color:var(--text-secondary);text-align:center;margin-top:12px}
 
-  /* Tags Input */
   .tags-input-container{display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:#222;border-radius:8px;border:1px solid var(--border);min-height:44px}
   .tag-item{background:#2a2a2a;padding:4px 10px;border-radius:16px;display:flex;align-items:center;gap:6px;font-size:.85rem}
   .tag-item .remove-tag{cursor:pointer;color:var(--text-secondary);font-size:.8rem}
   .tag-item .remove-tag:hover{color:var(--danger)}
   .tags-input{flex:1;min-width:120px;background:transparent;border:none;color:var(--text);outline:none;padding:4px}
 
-  /* Image Zoom Modal */
   .image-zoom-modal{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:1500;display:none;align-items:center;justify-content:center}
   .image-zoom-modal.active{display:flex}
   .image-zoom-modal img{max-width:95%;max-height:95%;object-fit:contain}
   .image-zoom-close{position:absolute;top:20px;right:20px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:1.5rem;cursor:pointer}
 
-  /* Search Bar */
   .search-container{flex:1;min-width:200px;max-width:400px}
   .search-input{width:100%;padding:10px 14px;border-radius:8px;background:#222;border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:10px}
   .search-input input{background:transparent;border:none;color:var(--text);flex:1;outline:none}
   .search-input i{color:var(--text-secondary)}
 
-  /* Focus indicators */
   *:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.category-tag:focus-visible,.view-mode-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-  /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
 
-  /* Responsive */
   @media (min-width:980px){
     .ingredient-name{font-size:15px}
   }
@@ -359,7 +344,7 @@
       <form id="editRecipeForm">
         <input type="hidden" id="editRecipeId">
         <div class="form-group"><label>Category</label><select id="editRecipeCategory" required></select></div>
-        <div class="form-group"><label>Title</label><input id="editRecipeTitle" required></select></div>
+        <div class="form-group"><label>Title</label><input id="editRecipeTitle" required></div>
         <div style="margin-top:8px" class="image-upload-container">
           <label>Image</label>
           <div class="image-upload-area" id="editImageUploadArea">
@@ -711,7 +696,6 @@
             removedCardIds.add(cardId);
           }
         }
-        // Also check child nodes for recipe cards
         if (node.nodeType === 1 && node.querySelectorAll) {
           node.querySelectorAll('.recipe-card').forEach(card => {
             const cardId = card.dataset.id;
@@ -822,7 +806,7 @@
     }
   }
 
-  /* ==================== SCALE OPTIONS (FIXED: Moved before setupEventListeners) ==================== */
+  /* ==================== SCALE OPTIONS ==================== */
   const scaleOptions = [
     { value: 0.5, label: '½', btn: scaleHalfBtn },
     { value: 1, label: '1x', btn: scale1xBtn },
@@ -832,6 +816,89 @@
   ];
 
   const pointerDrag = { active:false, element:null, container:null, offsetX:0, offsetY:0, placeholder:null, lastClientY:null, scrollInterval:null };
+
+  /* ==================== FRACTION PARSING (FIXED) ==================== */
+  function parseFractionAmount(amountStr) {
+    if (!amountStr || typeof amountStr !== 'string') return { value: 0, original: amountStr || '' };
+
+    const trimmed = amountStr.trim();
+    if (!trimmed) return { value: 0, original: '' };
+
+    // Check for mixed fraction: "1 1/2" or "2 3/4"
+    const mixedMatch = trimmed.match(/^(\d+)\s+(\d+)\/(\d+)$/);
+    if (mixedMatch) {
+      const whole = parseInt(mixedMatch[1], 10);
+      const num = parseInt(mixedMatch[2], 10);
+      const denom = parseInt(mixedMatch[3], 10);
+      if (denom !== 0) {
+        return { value: whole + (num / denom), original: trimmed };
+      }
+    }
+
+    // Check for simple fraction: "1/3" or "3/4"
+    const fractionMatch = trimmed.match(/^(\d+)\/(\d+)$/);
+    if (fractionMatch) {
+      const num = parseInt(fractionMatch[1], 10);
+      const denom = parseInt(fractionMatch[2], 10);
+      if (denom !== 0) {
+        return { value: num / denom, original: trimmed };
+      }
+    }
+
+    // Check for decimal or whole number
+    const numValue = parseFloat(trimmed);
+    if (!isNaN(numValue)) {
+      return { value: numValue, original: trimmed };
+    }
+
+    return { value: 0, original: trimmed };
+  }
+
+  function formatScaledAmount(originalAmount, scale) {
+    const parsed = parseFractionAmount(originalAmount);
+    if (parsed.value === 0 && !parsed.original) return '';
+
+    // If scale is 1x, always return the original amount string unchanged
+    if (scale === 1) {
+      return parsed.original;
+    }
+
+    const scaledValue = parsed.value * scale;
+
+    // Format the scaled value
+    if (scaledValue % 1 === 0) {
+      return scaledValue.toString();
+    }
+
+    // Check if scaled value matches a common fraction
+    const commonFractions = [
+      { value: 0.125, display: '1/8' },
+      { value: 0.25, display: '1/4' },
+      { value: 0.333333, display: '1/3' },
+      { value: 0.375, display: '3/8' },
+      { value: 0.5, display: '1/2' },
+      { value: 0.625, display: '5/8' },
+      { value: 0.666666, display: '2/3' },
+      { value: 0.75, display: '3/4' },
+      { value: 0.875, display: '7/8' }
+    ];
+
+    const fractionalPart = scaledValue - Math.floor(scaledValue);
+    const wholePart = Math.floor(scaledValue);
+
+    for (const frac of commonFractions) {
+      if (Math.abs(fractionalPart - frac.value) < 0.01) {
+        if (wholePart === 0) {
+          return frac.display;
+        } else {
+          return `${wholePart} ${frac.display}`;
+        }
+      }
+    }
+
+    // Default to decimal with 2 decimal places
+    return scaledValue.toFixed(2);
+  }
 
   /* ==================== INITIALIZATION ==================== */
   initApp();
@@ -867,7 +934,6 @@
 
     await restoreTimerState();
 
-    // Start shared mutation observer for scroll cleanup
     descriptionScrollObserver.observe(document.body, { childList: true, subtree: true });
 
     showToast('Recipe Book loaded', 'success', 2000);
@@ -1008,7 +1074,6 @@
 
   /* ==================== CLEANUP ON UNLOAD (MEMORY FIX) ==================== */
   function cleanupOnUnload() {
-    // Clear timer intervals
     if (timerInterval) {
       clearInterval(timerInterval);
       timerInterval = null;
@@ -1018,22 +1083,15 @@
       timerAlertInterval = null;
     }
 
-    // Save timer state
     saveTimerState();
-
-    // Revoke all blob URLs
     revokeAllBlobUrls();
-
-    // Disconnect mutation observer
     descriptionScrollObserver.disconnect();
 
-    // Disconnect image observer
     if (imageObserver) {
       imageObserver.disconnect();
       imageObserver = null;
     }
 
-    // Clear all description scroll states
     descriptionScrollStates.forEach((state, cardId) => {
       stopDescriptionScroll(cardId);
     });
@@ -1154,7 +1212,6 @@
     imageZoomClose.addEventListener('click', () => imageZoomModal.classList.remove('active'));
     imageZoomModal.addEventListener('click', e => { if (e.target === imageZoomModal) imageZoomModal.classList.remove('active'); });
 
-    // FIXED: scaleOptions now declared before this function
     scaleOptions.forEach(opt => {
       opt.btn.addEventListener('click', () => {
         currentScale = opt.value;
@@ -1274,7 +1331,6 @@
   }
 
   function assignImage(mode, dataUrl) {
-    // Revoke old blob URL if exists
     if (mode === 'add' && addRecipeImageFile) {
       revokeBlobUrl(addRecipeImageFile);
     } else if (mode === 'edit' && editRecipeImageFile) {
@@ -1684,8 +1740,6 @@
         runScrollCycle(cardId, descEl, maxScroll);
       });
     });
-
-    // REMOVED: Per-card MutationObserver - now using shared observer
   }
 
   function stopDescriptionScroll(cardId) {
@@ -1794,7 +1848,6 @@
     filtered.sort((a, b) => a.title.localeCompare(b.title));
     clearContainer(recipesGrid);
 
-    // Stop all existing scroll animations before re-rendering
     descriptionScrollStates.forEach((state, cardId) => {
       stopDescriptionScroll(cardId);
     });
@@ -2159,7 +2212,6 @@
     const newImage = editRecipeImageFile;
     const imageChanged = oldImage && newImage && oldImage !== newImage;
 
-    // Revoke old blob URL if image changed
     if (imageChanged && oldImage) {
       revokeBlobUrl(oldImage);
     }
@@ -2300,20 +2352,23 @@
         const left = document.createElement('span');
         left.textContent = ing.name || '';
         const right = document.createElement('span');
-        const originalAmount = parseFloat(ing.amount) || 0;
-        const scaledAmount = originalAmount * currentScale;
-        const displayAmount = scaledAmount % 1 === 0 ? scaledAmount : scaledAmount.toFixed(2);
-        let amountText = `${displayAmount}${ing.unit ? ' ' + ing.unit : ''}`;
+
+        // Use fraction-aware formatting - preserves original at 1x scale
+        const displayAmount = formatScaledAmount(ing.amount || '', currentScale);
+        let amountText = displayAmount ? `${displayAmount}${ing.unit ? ' ' + ing.unit : ''}` : (ing.unit || '');
 
         if (ing.amount && ing.unit) {
-          const converted = getConversion(ing.amount, ing.unit);
-          if (converted) {
-            const convertedParts = converted.split(' ');
-            const convertedNum = parseFloat(convertedParts[0]) || 0;
-            const convertedUnit = convertedParts.slice(1).join(' ');
-            const scaledConvertedAmount = convertedNum * currentScale;
-            const scaledConverted = `${formatConversionAmount(scaledConvertedAmount)} ${convertedUnit}`;
-            amountText += ` <span class="converted-amount">(${scaledConverted})</span>`;
+          const parsed = parseFractionAmount(ing.amount);
+          if (parsed.value > 0) {
+            const converted = getConversion(parsed.value.toString(), ing.unit);
+            if (converted) {
+              const convertedParts = converted.split(' ');
+              const convertedNum = parseFloat(convertedParts[0]) || 0;
+              const convertedUnit = convertedParts.slice(1).join(' ');
+              const scaledConvertedAmount = convertedNum * currentScale;
+              const scaledConverted = `${formatConversionAmount(scaledConvertedAmount)} ${convertedUnit}`;
+              amountText += ` <span class="converted-amount">(${scaledConverted})</span>`;
+            }
           }
         }
 
@@ -2356,7 +2411,6 @@
   async function deleteRecipe(id) {
     if (!confirm('Delete this recipe?')) return;
 
-    // Find recipe to clean up any blob URLs
     const recipe = recipes.find(r => r.id === id);
     if (recipe && recipe.image) {
       revokeBlobUrl(recipe.image);
