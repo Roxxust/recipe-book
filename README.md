@@ -1,6 +1,6 @@
-# recipe-book
-an html recipe book with images, adding/editing recipes, search, tags, favorites, indexedDB for increased recipe capacity, saving/exporting them locally, includes a timer. compatible with pc and mobile. <br/>
-how to use:<br/>
+###  recipe-book
+an html recipe book with images, adding/editing recipes, search, tags, favorites, description(that scrolls), indexedDB for increased recipe capacity, saving/exporting them locally, includes a timer. compatible with pc and mobile. <br/>
+#### how to use:
 download recipe-book.html<br/>
 open in browser<br/>
 edit/add new recipes as you desire<br/>
@@ -14,4 +14,3 @@ import saved recipes if lost or transfer to mobile<br/>
 <img width="1675" height="942" alt="image" src="https://github.com/user-attachments/assets/2efdb44f-7533-402d-8dc9-dbce6204ee04" />
 
 <img width="1675" height="942" alt="image" src="https://github.com/user-attachments/assets/ced9ee2d-9b6b-4de6-85b6-fde211aae0ec" />
-
