@@ -164,6 +164,13 @@
   .modal-content{background:var(--card-bg);width:95%;max-width:900px;border-radius:12px;max-height:90vh;overflow:auto;border:1px solid var(--border);-webkit-overflow-scrolling:touch}
   .modal-header{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card-bg);z-index:10}
   .modal-title{color:var(--accent)}
+  .modal-header-actions{display:flex;gap:8px;align-items:center}
+  .modal-action-btn{width:40px;height:40px;border-radius:8px;background:#2a2a2a;border:none;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;touch-action:manipulation}
+  .modal-action-btn:hover{background:#3a3a3a}
+  .modal-action-btn.favorites-btn{background:#e08aa0;color:#000}
+  .modal-action-btn.favorites-btn:hover{background:#d07a90}
+  .modal-action-btn.close-btn{background:#2a2a2a;color:var(--text)}
+  .modal-action-btn.close-btn:hover{background:#ff4757}
   .close-modal{background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer}
   .modal-body{padding:12px}
   .section-title{color:var(--accent);margin-top:12px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
@@ -256,6 +263,7 @@
     .container{padding:12px}
     .btn{padding:9px 10px}
     .form-container,.edit-ui{padding:12px}
+    .modal-action-btn{width:44px;height:44px}
   }
   @media (max-width:420px){
     .ingredient-name{flex-basis:45%;padding:7px;font-size:15px}
@@ -375,9 +383,9 @@
       <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalRecipeTitle">
         <div class="modal-header">
           <h2 class="modal-title" id="modalRecipeTitle">Recipe</h2>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button class="btn" id="modalBookmarkBtn" title="Toggle favorite"><i class="far fa-heart"></i></button>
-            <button class="close-modal" id="closeModalBtn">&times;</button>
+          <div class="modal-header-actions">
+            <button class="modal-action-btn favorites-btn" id="modalBookmarkBtn" title="Toggle favorite"><i class="far fa-heart"></i></button>
+            <button class="modal-action-btn close-btn" id="closeModalBtn" title="Close"><i class="fas fa-times"></i></button>
           </div>
         </div>
         <div class="modal-body" id="modalBody">
@@ -2266,7 +2274,7 @@
     modalRecipeCategory.textContent = recipe.category || 'Uncategorized';
     modalRecipeCategory.style.background = getCategoryGradient(recipe.category || '');
     modalBookmarkBtn.innerHTML = recipe.bookmarked
-      ? '<i class="fas fa-heart" style="color:var(--danger)"></i>'
+      ? '<i class="fas fa-heart" style="color:#000"></i>'
       : '<i class="far fa-heart"></i>';
 
     clearContainer(modalRecipeTags);
@@ -2388,7 +2396,7 @@
     currentViewRecipe.bookmarked = !currentViewRecipe.bookmarked;
     saveData();
     modalBookmarkBtn.innerHTML = currentViewRecipe.bookmarked
-      ? '<i class="fas fa-heart" style="color:var(--danger)"></i>'
+      ? '<i class="fas fa-heart" style="color:#000"></i>'
       : '<i class="far fa-heart"></i>';
     renderRecipes();
     showToast(currentViewRecipe.bookmarked ? 'Added to favorites' : 'Removed from favorites', 'info');
