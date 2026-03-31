@@ -1913,7 +1913,7 @@
         if (r.tags && r.tags.length > 0) {
           const tagsDiv = document.createElement('div');
           tagsDiv.className = 'recipe-tags';
-          r.tags.slice(0, 5).forEach(tag => {
+          r.tags.slice(0, 10).forEach(tag => {
             const tagSpan = document.createElement('span');
             tagSpan.className = 'recipe-tag';
             tagSpan.textContent = tag;
