@@ -7,9 +7,11 @@
 - favorites
 - scale recipes
 - scrolling description
+- includes a timer
 - indexedDB for increased recipe capacity
 - saving/exporting them locally
-- includes a timer
+- importing new recipes expands the recipe DB
+- export individual recipes
 - compatible with pc and mobile. <br/>
 
 #### how to use:
