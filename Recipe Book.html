@@ -243,6 +243,25 @@
   .search-input input{background:transparent;border:none;color:var(--text);flex:1;outline:none}
   .search-input i{color:var(--text-secondary)}
 
+  /* Duplicate Resolution Modal */
+  .duplicate-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:2000;opacity:0;visibility:hidden;transition:all 0.18s}
+  .duplicate-modal.active{opacity:1;visibility:visible}
+  .duplicate-content{background:var(--card-bg);width:95%;max-width:700px;border-radius:12px;max-height:85vh;overflow:auto;border:1px solid var(--border)}
+  .duplicate-header{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid var(--border)}
+  .duplicate-title{color:var(--accent);font-size:1.2rem}
+  .duplicate-body{padding:16px}
+  .duplicate-item{background:#202020;border-radius:8px;padding:12px;margin-bottom:10px;border:1px solid var(--border)}
+  .duplicate-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .duplicate-item-title{color:var(--text);font-weight:600}
+  .duplicate-item-category{background:#2a2a2a;padding:2px 8px;border-radius:12px;font-size:.75rem;color:var(--text-secondary)}
+  .duplicate-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .duplicate-actions .btn{padding:6px 12px;font-size:.85rem}
+  .duplicate-stats{display:flex;gap:16px;margin-bottom:16px;padding:12px;background:#202020;border-radius:8px}
+  .duplicate-stat{display:flex;flex-direction:column;align-items:center}
+  .duplicate-stat-value{font-size:1.5rem;font-weight:bold;color:var(--accent)}
+  .duplicate-stat-label{font-size:.8rem;color:var(--text-secondary)}
+  .duplicate-actions-global{display:flex;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+
   *:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.category-tag:focus-visible,.view-mode-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
@@ -289,7 +308,7 @@
     <header><h1><i class="fas fa-utensils"></i> Recipe Book</h1></header>
     <div class="controls">
       <div class="button-controls">
-        <button class="btn btn-success" id="exportDataBtn"><i class="fas fa-file-export"></i> Export</button>
+        <button class="btn btn-success" id="exportDataBtn"><i class="fas fa-file-export"></i> Export All</button>
         <button class="btn btn-success" id="importDataBtn"><i class="fas fa-file-import"></i> Import</button>
         <button class="btn btn-accent" id="addRecipeBtn"><i class="fas fa-plus"></i> Add Recipe</button>
       </div>
@@ -334,7 +353,7 @@
         <div class="form-group">
           <label>Tags</label>
           <div class="tags-input-container" id="addTagsContainer">
-            <input type="text" class="tags-input" id="addTagsInput" placeholder="e.g., crispy, chewy, soft, <10m, etc.">
+            <input type="text" class="tags-input" id="addTagsInput" placeholder="e.g. crispy, chewy, soft, <10m, etc.">
           </div>
           <div class="label-hint"><i class="fas fa-info-circle"></i> Separate tags with commas</div>
         </div>
@@ -366,7 +385,7 @@
         <div class="form-group">
           <label>Tags</label>
           <div class="tags-input-container" id="editTagsContainer">
-            <input type="text" class="tags-input" id="editTagsInput" placeholder="e.g., crispy, chewy, soft, <10m, etc.">
+            <input type="text" class="tags-input" id="editTagsInput" placeholder="e.g. crispy, chewy, soft, <10m, etc.">
           </div>
           <div class="label-hint"><i class="fas fa-info-circle"></i> Separate tags with commas</div>
         </div>
@@ -438,8 +457,47 @@
           <div id="modalMeta" class="recipe-meta" style="margin-top:12px"></div>
         </div>
         <div style="display:flex;gap:8px;justify-content:flex-end;padding:12px;border-top:1px solid var(--border)">
+          <button class="btn btn-info" id="exportSingleRecipeBtn"><i class="fas fa-file-export"></i> Export</button>
           <button class="btn" id="editRecipeBtnModal"><i class="fas fa-edit"></i> Edit</button>
           <button class="btn btn-danger" id="deleteRecipeBtn"><i class="fas fa-trash"></i> Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Duplicate Resolution Modal -->
+    <div id="duplicateModal" class="duplicate-modal" aria-hidden="true">
+      <div class="duplicate-content" role="dialog" aria-modal="true" aria-labelledby="duplicateModalTitle">
+        <div class="duplicate-header">
+          <h3 class="duplicate-title" id="duplicateModalTitle"><i class="fas fa-clone"></i> Resolve Duplicate Recipes</h3>
+          <button class="close-modal" id="closeDuplicateModalBtn">&times;</button>
+        </div>
+        <div class="duplicate-body">
+          <p style="color:var(--text-secondary);margin-bottom:16px">Some recipes in the import file match existing recipes. Choose how to handle each:</p>
+          <div class="duplicate-stats">
+            <div class="duplicate-stat">
+              <span class="duplicate-stat-value" id="dupStatNew">0</span>
+              <span class="duplicate-stat-label">New Recipes</span>
+            </div>
+            <div class="duplicate-stat">
+              <span class="duplicate-stat-value" id="dupStatDuplicates">0</span>
+              <span class="duplicate-stat-label">Duplicates Found</span>
+            </div>
+            <div class="duplicate-stat">
+              <span class="duplicate-stat-value" id="dupStatSkipped">0</span>
+              <span class="duplicate-stat-label">Skipped</span>
+            </div>
+            <div class="duplicate-stat">
+              <span class="duplicate-stat-value" id="dupStatReplaced">0</span>
+              <span class="duplicate-stat-label">Replaced</span>
+            </div>
+          </div>
+          <div id="duplicateItemsContainer"></div>
+          <div class="duplicate-actions-global">
+            <button class="btn btn-success" id="applyAllSkipBtn"><i class="fas fa-forward"></i> Skip All</button>
+            <button class="btn btn-warning" id="applyAllReplaceBtn"><i class="fas fa-sync"></i> Replace All</button>
+            <button class="btn btn-accent" id="applyAllRenameBtn"><i class="fas fa-tag"></i> Rename All</button>
+            <button class="btn btn-success" id="finishImportBtn" style="margin-left:auto"><i class="fas fa-check"></i> Finish Import</button>
+          </div>
         </div>
       </div>
     </div>
@@ -594,6 +652,7 @@
   const modalBookmarkBtn = document.getElementById('modalBookmarkBtn');
   const editRecipeBtnModal = document.getElementById('editRecipeBtnModal');
   const deleteRecipeBtn = document.getElementById('deleteRecipeBtn');
+  const exportSingleRecipeBtn = document.getElementById('exportSingleRecipeBtn');
   const exportDataBtn = document.getElementById('exportDataBtn');
   const importDataBtn = document.getElementById('importDataBtn');
   const importFileInput = document.getElementById('importFileInput');
@@ -620,6 +679,17 @@
   const timerResetBtn = document.getElementById('timerResetBtn');
   const timerPresets = document.querySelectorAll('.timer-preset');
   const timerAlertInfo = document.getElementById('timerAlertInfo');
+  const duplicateModal = document.getElementById('duplicateModal');
+  const duplicateItemsContainer = document.getElementById('duplicateItemsContainer');
+  const closeDuplicateModalBtn = document.getElementById('closeDuplicateModalBtn');
+  const applyAllSkipBtn = document.getElementById('applyAllSkipBtn');
+  const applyAllReplaceBtn = document.getElementById('applyAllReplaceBtn');
+  const applyAllRenameBtn = document.getElementById('applyAllRenameBtn');
+  const finishImportBtn = document.getElementById('finishImportBtn');
+  const dupStatNew = document.getElementById('dupStatNew');
+  const dupStatDuplicates = document.getElementById('dupStatDuplicates');
+  const dupStatSkipped = document.getElementById('dupStatSkipped');
+  const dupStatReplaced = document.getElementById('dupStatReplaced');
 
   /* ==================== STATE ==================== */
   let categories = [];
@@ -635,6 +705,11 @@
   let editCurrentTags = [];
   let currentScale = 1;
   let imageObserver = null;
+
+  /* ==================== IMPORT STATE ==================== */
+  let pendingImportData = null;
+  let duplicateResolutions = {};
+  let importStats = { new: 0, duplicates: 0, skipped: 0, replaced: 0 };
 
   /* ==================== PERSISTENT TIMER STATE (GLOBAL) ==================== */
   let timerInterval = null;
@@ -832,7 +907,6 @@
     const trimmed = amountStr.trim();
     if (!trimmed) return { value: 0, original: '' };
 
-    // Check for mixed fraction: "1 1/2" or "2 3/4"
     const mixedMatch = trimmed.match(/^(\d+)\s+(\d+)\/(\d+)$/);
     if (mixedMatch) {
       const whole = parseInt(mixedMatch[1], 10);
@@ -843,7 +917,6 @@
       }
     }
 
-    // Check for simple fraction: "1/3" or "3/4"
     const fractionMatch = trimmed.match(/^(\d+)\/(\d+)$/);
     if (fractionMatch) {
       const num = parseInt(fractionMatch[1], 10);
@@ -853,7 +926,6 @@
       }
     }
 
-    // Check for decimal or whole number
     const numValue = parseFloat(trimmed);
     if (!isNaN(numValue)) {
       return { value: numValue, original: trimmed };
@@ -866,19 +938,16 @@
     const parsed = parseFractionAmount(originalAmount);
     if (parsed.value === 0 && !parsed.original) return '';
 
-    // If scale is 1x, always return the original amount string unchanged
     if (scale === 1) {
       return parsed.original;
     }
 
     const scaledValue = parsed.value * scale;
 
-    // Format the scaled value
     if (scaledValue % 1 === 0) {
       return scaledValue.toString();
     }
 
-    // Check if scaled value matches a common fraction
     const commonFractions = [
       { value: 0.125, display: '1/8' },
       { value: 0.25, display: '1/4' },
@@ -904,7 +973,6 @@
       }
     }
 
-    // Default to decimal with 2 decimal places
     return scaledValue.toFixed(2);
   }
 
@@ -1138,6 +1206,7 @@
 
     editRecipeBtnModal.addEventListener('click', () => { if (currentViewRecipe) showEditUI(currentViewRecipe); });
     deleteRecipeBtn.addEventListener('click', () => { if (currentViewRecipe) deleteRecipe(currentViewRecipe.id); });
+    exportSingleRecipeBtn.addEventListener('click', () => { if (currentViewRecipe) exportSingleRecipe(currentViewRecipe); });
     closeModalBtn.addEventListener('click', closeRecipeModal);
 
     recipeModal.addEventListener('click', e => {
@@ -1147,10 +1216,22 @@
     });
 
     exportDataBtn.addEventListener('click', () => {
-      if (confirm('Export recipes and categories?')) exportData();
+      if (confirm('Export all recipes and categories?')) exportData();
     });
     importDataBtn.addEventListener('click', () => importFileInput.click());
     importFileInput.addEventListener('change', handleImportFile);
+
+    closeDuplicateModalBtn.addEventListener('click', closeDuplicateModal);
+    applyAllSkipBtn.addEventListener('click', () => applyGlobalResolution('skip'));
+    applyAllReplaceBtn.addEventListener('click', () => applyGlobalResolution('replace'));
+    applyAllRenameBtn.addEventListener('click', () => applyGlobalResolution('rename'));
+    finishImportBtn.addEventListener('click', finalizeImport);
+
+    duplicateModal.addEventListener('click', e => {
+      if (e.target === duplicateModal) {
+        closeDuplicateModal();
+      }
+    });
 
     categoriesContainer.addEventListener('pointerup', function(e) {
       const remove = e.target.closest('.remove-category');
@@ -1260,6 +1341,7 @@
 
       if (e.key === 'Escape') {
         if (recipeModal.classList.contains('active')) closeRecipeModal();
+        else if (duplicateModal.classList.contains('active')) closeDuplicateModal();
         else if (addRecipeForm.style.display === 'block') hideAddRecipeForm();
         else if (editRecipeUI.style.display === 'block') hideEditUI();
         else if (imageZoomModal.classList.contains('active')) imageZoomModal.classList.remove('active');
@@ -2361,7 +2443,6 @@
         left.textContent = ing.name || '';
         const right = document.createElement('span');
 
-        // Use fraction-aware formatting - preserves original at 1x scale
         const displayAmount = formatScaledAmount(ing.amount || '', currentScale);
         let amountText = displayAmount ? `${displayAmount}${ing.unit ? ' ' + ing.unit : ''}` : (ing.unit || '');
 
@@ -2442,6 +2523,274 @@
     showToast('Recipe deleted', 'success');
   }
 
+  /* ==================== EXPORT SINGLE RECIPE ==================== */
+  function exportSingleRecipe(recipe) {
+    const data = {
+      recipes: [recipe],
+      categories: categories.filter(c => c === recipe.category),
+      exportedAt: new Date().toISOString(),
+      singleRecipeExport: true
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const safeName = recipe.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    a.download = `recipe-${safeName}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Recipe exported', 'success');
+  }
+
+  /* ==================== EXPORT ALL ==================== */
+  function exportData() {
+    const data = { categories, recipes, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'recipe-book-export-' + (new Date()).toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Export complete', 'success');
+  }
+
+  /* ==================== IMPORT WITH DUPLICATE HANDLING ==================== */
+  function handleImportFile(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const r = new FileReader();
+    r.onload = function(ev) {
+      try {
+        const parsed = JSON.parse(ev.target.result);
+        if (!parsed.recipes || !Array.isArray(parsed.recipes)) {
+          showToast('Invalid file format - no recipes found', 'error');
+          return;
+        }
+
+        // Merge categories
+        if (parsed.categories && Array.isArray(parsed.categories)) {
+          const newCategories = parsed.categories.filter(c => !categories.includes(c));
+          categories = [...categories, ...newCategories];
+        }
+
+        // Find duplicates (by title + category combination)
+        const existingKeys = new Set(recipes.map(r => `${r.title.toLowerCase()}|${r.category.toLowerCase()}`));
+        const duplicates = [];
+        const newRecipes = [];
+
+        parsed.recipes.forEach(recipe => {
+          const key = `${recipe.title.toLowerCase()}|${(recipe.category || 'uncategorized').toLowerCase()}`;
+          if (existingKeys.has(key)) {
+            duplicates.push(recipe);
+          } else {
+            newRecipes.push(recipe);
+          }
+        });
+
+        importStats = {
+          new: newRecipes.length,
+          duplicates: duplicates.length,
+          skipped: 0,
+          replaced: 0
+        };
+
+        // Add new recipes directly
+        newRecipes.forEach(recipe => {
+          recipe.id = 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
+          recipe.bookmarked = recipe.bookmarked || false;
+          recipe.ingredientStates = recipe.ingredientStates || (recipe.ingredients || []).map(() => '');
+          recipes.push(recipe);
+        });
+
+        if (duplicates.length === 0) {
+          // No duplicates - import complete
+          saveData();
+          populateCategoryDropdowns();
+          renderCategories();
+          renderRecipes();
+          showToast(`Import complete: ${newRecipes.length} recipe(s) added`, 'success');
+        } else {
+          // Show duplicate resolution modal
+          pendingImportData = { duplicates };
+          duplicateResolutions = {};
+          showDuplicateModal(duplicates);
+        }
+
+        e.target.value = '';
+      } catch (err) {
+        showToast('Invalid JSON file', 'error');
+        console.error(err);
+      }
+    };
+    r.readAsText(file);
+  }
+
+  function showDuplicateModal(duplicates) {
+    clearContainer(duplicateItemsContainer);
+
+    duplicates.forEach((recipe, index) => {
+      const existingRecipe = recipes.find(r =>
+        r.title.toLowerCase() === recipe.title.toLowerCase() &&
+        r.category.toLowerCase() === (recipe.category || 'uncategorized').toLowerCase()
+      );
+
+      const item = document.createElement('div');
+      item.className = 'duplicate-item';
+      item.innerHTML = `
+        <div class="duplicate-item-header">
+          <span class="duplicate-item-title">${escapeHtml(recipe.title)}</span>
+          <span class="duplicate-item-category">${escapeHtml(recipe.category || 'Uncategorized')}</span>
+        </div>
+        <div class="duplicate-actions">
+          <button class="btn btn-info" data-index="${index}" data-action="skip"><i class="fas fa-forward"></i> Skip</button>
+          <button class="btn btn-warning" data-index="${index}" data-action="replace"><i class="fas fa-sync"></i> Replace</button>
+          <button class="btn btn-accent" data-index="${index}" data-action="rename"><i class="fas fa-tag"></i> Rename</button>
+        </div>
+      `;
+      duplicateItemsContainer.appendChild(item);
+    });
+
+    updateDuplicateStats();
+    duplicateModal.classList.add('active');
+    duplicateModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function updateDuplicateStats() {
+    dupStatNew.textContent = importStats.new;
+    dupStatDuplicates.textContent = importStats.duplicates;
+    dupStatSkipped.textContent = importStats.skipped;
+    dupStatReplaced.textContent = importStats.replaced;
+  }
+
+  duplicateItemsContainer.addEventListener('click', function(e) {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+
+    const index = parseInt(btn.dataset.index, 10);
+    const action = btn.dataset.action;
+    const recipe = pendingImportData?.duplicates?.[index];
+
+    if (!recipe) return;
+
+    duplicateResolutions[index] = action;
+
+    if (action === 'skip') {
+      importStats.skipped++;
+    } else if (action === 'replace') {
+      importStats.replaced++;
+      const existingIdx = recipes.findIndex(r =>
+        r.title.toLowerCase() === recipe.title.toLowerCase() &&
+        r.category.toLowerCase() === (recipe.category || 'uncategorized').toLowerCase()
+      );
+      if (existingIdx >= 0) {
+        recipe.id = 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
+        recipe.bookmarked = recipe.bookmarked || false;
+        recipe.ingredientStates = recipe.ingredientStates || (recipe.ingredients || []).map(() => '');
+        recipes[existingIdx] = recipe;
+      }
+    } else if (action === 'rename') {
+      const baseName = recipe.title;
+      let newName = baseName;
+      let counter = 2;
+      while (recipes.some(r => r.title === newName)) {
+        newName = `${baseName} (${counter})`;
+        counter++;
+      }
+      recipe.title = newName;
+      recipe.id = 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
+      recipe.bookmarked = recipe.bookmarked || false;
+      recipe.ingredientStates = recipe.ingredientStates || (recipe.ingredients || []).map(() => '');
+      recipes.push(recipe);
+      importStats.new++;
+      showToast(`Renamed to "${newName}"`, 'info', 2000);
+    }
+
+    updateDuplicateStats();
+
+    // Remove the item from UI
+    btn.closest('.duplicate-item')?.remove();
+
+    // Check if all resolved
+    const remaining = duplicateItemsContainer.querySelectorAll('.duplicate-item').length;
+    if (remaining === 0) {
+      finishImportBtn.disabled = false;
+    }
+  });
+
+  function applyGlobalResolution(action) {
+    if (!pendingImportData?.duplicates) return;
+
+    pendingImportData.duplicates.forEach((recipe, index) => {
+      if (duplicateResolutions[index]) return; // Already resolved
+
+      duplicateResolutions[index] = action;
+
+      if (action === 'skip') {
+        importStats.skipped++;
+      } else if (action === 'replace') {
+        importStats.replaced++;
+        const existingIdx = recipes.findIndex(r =>
+          r.title.toLowerCase() === recipe.title.toLowerCase() &&
+          r.category.toLowerCase() === (recipe.category || 'uncategorized').toLowerCase()
+        );
+        if (existingIdx >= 0) {
+          recipe.id = 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
+          recipe.bookmarked = recipe.bookmarked || false;
+          recipe.ingredientStates = recipe.ingredientStates || (recipe.ingredients || []).map(() => '');
+          recipes[existingIdx] = recipe;
+        }
+      } else if (action === 'rename') {
+        const baseName = recipe.title;
+        let newName = baseName;
+        let counter = 2;
+        while (recipes.some(r => r.title === newName)) {
+          newName = `${baseName} (${counter})`;
+          counter++;
+        }
+        recipe.title = newName;
+        recipe.id = 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
+        recipe.bookmarked = recipe.bookmarked || false;
+        recipe.ingredientStates = recipe.ingredientStates || (recipe.ingredients || []).map(() => '');
+        recipes.push(recipe);
+        importStats.new++;
+      }
+    });
+
+    updateDuplicateStats();
+    clearContainer(duplicateItemsContainer);
+    showToast(`Applied "${action}" to all remaining duplicates`, 'info', 2000);
+  }
+
+  function finalizeImport() {
+    saveData();
+    populateCategoryDropdowns();
+    renderCategories();
+    renderRecipes();
+    closeDuplicateModal();
+
+    const totalAdded = importStats.new;
+    const totalSkipped = importStats.skipped;
+    const totalReplaced = importStats.replaced;
+
+    let message = `Import complete: ${totalAdded} new, ${totalReplaced} replaced, ${totalSkipped} skipped`;
+    showToast(message, 'success', 5000);
+
+    pendingImportData = null;
+    duplicateResolutions = {};
+  }
+
+  function closeDuplicateModal() {
+    duplicateModal.classList.remove('active');
+    duplicateModal.setAttribute('aria-hidden', 'true');
+    pendingImportData = null;
+    duplicateResolutions = {};
+  }
+
   /* ==================== COOK TIMER (PERSISTENT) ==================== */
   function updateTimerDisplay() {
     timerInput.value = formatTime(timerSeconds);
@@ -2457,7 +2806,7 @@
       gainNode.connect(audioContext.destination);
       oscillator.frequency.value = 880;
       oscillator.type = 'sine';
-      gainNode.gain.setValueAtTime(1.0, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.5);
@@ -2589,43 +2938,6 @@
     updateTimerDisplay();
     updateTimerToast();
     saveTimerState();
-  }
-
-  /* ==================== EXPORT / IMPORT ==================== */
-  function exportData() {
-    const data = { categories, recipes, exportedAt: new Date().toISOString() };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'recipe-book-export-' + (new Date()).toISOString().slice(0, 10) + '.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    showToast('Export complete', 'success');
-  }
-
-  function handleImportFile(e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const r = new FileReader();
-    r.onload = function(ev) {
-      try {
-        const parsed = JSON.parse(ev.target.result);
-        if (parsed.categories && Array.isArray(parsed.categories)) categories = parsed.categories;
-        if (parsed.recipes && Array.isArray(parsed.recipes)) recipes = parsed.recipes;
-        saveData();
-        populateCategoryDropdowns();
-        renderCategories();
-        renderRecipes();
-        showToast('Import complete', 'success');
-      } catch (err) {
-        showToast('Invalid JSON file', 'error');
-      }
-    };
-    r.readAsText(file);
-    e.target.value = '';
   }
 
   /* ==================== POINTER DRAG ==================== */
