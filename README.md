@@ -21,12 +21,12 @@
 - export to save them locally(in case of browser clear, or transfer to mobile)<br/>
 - import saved recipes if lost or transfer to mobile<br/>
 
-<img width="1675" height="942" alt="image" src="https://github.com/user-attachments/assets/f91a23b7-c6ae-47de-a9d6-44a426761e6f" />
+<img width="1920" height="964" alt="image" src="https://github.com/user-attachments/assets/83a76541-3433-48cb-98cd-3484679faa64" />
 
-<img width="1675" height="942" alt="image" src="https://github.com/user-attachments/assets/394d69de-aba0-4954-a7ce-4e2a15e8c58a" />
+<img width="1920" height="964" alt="image" src="https://github.com/user-attachments/assets/e6bf488b-3343-4e85-b5fe-63f69280b0d7" />
 
-<img width="1675" height="942" alt="image" src="https://github.com/user-attachments/assets/5af802d1-8cdd-4ed1-8eb3-0ad8d9a5d510" />
+<img width="1920" height="964" alt="image" src="https://github.com/user-attachments/assets/6f43859e-fd6a-43b4-b549-0b7a8d298a01" />
 
-<img width="1675" height="942" alt="image" src="https://github.com/user-attachments/assets/ced9ee2d-9b6b-4de6-85b6-fde211aae0ec" />
+<img width="1920" height="964" alt="image" src="https://github.com/user-attachments/assets/3929c0fb-4f1c-423b-81fe-26a6ab1cf100" />
 
 <img width="1675" height="942" alt="image" src="https://github.com/user-attachments/assets/78080b34-2996-4f2e-b115-b42bef7a7166" />
