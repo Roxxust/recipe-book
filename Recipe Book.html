@@ -722,6 +722,13 @@
   let timerAlertStartTime = 0;
   let timerToastElement = null;
   let timerLastSaved = Date.now();
+  let timerEndTime = null;
+  let wakeLock = null;
+  let audioContext = null;
+  // NEW: Smooth timer state
+  let lastDisplayedSecond = -1;
+  let timerAnimationFrame = null;
+  let timerBackgroundInterval = null;
 
   /* ==================== DESCRIPTION SCROLL CONFIG ==================== */
   const SCROLL_CONFIG = {
@@ -1024,6 +1031,7 @@
         timerRunning,
         timerAlertActive,
         timerAlertStartTime,
+        timerEndTime,
         timerLastSaved: Date.now()
       };
       localStorage.setItem('recipeBookTimerState', JSON.stringify(timerState));
@@ -1039,19 +1047,22 @@
 
       const state = JSON.parse(saved);
       const now = Date.now();
-      const elapsedSeconds = Math.floor((now - state.timerLastSaved) / 1000);
-
+      
       timerSeconds = state.timerSeconds;
       timerInitialSeconds = state.timerInitialSeconds;
       timerAlertActive = state.timerAlertActive || false;
       timerAlertStartTime = state.timerAlertStartTime || 0;
+      timerEndTime = state.timerEndTime || null;
+      lastDisplayedSecond = timerSeconds;
 
-      if (state.timerRunning && !state.timerAlertActive) {
-        timerSeconds = Math.max(0, timerSeconds - elapsedSeconds);
-        if (timerSeconds > 0) {
+      if (state.timerRunning && !state.timerAlertActive && timerEndTime) {
+        const remaining = Math.max(0, Math.floor((timerEndTime - now) / 1000));
+        if (remaining > 0) {
+          timerSeconds = remaining;
           timerRunning = true;
-          startTimerInterval();
+          startTimerLoop();
           updateTimerToast();
+          updateTimerDisplay();
           showToast('Timer restored', 'info', 3000);
         }
       }
@@ -1150,10 +1161,7 @@
 
   /* ==================== CLEANUP ON UNLOAD (MEMORY FIX) ==================== */
   function cleanupOnUnload() {
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
+    stopTimerLoop();
     if (timerAlertInterval) {
       clearInterval(timerAlertInterval);
       timerAlertInterval = null;
@@ -1172,6 +1180,11 @@
       stopDescriptionScroll(cardId);
     });
     descriptionScrollStates.clear();
+    
+    if (wakeLock) {
+      wakeLock.release().catch(() => {});
+      wakeLock = null;
+    }
   }
 
   window.addEventListener('beforeunload', cleanupOnUnload);
@@ -1314,6 +1327,7 @@
       if (parsed !== null) {
         timerSeconds = parsed;
         timerInitialSeconds = parsed;
+        lastDisplayedSecond = parsed;
         updateTimerDisplay();
         saveTimerState();
       }
@@ -1331,6 +1345,7 @@
         const minutes = parseInt(preset.dataset.minutes, 10);
         timerSeconds = minutes * 60;
         timerInitialSeconds = timerSeconds;
+        lastDisplayedSecond = timerSeconds;
         updateTimerDisplay();
         saveTimerState();
       });
@@ -1364,8 +1379,43 @@
     });
 
     setInterval(() => { if (timerRunning || timerAlertActive) saveTimerState(); }, 5000);
-    document.addEventListener('visibilitychange', () => {
-      if (timerRunning || timerAlertActive) saveTimerState();
+    
+    document.addEventListener('visibilitychange', async () => {
+      if (timerRunning || timerAlertActive) {
+        saveTimerState();
+        if (document.visibilityState === 'visible') {
+          if (timerEndTime && timerRunning) {
+            const now = Date.now();
+            const remaining = Math.max(0, Math.floor((timerEndTime - now) / 1000));
+            timerSeconds = remaining;
+            updateTimerDisplay();
+            updateTimerToast();
+          }
+          if (audioContext && audioContext.state === 'suspended') {
+            try {
+              await audioContext.resume();
+            } catch (e) {
+              console.warn('Failed to resume AudioContext', e);
+            }
+          }
+        }
+      }
+    });
+    
+    document.addEventListener('timerStateChanged', async () => {
+      if (timerRunning && 'wakeLock' in navigator) {
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+          wakeLock.addEventListener('release', () => {
+            wakeLock = null;
+          });
+        } catch (err) {
+          console.warn('Wake Lock not available:', err);
+        }
+      } else if (wakeLock) {
+        await wakeLock.release();
+        wakeLock = null;
+      }
     });
   }
 
@@ -2416,7 +2466,9 @@
       modalMeta.appendChild(metaItem);
     }
 
-    resetTimer();
+    updateTimerDisplay();
+    updateTimerToast();
+    
     openRecipeModal();
   }
 
@@ -2493,7 +2545,6 @@
     recipeModal.classList.remove('active');
     recipeModal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
-    pauseTimer();
     currentViewRecipe = null;
   }
 
@@ -2572,13 +2623,11 @@
           return;
         }
 
-        // Merge categories
         if (parsed.categories && Array.isArray(parsed.categories)) {
           const newCategories = parsed.categories.filter(c => !categories.includes(c));
           categories = [...categories, ...newCategories];
         }
 
-        // Find duplicates (by title + category combination)
         const existingKeys = new Set(recipes.map(r => `${r.title.toLowerCase()}|${r.category.toLowerCase()}`));
         const duplicates = [];
         const newRecipes = [];
@@ -2599,7 +2648,6 @@
           replaced: 0
         };
 
-        // Add new recipes directly
         newRecipes.forEach(recipe => {
           recipe.id = 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
           recipe.bookmarked = recipe.bookmarked || false;
@@ -2608,14 +2656,12 @@
         });
 
         if (duplicates.length === 0) {
-          // No duplicates - import complete
           saveData();
           populateCategoryDropdowns();
           renderCategories();
           renderRecipes();
           showToast(`Import complete: ${newRecipes.length} recipe(s) added`, 'success');
         } else {
-          // Show duplicate resolution modal
           pendingImportData = { duplicates };
           duplicateResolutions = {};
           showDuplicateModal(duplicates);
@@ -2711,11 +2757,7 @@
     }
 
     updateDuplicateStats();
-
-    // Remove the item from UI
     btn.closest('.duplicate-item')?.remove();
-
-    // Check if all resolved
     const remaining = duplicateItemsContainer.querySelectorAll('.duplicate-item').length;
     if (remaining === 0) {
       finishImportBtn.disabled = false;
@@ -2726,7 +2768,7 @@
     if (!pendingImportData?.duplicates) return;
 
     pendingImportData.duplicates.forEach((recipe, index) => {
-      if (duplicateResolutions[index]) return; // Already resolved
+      if (duplicateResolutions[index]) return;
 
       duplicateResolutions[index] = action;
 
@@ -2791,14 +2833,27 @@
     duplicateResolutions = {};
   }
 
-  /* ==================== COOK TIMER (PERSISTENT) ==================== */
+  /* ==================== COOK TIMER (SMOOTH & PERSISTENT) ==================== */
+  
+  function initAudioContext() {
+    if (!audioContext) {
+      try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) {
+        console.warn('AudioContext not supported', e);
+      }
+    }
+  }
+
   function updateTimerDisplay() {
     timerInput.value = formatTime(timerSeconds);
   }
 
   function playChime() {
     try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      initAudioContext();
+      if (!audioContext || audioContext.state === 'suspended') return;
+      
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -2884,24 +2939,54 @@
     }
   }
 
-  function startTimerInterval() {
-    if (timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-      if (timerSeconds > 0) {
-        timerSeconds--;
+  // NEW: Smooth timer loop with display throttling
+  function startTimerLoop() {
+    stopTimerLoop();
+    
+    timerEndTime = Date.now() + (timerSeconds * 1000);
+    lastDisplayedSecond = timerSeconds;
+    
+    function tick() {
+      if (!timerRunning) return;
+      
+      const now = Date.now();
+      const remaining = Math.max(0, Math.floor((timerEndTime - now) / 1000 + 0.01));
+      
+      if (remaining !== lastDisplayedSecond) {
+        timerSeconds = remaining;
+        lastDisplayedSecond = remaining;
         updateTimerDisplay();
         updateTimerToast();
-      } else {
-        if (timerInterval) {
-          clearInterval(timerInterval);
-          timerInterval = null;
-        }
+        saveTimerState();
+      }
+      
+      if (remaining <= 0) {
         timerRunning = false;
+        timerSeconds = 0;
         showToast('Timer complete!', 'success');
         startTimerAlert();
+        return;
       }
-      saveTimerState();
-    }, 1000);
+      
+      if (document.visibilityState === 'visible') {
+        timerAnimationFrame = requestAnimationFrame(tick);
+      } else {
+        timerBackgroundInterval = setInterval(tick, 250);
+      }
+    }
+    
+    tick();
+  }
+
+  function stopTimerLoop() {
+    if (timerAnimationFrame) {
+      cancelAnimationFrame(timerAnimationFrame);
+      timerAnimationFrame = null;
+    }
+    if (timerBackgroundInterval) {
+      clearInterval(timerBackgroundInterval);
+      timerBackgroundInterval = null;
+    }
   }
 
   function startTimer() {
@@ -2913,7 +2998,11 @@
     timerStartBtn.innerHTML = '<i class="fas fa-stop"></i>';
     timerStartBtn.classList.add('active');
     timerStartBtn.title = 'Stop';
-    startTimerInterval();
+    
+    initAudioContext();
+    document.dispatchEvent(new CustomEvent('timerStateChanged'));
+    
+    startTimerLoop();
     updateTimerToast();
     saveTimerState();
   }
@@ -2923,10 +3012,10 @@
     timerStartBtn.innerHTML = '<i class="fas fa-play"></i>';
     timerStartBtn.classList.remove('active');
     timerStartBtn.title = 'Start';
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
+    
+    stopTimerLoop();
+    document.dispatchEvent(new CustomEvent('timerStateChanged'));
+    
     updateTimerToast();
     saveTimerState();
   }
@@ -2935,6 +3024,7 @@
     stopTimerAlert();
     pauseTimer();
     timerSeconds = timerInitialSeconds;
+    lastDisplayedSecond = timerSeconds;
     updateTimerDisplay();
     updateTimerToast();
     saveTimerState();
