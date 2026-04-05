@@ -12,7 +12,7 @@
 - saving/exporting them locally
 - importing new recipes expands the recipe DB
 - export individual recipes
-- compatible with pc and mobile. <br/>
+- compatible with pc and mobile. (note: chime can't play while locked, timer will still countdown) <br/>
 
 #### how to use:
 - download recipe-book.html<br/>
