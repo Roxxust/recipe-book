@@ -1,26 +1,26 @@
 ##  recipe-book
-### Features:
-- images
+### Featuring:
 - adding/editing recipes
 - search
 - tags
 - favorites
 - scale recipes
+- timer
+- images
 - scrolling description
-- includes a timer
-- indexedDB for increased recipe capacity
-- saving/exporting them locally
-- importing new recipes expands the recipe DB
-- export individual recipes
-- compatible with pc and mobile.<br/> (note: chime can't play while mobile's locked, timer will still countdown, screen shouldn't sleep while timer is active) <br/>
+- indexedDB for browser storage
+- exporting all or individual recipes to save/share them
+- importing new/exported recipes
+- compatible with pc and mobile.<br/> 
+(note: chime can't play while mobile's locked, timer will still countdown, screen shouldn't sleep while timer is active) <br/>
 
 #### how to use:
 - download recipe-book.html<br/>
 - open in browser<br/>
 - edit/add new recipes as you desire<br/>
-- export to save them locally(in case of browser clear, or transfer to mobile)<br/>
-- import saved recipes if lost or transfer to mobile<br/>
-
+- export to save/share them locally(in case of browser clear or transfering to others/devices)<br/>
+- import saved recipes if lost or transfer to others/devices<br/>
+(note: importing attempts to expand the existing recipes with any new ones)
 <img width="1920" height="964" alt="image" src="https://github.com/user-attachments/assets/83a76541-3433-48cb-98cd-3484679faa64" />
 
 <img width="1920" height="964" alt="image" src="https://github.com/user-attachments/assets/a6182ee5-cdf8-480e-8fa0-93663dc8429e" />
