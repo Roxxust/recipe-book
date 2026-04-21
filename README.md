@@ -9,9 +9,9 @@
 - images
 - scrolling description
 - indexedDB for browser storage
-- exporting all or individual recipes to save/share them
-- importing new/exported recipes
-- compatible with pc and mobile.<br/> 
+- export all or individual recipes to save/share them
+- import new or exported recipes
+- compatible with pc and mobile<br/> 
 (note: chime can't play while mobile's locked, timer will still countdown, screen shouldn't sleep while timer is active) <br/>
 
 #### how to use:
