@@ -19,7 +19,7 @@
 - open in browser<br/>
 - edit/add new recipes as you desire<br/>
 - export to save/share them locally(in case of browser clear or transfering to others/devices)<br/>
-- import saved recipes if lost or transfer to others/devices<br/>
+- import saved recipes if lost or transfer from others/devices<br/>
 (note: importing attempts to expand the existing recipes with any new ones)
 <img width="1920" height="964" alt="image" src="https://github.com/user-attachments/assets/83a76541-3433-48cb-98cd-3484679faa64" />
 
