@@ -57,20 +57,19 @@ header h1{font-size:2rem;color:var(--accent);display:inline-flex;gap:8px;align-i
 .view-mode-btn.favorites-btn:hover{background:#d07a90}
 .view-mode-btn.favorites-btn.active{background:#e08aa0;color:#000}
 .recipes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
-
 /* MASSIVE PERFORMANCE BOOST: Native Virtualization */
 .recipe-card{
-    background:var(--card-bg);
-    border-radius:12px;
-    border:1px solid var(--border);
-    overflow:hidden;
-    cursor:pointer;
-    transition:transform .16s, border-color 0.2s;
-    position:relative;
-    display:flex;
-    flex-direction:column;
-    content-visibility: auto;
-    contain-intrinsic-size: 240px 380px;
+background:var(--card-bg);
+border-radius:12px;
+border:1px solid var(--border);
+overflow:hidden;
+cursor:pointer;
+transition:transform .16s, border-color 0.2s;
+position:relative;
+display:flex;
+flex-direction:column;
+content-visibility: auto;
+contain-intrinsic-size: 240px 380px;
 }
 .recipe-card:hover{transform:translateY(-6px);border-color:var(--accent)}
 .recipe-bookmark{position:absolute;top:8px;right:8px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;transition:all 0.2s}
@@ -1082,6 +1081,7 @@ const recipesData = await dbWrapper.getAll(STORE_RECIPES);
 if (!recipesData || recipesData.length === 0) return;
 let migrated = 0;
 for (const recipe of recipesData) {
+let modified = false;
 if (recipe.image && typeof recipe.image === 'string' && recipe.image.startsWith('data:image/')) {
 try {
 const blob = dataURLtoBlob(recipe.image);
@@ -1090,6 +1090,7 @@ await dbWrapper.put(STORE_IMAGES, { id: fullId, blob: blob, recipeId: recipe.id 
 recipe.imageId = fullId;
 delete recipe.image;
 migrated++;
+modified = true;
 } catch (e) { console.warn('Failed to migrate image for recipe', recipe.id, e); }
 }
 if (recipe.imageId && !recipe.thumbId) {
@@ -1100,9 +1101,10 @@ const thumbId = recipe.imageId.replace('_full', '_thumb');
 await dbWrapper.put(STORE_IMAGES, { id: thumbId, blob: thumbBlob, recipeId: recipe.id });
 recipe.thumbId = thumbId;
 migrated++;
+modified = true;
 }
 }
-if (migrated > 0) await dbWrapper.put(STORE_RECIPES, recipe);
+if (modified) await dbWrapper.put(STORE_RECIPES, recipe);
 }
 if (migrated > 0) showToast(`Optimized ${migrated} images for performance`, 'info', 3000);
 } catch (e) { console.warn('Image migration failed', e); }
@@ -2552,7 +2554,7 @@ for (let i = 0; i < imageEntries.length; i += CHUNK) {
 await dbWrapper.putBulk(STORE_IMAGES, imageEntries.slice(i, i + CHUNK));
 }
 }
-processImportedRecipes(metadata.recipes, metadata.categories);
+await processImportedRecipes(metadata.recipes, metadata.categories);
 } catch (err) {
 console.error(err);
 showToast('Failed to extract ZIP archive', 'error');
@@ -2564,7 +2566,7 @@ r.onload = async function(ev) {
 try {
 const parsed = JSON.parse(ev.target.result);
 if (!parsed.recipes || !Array.isArray(parsed.recipes)) { showToast('Invalid file format - no recipes found', 'error'); return; }
-processImportedRecipes(parsed.recipes, parsed.categories);
+await processImportedRecipes(parsed.recipes, parsed.categories);
 } catch (err) { showToast('Invalid JSON file', 'error'); console.error(err); }
 };
 r.readAsText(file);
@@ -2579,8 +2581,12 @@ const duplicates = [];
 const newRecipes = [];
 importedRecipes.forEach(recipe => {
 const key = `${recipe.title.toLowerCase()}|${(recipe.category || 'uncategorized').toLowerCase()}`;
-if (existingKeys.has(key)) duplicates.push(recipe);
-else newRecipes.push(recipe);
+if (existingKeys.has(key)) {
+duplicates.push(recipe);
+} else {
+newRecipes.push(recipe);
+existingKeys.add(key);
+}
 });
 importStats = { new: newRecipes.length, duplicates: duplicates.length, skipped: 0, replaced: 0 };
 showToast('Processing imported images...', 'info', 2000);
@@ -2593,10 +2599,12 @@ await migrateRecipeImage(recipe);
 }
 recipes.push(recipe);
 }
-if (duplicates.length === 0) {
+if (newRecipes.length > 0) {
 if (dbWrapper.db) await dbWrapper.putBulk(STORE_RECIPES, newRecipes);
 else await saveAllToLocalStorage();
+}
 await saveCategoriesToDB();
+if (duplicates.length === 0) {
 populateCategoryDropdowns();
 renderCategories();
 renderRecipes();
