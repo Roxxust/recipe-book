@@ -40,9 +40,6 @@ header h1{font-size:2rem;color:var(--accent);display:inline-flex;gap:8px;align-i
 .btn-warning{background:var(--warning);color:#000;border:none}
 .btn-info{background:var(--info);color:#000;border:none}
 .btn-info.active{background:var(--danger);color:#000}
-.btn-favorites{background:#e08aa0;color:#000;border:none}
-.btn-favorites:hover{background:#d07a90}
-.btn-favorites.active{background:#e08aa0;color:#000}
 .category-filter{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--card-bg);padding:8px;border-radius:10px;border:1px solid var(--border);width:100%}
 .categories-container{display:flex;gap:8px;flex-wrap:wrap}
 .category-tag{background:#212121;padding:6px 8px;border-radius:18px;border:1px solid var(--border);cursor:pointer;display:inline-flex;align-items:center;gap:8px;color:var(--text);font-size:.9rem;transition:all 0.2s}
@@ -57,7 +54,6 @@ header h1{font-size:2rem;color:var(--accent);display:inline-flex;gap:8px;align-i
 .view-mode-btn.favorites-btn:hover{background:#d07a90}
 .view-mode-btn.favorites-btn.active{background:#e08aa0;color:#000}
 .recipes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
-/* MASSIVE PERFORMANCE BOOST: Native Virtualization */
 .recipe-card{
 background:var(--card-bg);
 border-radius:12px;
@@ -213,7 +209,6 @@ min-width: 24px;
 .scaling-btn{padding:8px 14px;border-radius:6px;background:#2a2a2a;border:none;color:var(--text);cursor:pointer;font-size:.9rem;transition:all 0.2s}
 .scaling-btn:hover{background:var(--accent);color:#000}
 .scaling-btn.active{background:var(--accent);color:#000}
-.scaling-display{color:var(--text);font-weight:bold;min-width:60px;text-align:center}
 .timer-section{margin-top:12px;padding:12px;background:#202020;border-radius:10px}
 .timer-display{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .timer-input-group{display:flex;align-items:center;gap:4px;background:#151515;border:1px solid var(--border);border-radius:8px;padding:6px 10px}
@@ -223,8 +218,6 @@ min-width: 24px;
 .timer-segment-input:hover{border-color:var(--accent)}
 .timer-separator{color:var(--text-secondary);font-size:1.2rem;font-weight:bold;margin:0 2px}
 .timer-segment-label{font-size:0.6rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
-.timer-input{width:120px;padding:10px;border-radius:8px;background:#151515;border:1px solid var(--border);color:var(--text);text-align:center;font-size:1.1rem;font-variant-numeric:tabular-nums}
-.timer-input:focus{border-color:var(--accent);outline:none}
 .timer-btn{width:44px;height:44px;border-radius:8px;background:#2a2a2a;border:none;color:var(--text);cursor:pointer;font-size:1rem;transition:all 0.2s;display:flex;align-items:center;justify-content:center}
 .timer-btn:hover{background:var(--accent);color:#000}
 .timer-btn.active{background:var(--success);color:#000}
@@ -314,7 +307,6 @@ textarea{min-height:90px;resize:vertical}
 .remove-ingredient{width:34px;height:34px}
 .view-mode-toggle{display:flex;gap:6px}
 .scaling-controls{justify-content:center}
-.timer-input{width:110px}
 .timer-segment-input{width:38px;height:36px;font-size:1rem}
 .timer-input-group{padding:4px 8px}
 }
@@ -495,7 +487,6 @@ color: var(--text-secondary);
 <span class="timer-segment-label">sec</span>
 </div>
 </div>
-<input type="hidden" id="timerInput" value="00:00:00">
 <button class="timer-btn" id="timerStartBtn" title="Start"><i class="fas fa-play"></i></button>
 <button class="timer-btn" id="timerResetBtn" title="Reset"><i class="fas fa-redo"></i></button>
 </div>
@@ -752,7 +743,6 @@ const scale1xBtn = document.getElementById('scale1xBtn');
 const scale2xBtn = document.getElementById('scale2xBtn');
 const scale3xBtn = document.getElementById('scale3xBtn');
 const scale4xBtn = document.getElementById('scale4xBtn');
-const timerInput = document.getElementById('timerInput');
 const timerHours = document.getElementById('timerHours');
 const timerMinutes = document.getElementById('timerMinutes');
 const timerSeconds = document.getElementById('timerSeconds');
@@ -810,7 +800,6 @@ recipeBlobUrls.clear();
 let pendingImportData = null;
 let duplicateResolutions = {};
 let importStats = { new: 0, duplicates: 0, skipped: 0, replaced: 0 };
-let timerInterval = null;
 let timerSecondsTotal = 0;
 let timerInitialSeconds = 0;
 let timerRunning = false;
@@ -819,7 +808,6 @@ let timerAlertActive = false;
 let timerAlertDuration = 120000;
 let timerAlertStartTime = 0;
 let timerToastElement = null;
-let timerLastSaved = Date.now();
 let timerEndTime = null;
 let wakeLock = null;
 let audioContext = null;
@@ -1039,7 +1027,6 @@ clearContainer(editIngredientsContainer);
 addIngredientField(editIngredientsContainer);
 initImageObserver();
 updateScaleButtons();
-updateTimerDisplay();
 await restoreTimerState();
 initTimerSegmentInputs();
 descriptionScrollObserver.observe(document.body, { childList: true, subtree: true });
@@ -1172,7 +1159,6 @@ if (totalSeconds > maxSeconds) totalSeconds = maxSeconds;
 timerSecondsTotal = totalSeconds;
 timerInitialSeconds = totalSeconds;
 lastDisplayedSecond = totalSeconds;
-updateTimerInput();
 saveTimerState();
 }
 function updateTimerSegments() {
@@ -1188,14 +1174,13 @@ timerSecondsTotal = seconds;
 timerInitialSeconds = seconds;
 lastDisplayedSecond = seconds;
 updateTimerSegments();
-updateTimerInput();
 saveTimerState();
 }
 async function saveTimerState() {
 try {
 const timerState = {
 timerSeconds: timerSecondsTotal, timerInitialSeconds, timerRunning, timerAlertActive,
-timerAlertStartTime, timerEndTime, timerLastSaved: Date.now()
+timerAlertStartTime, timerEndTime
 };
 localStorage.setItem('recipeBookTimerState', JSON.stringify(timerState));
 } catch (e) { console.warn('Failed to save timer state', e); }
@@ -1234,7 +1219,6 @@ startTimerAlert();
 updateTimerToast();
 } else { timerAlertActive = false; updateTimerToast(); }
 }
-updateTimerDisplay();
 } catch (e) { console.warn('Failed to restore timer state', e); }
 }
 async function migrateFromLocalStorage() {
@@ -1334,7 +1318,25 @@ const recipe = recipes.find(r => r.id === id);
 if (recipe) {
 recipe.bookmarked = !recipe.bookmarked;
 await saveRecipeToDB(recipe);
-renderRecipes();
+if (showFavoritesOnly && !recipe.bookmarked) {
+const card = bookmark.closest('.recipe-card');
+if (card) {
+stopDescriptionScroll(id);
+revokeCardBlob(id + '_card');
+card.remove();
+}
+filteredRecipes = filteredRecipes.filter(r => r.id !== id);
+if (filteredRecipes.length === 0) {
+emptyState.style.display = 'block';
+recipesGrid.style.display = 'none';
+}
+} else {
+updateBookmarkInDOM(id, recipe.bookmarked);
+}
+if (currentViewRecipe && currentViewRecipe.id === id) {
+currentViewRecipe.bookmarked = recipe.bookmarked;
+modalBookmarkBtn.innerHTML = recipe.bookmarked ? '<i class="fas fa-heart" style="color:#000"></i>' : '<i class="far fa-heart"></i>';
+}
 showToast(recipe.bookmarked ? 'Added to favorites' : 'Removed from favorites', 'info');
 }
 return;
@@ -1459,7 +1461,6 @@ const now = Date.now();
 const remaining = Math.max(0, Math.floor((timerEndTime - now) / 1000));
 timerSecondsTotal = remaining;
 updateTimerSegments();
-updateTimerDisplay();
 updateTimerToast();
 }
 if (audioContext && audioContext.state === 'suspended') {
@@ -1475,6 +1476,17 @@ wakeLock = await navigator.wakeLock.request('screen');
 wakeLock.addEventListener('release', () => { wakeLock = null; });
 } catch (err) { console.warn('Wake Lock not available:', err); }
 } else if (wakeLock) { await wakeLock.release(); wakeLock = null; }
+});
+}
+function updateBookmarkInDOM(id, isBookmarked) {
+const cards = document.querySelectorAll(`.recipe-card[data-id="${id}"]`);
+cards.forEach(card => {
+const bookmarkBtn = card.querySelector('.recipe-bookmark');
+if (bookmarkBtn) {
+bookmarkBtn.classList.toggle('active', isBookmarked);
+bookmarkBtn.innerHTML = isBookmarked ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>';
+bookmarkBtn.title = isBookmarked ? 'Remove from favorites' : 'Add to favorites';
+}
 });
 }
 function initImageObserver() {
@@ -1683,28 +1695,6 @@ const later = () => { clearTimeout(timeout); func(...args); };
 clearTimeout(timeout);
 timeout = setTimeout(later, wait);
 };
-}
-function parseTimerInput(value) {
-if (!value) return null;
-value = value.trim();
-const parts = value.split(':').map(p => p.trim());
-if (parts.length === 3) {
-const [h, m, s] = parts.map(p => parseInt(p, 10));
-if (!isNaN(h) && !isNaN(m) && !isNaN(s) && h >= 0 && m >= 0 && s >= 0) return h * 3600 + m * 60 + s;
-} else if (parts.length === 2) {
-const [m, s] = parts.map(p => parseInt(p, 10));
-if (!isNaN(m) && !isNaN(s) && m >= 0 && s >= 0) return m * 60 + s;
-} else if (parts.length === 1) {
-const num = parseInt(parts[0], 10);
-if (!isNaN(num) && num > 0) return num > 60 ? num * 60 : num;
-}
-return null;
-}
-function formatTimeDisplay(seconds) {
-const h = Math.floor(seconds / 3600);
-const m = Math.floor((seconds % 3600) / 60);
-const s = seconds % 60;
-return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 function formatTime(seconds) {
 const h = Math.floor(seconds / 3600);
@@ -2315,7 +2305,6 @@ metaItem.appendChild(icon);
 metaItem.appendChild(document.createTextNode(' ' + escapeHtml(recipe.detailType) + ': ' + escapeHtml(recipe.detailValue)));
 modalMeta.appendChild(metaItem);
 }
-updateTimerDisplay();
 updateTimerToast();
 openRecipeModal();
 }
@@ -2363,7 +2352,21 @@ if (!currentViewRecipe) return;
 currentViewRecipe.bookmarked = !currentViewRecipe.bookmarked;
 await saveRecipeToDB(currentViewRecipe);
 modalBookmarkBtn.innerHTML = currentViewRecipe.bookmarked ? '<i class="fas fa-heart" style="color:#000"></i>' : '<i class="far fa-heart"></i>';
-renderRecipes();
+if (showFavoritesOnly && !currentViewRecipe.bookmarked) {
+const card = document.querySelector(`.recipe-card[data-id="${currentViewRecipe.id}"]`);
+if (card) {
+stopDescriptionScroll(currentViewRecipe.id);
+revokeCardBlob(currentViewRecipe.id + '_card');
+card.remove();
+}
+filteredRecipes = filteredRecipes.filter(r => r.id !== currentViewRecipe.id);
+if (filteredRecipes.length === 0) {
+emptyState.style.display = 'block';
+recipesGrid.style.display = 'none';
+}
+} else {
+updateBookmarkInDOM(currentViewRecipe.id, currentViewRecipe.bookmarked);
+}
 showToast(currentViewRecipe.bookmarked ? 'Added to favorites' : 'Removed from favorites', 'info');
 }
 function openRecipeModal() {
@@ -2388,8 +2391,18 @@ if (recipe.thumbId && dbWrapper.db) await dbWrapper.delete(STORE_IMAGES, recipe.
 }
 recipes = recipes.filter(r => r.id !== id);
 await deleteRecipeFromDB(id);
+const card = document.querySelector(`.recipe-card[data-id="${id}"]`);
+if (card) {
+stopDescriptionScroll(id);
+revokeCardBlob(id + '_card');
+card.remove();
+}
+filteredRecipes = filteredRecipes.filter(r => r.id !== id);
+if (filteredRecipes.length === 0) {
+emptyState.style.display = 'block';
+recipesGrid.style.display = 'none';
+}
 renderCategories();
-renderRecipes();
 closeRecipeModal();
 hideEditUI();
 showToast('Recipe deleted', 'success');
@@ -2749,7 +2762,6 @@ if (!audioContext) {
 try { audioContext = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { console.warn('AudioContext not supported', e); }
 }
 }
-function updateTimerDisplay() { if (timerInput) timerInput.value = formatTimeDisplay(timerSecondsTotal); }
 function playChime() {
 try {
 initAudioContext();
@@ -2828,7 +2840,6 @@ if (remaining !== lastDisplayedSecond) {
 timerSecondsTotal = remaining;
 lastDisplayedSecond = remaining;
 updateTimerSegments();
-updateTimerDisplay();
 updateTimerToast();
 saveTimerState();
 }
@@ -2877,7 +2888,6 @@ pauseTimer();
 timerSecondsTotal = timerInitialSeconds;
 lastDisplayedSecond = timerSecondsTotal;
 updateTimerSegments();
-updateTimerDisplay();
 updateTimerToast();
 saveTimerState();
 }
