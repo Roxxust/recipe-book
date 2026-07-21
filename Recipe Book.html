@@ -201,6 +201,14 @@ color: var(--accent);
 margin-right: 10px;
 min-width: 24px;
 }
+.instructions-list li.instruction-separator {
+counter-increment: none;
+margin: 20px 0;
+min-height: 1px;
+}
+.instructions-list li.instruction-separator::before {
+content: none;
+}
 .ingredients-list li{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--border);transition:all .12s;cursor:pointer;flex-wrap:wrap}
 .ingredients-list li.state-added{background:rgba(47,224,198,.06);border-left:4px solid var(--success)}
 .ingredients-list li .converted-amount{color:var(--text-secondary);font-size:.85rem;margin-left:8px;padding:2px 6px;background:#1a1a1a;border-radius:4px}
@@ -568,6 +576,10 @@ result = result.replace(/\*(.+?)\*/g, '<em>$1</em>');
 result = result.replace(/_(.+?)_/g, '<em>$1</em>');
 result = result.replace(/`(.+?)`/g, '<code>$1</code>');
 return result;
+}
+function textToHtml(text) {
+if (!text) return '';
+return escapeHtml(text).replace(/\n/g, '<br>');
 }
 const DB_NAME = 'RecipeBookDB';
 const DB_VERSION = 2;
@@ -1765,8 +1777,8 @@ if (!descContainer || !descEl) return;
 stopDescriptionScroll(cardId);
 const textContent = description || '';
 const charThreshold = currentViewMode === 'list' ? SCROLL_CONFIG.listCharThreshold : SCROLL_CONFIG.gridCharThreshold;
-if (textContent.length <= charThreshold) { descEl.textContent = textContent; descEl.style.transform = ''; return; }
-descEl.textContent = textContent;
+if (textContent.length <= charThreshold) { descEl.innerHTML = textToHtml(textContent); descEl.style.transform = ''; return; }
+descEl.innerHTML = textToHtml(textContent);
 requestAnimationFrame(() => {
 requestAnimationFrame(() => {
 const containerHeight = descContainer.clientHeight;
@@ -1927,7 +1939,7 @@ const descContainer = document.createElement('div');
 descContainer.className = 'recipe-description-container';
 const descP = document.createElement('p');
 descP.className = 'recipe-description';
-descP.textContent = r.description || 'Delicious recipe ready to try!';
+descP.innerHTML = textToHtml(r.description) || 'Delicious recipe ready to try!';
 descContainer.appendChild(descP);
 topDiv.appendChild(descContainer);
 const metaDiv = document.createElement('div');
@@ -2141,7 +2153,7 @@ if (!hasAny) { showToast('Please add at least one ingredient', 'warning'); retur
 const newRecipe = {
 id: 'r_' + Date.now().toString(36),
 title, description, category, tags: [...currentTags], ingredients,
-instructions: instructions ? instructions.split('\n').filter(line => line.trim() !== '') : [],
+instructions: instructions ? instructions.split('\n') : [],
 time, temp, detailType, detailValue,
 ingredientStates: ingredients.map(() => ''), bookmarked: false
 };
@@ -2184,7 +2196,7 @@ recipe.description = editRecipeDescription.value.trim();
 recipe.category = editRecipeCategory.value;
 recipe.tags = [...editCurrentTags];
 const instr = editRecipeInstructions.value.trim();
-recipe.instructions = instr ? instr.split('\n').filter(line => line.trim() !== '') : [];
+recipe.instructions = instr ? instr.split('\n') : [];
 recipe.time = editRecipeTime.value.trim();
 recipe.temp = editRecipeTemp.value.trim();
 recipe.detailType = editRecipeDetailType.value;
@@ -2267,13 +2279,17 @@ modalRecipeImageIcon.style.display = 'none';
 modalRecipeImageElement.style.display = 'none';
 modalRecipeImageIcon.style.display = 'block';
 }
-modalRecipeDescription.textContent = recipe.description || '';
+modalRecipeDescription.innerHTML = textToHtml(recipe.description);
 updateScaledIngredients();
 clearContainer(modalInstructionsList);
 if (recipe.instructions && recipe.instructions.length > 0) {
-recipe.instructions.filter(step => step && step.trim() !== '').forEach(step => {
+recipe.instructions.forEach(step => {
 const li = document.createElement('li');
+if (step && step.trim() !== '') {
 li.innerHTML = parseInlineMarkdown(step);
+} else {
+li.className = 'instruction-separator';
+}
 modalInstructionsList.appendChild(li);
 });
 }
@@ -2324,7 +2340,9 @@ const left = document.createElement('span');
 left.textContent = ing.name || '';
 const right = document.createElement('span');
 const displayAmount = formatScaledAmount(ing.amount || '', currentScale);
-let amountText = displayAmount ? `${displayAmount}${ing.unit ? ' ' + ing.unit : ''}` : (ing.unit || '');
+const unitText = ing.unit || '';
+const baseText = displayAmount ? `${displayAmount}${unitText ? ' ' + unitText : ''}` : unitText;
+right.textContent = baseText;
 if (ing.amount && ing.unit) {
 const parsed = parseFractionAmount(ing.amount);
 if (parsed.value > 0) {
@@ -2335,11 +2353,14 @@ const convertedNum = parseFloat(convertedParts[0]) || 0;
 const convertedUnit = convertedParts.slice(1).join(' ');
 const scaledConvertedAmount = convertedNum * currentScale;
 const scaledConverted = `${formatConversionAmount(scaledConvertedAmount)} ${convertedUnit}`;
-amountText += ` <span class="converted-amount">(${scaledConverted})</span>`;
+const convertedSpan = document.createElement('span');
+convertedSpan.className = 'converted-amount';
+convertedSpan.textContent = `(${scaledConverted})`;
+right.appendChild(document.createTextNode(' '));
+right.appendChild(convertedSpan);
 }
 }
 }
-right.innerHTML = amountText;
 li.appendChild(left);
 li.appendChild(right);
 if (currentViewRecipe.ingredientStates[idx] === 'state-added') li.classList.add('state-added');
