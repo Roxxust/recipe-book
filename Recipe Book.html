@@ -31,6 +31,7 @@ header h1{font-size:2rem;color:var(--accent);display:inline-flex;gap:8px;align-i
 .button-controls{display:flex;gap:10px;flex-wrap:wrap}
 .btn{background:var(--card-bg);border:1px solid var(--border);padding:10px 14px;border-radius:8px;color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:8px;touch-action:manipulation;transition:all 0.2s}
 .btn:hover{background:#2a2a2a}
+.btn:disabled{opacity:.5;cursor:not-allowed}
 .btn-accent{background:var(--accent);color:#000;border:none}
 .btn-accent:hover{background:#5aa5f0}
 .btn-success{background:var(--success);color:#000;border:none}
@@ -409,7 +410,7 @@ color: var(--text-secondary);
 <div class="label-hint"><i class="fas fa-info-circle"></i> Separate tags with commas</div>
 </div>
 <div class="form-group"><label>Ingredients</label><div id="addIngredientsContainer"></div><button type="button" class="add-ingredient-btn" id="addAddIngredientBtn"><i class="fas fa-plus"></i> Add Ingredient</button></div>
-<div class="form-group"><label>Instructions</label><textarea id="addRecipeInstructions" placeholder="One step per line. Supports **bold**, *italic*, - lists"></textarea></div>
+<div class="form-group"><label>Instructions</label><textarea id="addRecipeInstructions" placeholder="One step per line. Supports **bold**, *italic*, `code`"></textarea></div>
 <div style="display:flex;gap:10px"><div style="flex:1"><label>Temperature</label><input id="addRecipeTemp" placeholder="e.g., 350"></div><div style="flex:1"><label>Cook time</label><input id="addRecipeTime" placeholder="e.g., 25"></div></div>
 <div style="display:flex;gap:10px;margin-top:10px"><div style="flex:1"><label>Detail type</label><select id="addRecipeDetailType"><option value="">None</option><option value="servings">Servings</option><option value="makes">Makes</option><option value="pans">Pans</option></select></div><div style="flex:1"><label>Value</label><input id="addRecipeDetailValue"></div></div>
 <div class="form-actions"><button type="button" class="btn" id="cancelAddRecipeBtn">Cancel</button><button type="submit" class="btn btn-accent">Save</button></div>
@@ -439,7 +440,7 @@ color: var(--text-secondary);
 <div class="label-hint"><i class="fas fa-info-circle"></i> Separate tags with commas</div>
 </div>
 <div class="form-group"><label>Ingredients</label><div id="editIngredientsContainer"></div><button type="button" class="add-ingredient-btn" id="addEditIngredientBtn"><i class="fas fa-plus"></i> Add Ingredient</button></div>
-<div class="form-group"><label>Instructions</label><textarea id="editRecipeInstructions" placeholder="One step per line. Supports **bold**, *italic*, - lists"></textarea></div>
+<div class="form-group"><label>Instructions</label><textarea id="editRecipeInstructions" placeholder="One step per line. Supports **bold**, *italic*, `code`"></textarea></div>
 <div style="display:flex;gap:10px"><div style="flex:1"><label>Temperature</label><input id="editRecipeTemp" placeholder="e.g., 350"></div><div style="flex:1"><label>Cook time</label><input id="editRecipeTime" placeholder="e.g., 25"></div></div>
 <div style="display:flex;gap:10px;margin-top:10px"><div style="flex:1"><label>Detail type</label><select id="editRecipeDetailType"><option value="">None</option><option value="servings">Servings</option><option value="makes">Makes</option><option value="pans">Pans</option></select></div><div style="flex:1"><label>Value</label><input id="editRecipeDetailValue"></div></div>
 <div class="form-actions"><button type="button" class="btn" id="cancelEditBtn">Cancel</button><button type="submit" class="btn btn-accent">Save</button></div>
@@ -554,7 +555,7 @@ color: var(--text-secondary);
 <button class="btn btn-success" id="applyAllSkipBtn"><i class="fas fa-forward"></i> Skip All</button>
 <button class="btn btn-warning" id="applyAllReplaceBtn"><i class="fas fa-sync"></i> Replace All</button>
 <button class="btn btn-accent" id="applyAllRenameBtn"><i class="fas fa-tag"></i> Rename All</button>
-<button class="btn btn-success" id="finishImportBtn" style="margin-left:auto"><i class="fas fa-check"></i> Finish Import</button>
+<button class="btn btn-success" id="finishImportBtn" style="margin-left:auto" disabled><i class="fas fa-check"></i> Finish Import</button>
 </div>
 </div>
 </div>
@@ -563,7 +564,7 @@ color: var(--text-secondary);
 <button class="image-zoom-close" id="imageZoomClose">&times;</button>
 <img id="imageZoomImg" alt="zoomed recipe image">
 </div>
-<div class="toast-container" id="toastContainer"></div>
+<div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="false"></div>
 <input type="file" id="importFileInput" accept=".json,.zip" style="display:none">
 </div>
 <script>
@@ -781,34 +782,13 @@ let currentFilterCategory = 'all';
 let currentViewMode = 'grid';
 let addRecipeImageFile = null;
 let editRecipeImageFile = null;
-let editRecipeOldImage = null;
+let editImageAction = 'unchanged';
 let showFavoritesOnly = false;
 let currentTags = [];
 let editCurrentTags = [];
 let currentScale = 1;
-let imageObserver = null;
 const BATCH_SIZE = 50;
 const recipeBlobUrls = new Map();
-function createObjectURL(blob, key) {
-const url = URL.createObjectURL(blob);
-const oldUrl = recipeBlobUrls.get(key);
-if (oldUrl) URL.revokeObjectURL(oldUrl);
-recipeBlobUrls.set(key, url);
-return url;
-}
-function revokeCardBlob(key) {
-const url = recipeBlobUrls.get(key);
-if (url) {
-URL.revokeObjectURL(url);
-recipeBlobUrls.delete(key);
-}
-}
-function revokeAllObjectURLs() {
-recipeBlobUrls.forEach(url => {
-try { URL.revokeObjectURL(url); } catch (e) {}
-});
-recipeBlobUrls.clear();
-}
 let pendingImportData = null;
 let duplicateResolutions = {};
 let importStats = { new: 0, duplicates: 0, skipped: 0, replaced: 0 };
@@ -828,6 +808,11 @@ let timerAnimationFrame = null;
 let timerBackgroundInterval = null;
 let timerInputDirection = 'right';
 let timerFirstInputField = null;
+let infiniteScrollObserver = null;
+let currentRenderRequestId = 0;
+let currentSearchRequestId = 0;
+const pendingSearchResolvers = new Map();
+let lastFocusedElement = null;
 const SCROLL_CONFIG = {
 scrollSpeed: 28,
 resetSpeed: 180,
@@ -859,11 +844,58 @@ revokeCardBlob(cardId + '_card');
 });
 });
 let searchWorker = null;
-let pendingSearchResolve = null;
+function createObjectURL(blob, key) {
+const url = URL.createObjectURL(blob);
+const oldUrl = recipeBlobUrls.get(key);
+if (oldUrl) URL.revokeObjectURL(oldUrl);
+recipeBlobUrls.set(key, url);
+return url;
+}
+function revokeCardBlob(key) {
+const url = recipeBlobUrls.get(key);
+if (url) {
+URL.revokeObjectURL(url);
+recipeBlobUrls.delete(key);
+}
+}
+function revokeCardObjectURLs() {
+recipeBlobUrls.forEach((url, key) => {
+if (key.endsWith('_card')) {
+try { URL.revokeObjectURL(url); } catch (e) {}
+recipeBlobUrls.delete(key);
+}
+});
+}
+function revokeAllObjectURLs() {
+recipeBlobUrls.forEach(url => {
+try { URL.revokeObjectURL(url); } catch (e) {}
+});
+recipeBlobUrls.clear();
+}
+function generateId(prefix = 'r') {
+if (window.crypto && typeof window.crypto.randomUUID === 'function') return `${prefix}_${window.crypto.randomUUID()}`;
+return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+function isImageReferencedByOtherRecipes(imageId, excludeRecipeId) {
+if (!imageId) return false;
+return recipes.some(r => r.id !== excludeRecipeId && (r.imageId === imageId || r.thumbId === imageId));
+}
+async function deleteImageIfUnreferenced(imageId, excludeRecipeId = null) {
+if (!imageId || !dbWrapper.db) return;
+const referenced = recipes.some(r => r.id !== excludeRecipeId && (r.imageId === imageId || r.thumbId === imageId));
+if (!referenced) {
+try { await dbWrapper.delete(STORE_IMAGES, imageId); } catch (e) { console.warn('Failed to delete image', e); }
+}
+}
 function initSearchWorker() {
 const workerCode = `
 self.onmessage = function(e) {
-const { recipes, searchTerm, category, showFavorites } = e.data;
+const data = e.data || {};
+const recipes = data.recipes || [];
+const searchTerm = data.searchTerm || '';
+const category = data.category || 'all';
+const showFavorites = !!data.showFavorites;
+const requestId = data.requestId;
 let filtered = recipes;
 if (category !== 'all') {
 filtered = filtered.filter(r => r.category === category);
@@ -881,17 +913,21 @@ return (r.title && r.title.toLowerCase().includes(term)) ||
 });
 }
 filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-self.postMessage(filtered);
+self.postMessage({ requestId: requestId, results: filtered });
 };
 `;
 try {
 const blob = new Blob([workerCode], { type: 'application/javascript' });
 const workerUrl = URL.createObjectURL(blob);
 searchWorker = new Worker(workerUrl);
+URL.revokeObjectURL(workerUrl);
 searchWorker.onmessage = (e) => {
-if (pendingSearchResolve) {
-pendingSearchResolve(e.data);
-pendingSearchResolve = null;
+const requestId = e.data && e.data.requestId;
+const results = e.data && e.data.results;
+const resolve = pendingSearchResolvers.get(requestId);
+if (resolve) {
+resolve(results);
+pendingSearchResolvers.delete(requestId);
 }
 };
 } catch (e) {
@@ -899,6 +935,7 @@ console.warn('Web Worker initialization failed, falling back to main thread sear
 }
 }
 function filterRecipesAsync(searchTerm, category, showFavorites) {
+const requestId = ++currentSearchRequestId;
 return new Promise((resolve) => {
 if (!searchWorker) {
 let filtered = recipes;
@@ -917,8 +954,8 @@ filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
 resolve(filtered);
 return;
 }
-pendingSearchResolve = resolve;
-searchWorker.postMessage({ recipes, searchTerm, category, showFavorites });
+pendingSearchResolvers.set(requestId, resolve);
+searchWorker.postMessage({ recipes, searchTerm, category, showFavorites, requestId });
 });
 }
 function showToast(message, type = 'info', duration = 4000) {
@@ -952,7 +989,7 @@ const typeClass = timerAlertActive ? 'toast-warning' : 'toast-timer';
 if (!timerToastElement) {
 timerToastElement = document.createElement('div');
 timerToastElement.className = `toast ${typeClass}`;
-timerToastElement.innerHTML = `<div class="toast-icon"><i class="fas ${iconClass}"></i></div><span class="toast-message">${statusText}</span><button class="toast-close"><i class="fas fa-times"></i></button>`;
+timerToastElement.innerHTML = `<div class="toast-icon"><i class="fas ${iconClass}"></i></div><span class="toast-message">${escapeHtml(statusText)}</span><button class="toast-close"><i class="fas fa-times"></i></button>`;
 toastContainer.appendChild(timerToastElement);
 requestAnimationFrame(() => { timerToastElement.classList.add('show'); });
 timerToastElement.querySelector('.toast-close').addEventListener('click', () => {
@@ -974,29 +1011,30 @@ const scaleOptions = [
 ];
 const pointerDrag = { active:false, element:null, container:null, offsetX:0, offsetY:0, placeholder:null, lastClientY:null, scrollInterval:null };
 function parseFractionAmount(amountStr) {
-if (!amountStr || typeof amountStr !== 'string') return { value: 0, original: amountStr || '' };
+if (!amountStr || typeof amountStr !== 'string') return { value: 0, original: amountStr || '', numeric: false };
 const trimmed = amountStr.trim();
-if (!trimmed) return { value: 0, original: '' };
+if (!trimmed) return { value: 0, original: '', numeric: false };
 const mixedMatch = trimmed.match(/^(\d+)\s+(\d+)\/(\d+)$/);
 if (mixedMatch) {
 const whole = parseInt(mixedMatch[1], 10);
 const num = parseInt(mixedMatch[2], 10);
 const denom = parseInt(mixedMatch[3], 10);
-if (denom !== 0) return { value: whole + (num / denom), original: trimmed };
+if (denom !== 0) return { value: whole + (num / denom), original: trimmed, numeric: true };
 }
 const fractionMatch = trimmed.match(/^(\d+)\/(\d+)$/);
 if (fractionMatch) {
 const num = parseInt(fractionMatch[1], 10);
 const denom = parseInt(fractionMatch[2], 10);
-if (denom !== 0) return { value: num / denom, original: trimmed };
+if (denom !== 0) return { value: num / denom, original: trimmed, numeric: true };
 }
 const numValue = parseFloat(trimmed);
-if (!isNaN(numValue)) return { value: numValue, original: trimmed };
-return { value: 0, original: trimmed };
+if (!isNaN(numValue)) return { value: numValue, original: trimmed, numeric: true };
+return { value: 0, original: trimmed, numeric: false };
 }
 function formatScaledAmount(originalAmount, scale) {
 const parsed = parseFractionAmount(originalAmount);
-if (parsed.value === 0 && !parsed.original) return '';
+if (!parsed.original) return '';
+if (!parsed.numeric || parsed.value === 0) return parsed.original;
 if (scale === 1) return parsed.original;
 const scaledValue = parsed.value * scale;
 if (scaledValue % 1 === 0) return scaledValue.toString();
@@ -1037,12 +1075,12 @@ clearContainer(addIngredientsContainer);
 addIngredientField(addIngredientsContainer);
 clearContainer(editIngredientsContainer);
 addIngredientField(editIngredientsContainer);
-initImageObserver();
 updateScaleButtons();
 await restoreTimerState();
 initTimerSegmentInputs();
 descriptionScrollObserver.observe(document.body, { childList: true, subtree: true });
 initSearchWorker();
+finishImportBtn.disabled = true;
 showToast('Recipe Book loaded', 'success', 2000);
 }
 async function generateThumbnail(blob, maxSize = 400) {
@@ -1096,7 +1134,7 @@ if (recipe.imageId && !recipe.thumbId) {
 const fullImg = await dbWrapper.get(STORE_IMAGES, recipe.imageId);
 if (fullImg && fullImg.blob) {
 const thumbBlob = await generateThumbnail(fullImg.blob);
-const thumbId = recipe.imageId.replace('_full', '_thumb');
+const thumbId = recipe.imageId.endsWith('_full') ? recipe.imageId.replace(/_full$/, '_thumb') : `img_${recipe.id}_thumb`;
 await dbWrapper.put(STORE_IMAGES, { id: thumbId, blob: thumbBlob, recipeId: recipe.id });
 recipe.thumbId = thumbId;
 migrated++;
@@ -1110,7 +1148,9 @@ if (migrated > 0) showToast(`Optimized ${migrated} images for performance`, 'inf
 }
 function dataURLtoBlob(dataurl) {
 const arr = dataurl.split(',');
-const mime = arr[0].match(/:(.*?);/)[1];
+if (arr.length < 2) throw new Error('Invalid data URL');
+const mimeMatch = arr[0].match(/:(.*?);/);
+const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
 const bstr = atob(arr[1]);
 let n = bstr.length;
 const u8arr = new Uint8Array(n);
@@ -1297,13 +1337,39 @@ if (timerAlertInterval) { clearInterval(timerAlertInterval); timerAlertInterval 
 saveTimerState();
 revokeAllObjectURLs();
 descriptionScrollObserver.disconnect();
-if (imageObserver) { imageObserver.disconnect(); imageObserver = null; }
+if (infiniteScrollObserver) { infiniteScrollObserver.disconnect(); infiniteScrollObserver = null; }
 descriptionScrollStates.forEach((state, cardId) => { stopDescriptionScroll(cardId); });
 descriptionScrollStates.clear();
 if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
 }
 window.addEventListener('beforeunload', cleanupOnUnload);
 window.addEventListener('pagehide', cleanupOnUnload);
+function trapFocusInModal(modal, e) {
+const focusable = Array.from(modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el => !el.disabled && el.offsetParent !== null);
+if (focusable.length === 0) return;
+const first = focusable[0];
+const last = focusable[focusable.length - 1];
+if (!modal.contains(document.activeElement)) {
+e.preventDefault();
+first.focus();
+return;
+}
+if (e.shiftKey && document.activeElement === first) {
+e.preventDefault();
+last.focus();
+} else if (!e.shiftKey && document.activeElement === last) {
+e.preventDefault();
+first.focus();
+}
+}
+async function requestWakeLock() {
+if (!('wakeLock' in navigator)) return;
+try {
+if (wakeLock) return;
+wakeLock = await navigator.wakeLock.request('screen');
+wakeLock.addEventListener('release', () => { wakeLock = null; });
+} catch (err) { console.warn('Wake Lock not available:', err); }
+}
 function setupEventListeners() {
 gridModeBtn.addEventListener('click', () => { currentViewMode = 'grid'; applyViewMode(); renderRecipes(); });
 listModeBtn.addEventListener('click', () => { currentViewMode = 'list'; applyViewMode(); renderRecipes(); });
@@ -1319,7 +1385,7 @@ editRecipeForm.addEventListener('submit', saveEditedRecipe);
 addImageUpload.addEventListener('change', e => handleImageUpload(e, 'add'));
 editImageUpload.addEventListener('change', e => handleImageUpload(e, 'edit'));
 removeAddImageBtn.addEventListener('click', e => { e.stopPropagation(); resetImagePreview('add'); });
-removeEditImageBtn.addEventListener('click', e => { e.stopPropagation(); resetImagePreview('edit'); });
+removeEditImageBtn.addEventListener('click', e => { e.stopPropagation(); removeImagePreview('edit'); });
 recipesGrid.addEventListener('click', async e => {
 const recipeCard = e.target.closest('.recipe-card');
 const bookmark = e.target.closest('.recipe-bookmark');
@@ -1383,6 +1449,18 @@ renderCategories();
 renderRecipes();
 }
 });
+categoriesContainer.addEventListener('keydown', function(e) {
+if (e.key !== 'Enter' && e.key !== ' ') return;
+const remove = e.target.closest('.remove-category');
+if (remove && remove.dataset.category) { e.preventDefault(); removeCategory(remove.dataset.category); return; }
+const tag = e.target.closest('.category-tag');
+if (tag && tag.dataset.category) {
+e.preventDefault();
+currentFilterCategory = tag.dataset.category;
+renderCategories();
+renderRecipes();
+}
+});
 modalIngredientsList.addEventListener('click', async function(e) {
 const li = e.target.closest('li');
 if (!li) return;
@@ -1406,29 +1484,24 @@ showToast(showFavoritesOnly ? 'Showing favorites' : 'Showing all recipes', 'info
 });
 searchInput.addEventListener('input', debounce(() => { renderRecipes(); }, 300));
 document.getElementById('modalRecipeImage').addEventListener('click', async () => {
-if (currentViewRecipe?.imageId) {
+if (!currentViewRecipe) return;
+if (currentViewRecipe.imageId) {
 const imageData = await dbWrapper.get(STORE_IMAGES, currentViewRecipe.imageId);
-if (imageData && imageData.blob) {
-const url = createObjectURL(imageData.blob, currentViewRecipe.id + '_modal');
+if (imageData && imageData.blob && currentViewRecipe && currentViewRecipe.imageId) {
+const url = createObjectURL(imageData.blob, currentViewRecipe.id + '_zoom');
 imageZoomImg.src = url;
 imageZoomModal.classList.add('active');
+imageZoomClose.focus();
 }
-} else if (currentViewRecipe?.image && isSafeImageSrc(currentViewRecipe.image)) {
+} else if (currentViewRecipe.image && isSafeImageSrc(currentViewRecipe.image)) {
 imageZoomImg.src = currentViewRecipe.image;
 imageZoomModal.classList.add('active');
+imageZoomClose.focus();
 }
 });
-imageZoomClose.addEventListener('click', () => {
-imageZoomModal.classList.remove('active');
-if (imageZoomImg.src && imageZoomImg.src.startsWith('blob:')) revokeCardBlob(currentViewRecipe?.id + '_modal');
-imageZoomImg.src = '';
-});
+imageZoomClose.addEventListener('click', () => closeImageZoom());
 imageZoomModal.addEventListener('click', e => {
-if (e.target === imageZoomModal) {
-imageZoomModal.classList.remove('active');
-if (imageZoomImg.src && imageZoomImg.src.startsWith('blob:')) revokeCardBlob(currentViewRecipe?.id + '_modal');
-imageZoomImg.src = '';
-}
+if (e.target === imageZoomModal) closeImageZoom();
 });
 scaleOptions.forEach(opt => {
 opt.btn.addEventListener('click', () => { currentScale = opt.value; updateScaleButtons(); updateScaledIngredients(); });
@@ -1439,18 +1512,20 @@ timerPresets.forEach(preset => {
 preset.addEventListener('click', () => { const seconds = parseInt(preset.dataset.seconds, 10); setTimerFromPreset(seconds); });
 });
 document.addEventListener('keydown', (e) => {
-if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+if (e.key === 'Tab') {
+if (recipeModal.classList.contains('active')) { trapFocusInModal(recipeModal, e); return; }
+if (duplicateModal.classList.contains('active')) { trapFocusInModal(duplicateModal, e); return; }
+if (imageZoomModal.classList.contains('active')) { trapFocusInModal(imageZoomModal, e); return; }
+}
 if (e.key === 'Escape') {
-if (recipeModal.classList.contains('active')) closeRecipeModal();
-else if (duplicateModal.classList.contains('active')) closeDuplicateModal();
-else if (addRecipeForm.style.display === 'block') hideAddRecipeForm();
-else if (editRecipeUI.style.display === 'block') hideEditUI();
-else if (imageZoomModal.classList.contains('active')) {
-imageZoomModal.classList.remove('active');
-if (imageZoomImg.src && imageZoomImg.src.startsWith('blob:')) revokeCardBlob(currentViewRecipe?.id + '_modal');
-imageZoomImg.src = '';
+if (imageZoomModal.classList.contains('active')) { closeImageZoom(); return; }
+if (recipeModal.classList.contains('active')) { closeRecipeModal(); return; }
+if (duplicateModal.classList.contains('active')) { closeDuplicateModal(); return; }
+if (addRecipeForm.style.display === 'block') { hideAddRecipeForm(); return; }
+if (editRecipeUI.style.display === 'block') { hideEditUI(); return; }
 }
-}
+const tagName = (e.target.tagName || '').toUpperCase();
+if (tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') return;
 if (e.ctrlKey || e.metaKey) {
 if (e.key === 'n') { e.preventDefault(); showAddRecipeForm(); }
 if (e.key === 'f') { e.preventDefault(); searchInput.focus(); }
@@ -1460,34 +1535,40 @@ document.addEventListener('pointerdown', onPointerDown);
 document.addEventListener('pointermove', onPointerMove, { passive: false });
 document.addEventListener('pointerup', onPointerUp);
 document.addEventListener('pointercancel', onPointerUp);
+const shouldScrollOnFocus = window.matchMedia && window.matchMedia('(hover: none)').matches;
+if (shouldScrollOnFocus) {
 document.querySelectorAll('input,textarea,select').forEach(inp => {
 inp.addEventListener('focus', function() { setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 220); });
 });
+}
 setInterval(() => { if (timerRunning || timerAlertActive) saveTimerState(); }, 5000);
 document.addEventListener('visibilitychange', async () => {
-if (timerRunning || timerAlertActive) {
-saveTimerState();
+if (timerRunning || timerAlertActive) saveTimerState();
 if (document.visibilityState === 'visible') {
 if (timerEndTime && timerRunning) {
 const now = Date.now();
 const remaining = Math.max(0, Math.floor((timerEndTime - now) / 1000));
 timerSecondsTotal = remaining;
+lastDisplayedSecond = remaining;
 updateTimerSegments();
 updateTimerToast();
+stopTimerLoop();
+scheduleTimerTick();
 }
 if (audioContext && audioContext.state === 'suspended') {
 try { await audioContext.resume(); } catch (e) { console.warn('Failed to resume AudioContext', e); }
 }
+if (timerRunning) await requestWakeLock();
+} else {
+if (timerRunning) {
+stopTimerLoop();
+scheduleTimerTick();
 }
 }
 });
 document.addEventListener('timerStateChanged', async () => {
-if (timerRunning && 'wakeLock' in navigator) {
-try {
-wakeLock = await navigator.wakeLock.request('screen');
-wakeLock.addEventListener('release', () => { wakeLock = null; });
-} catch (err) { console.warn('Wake Lock not available:', err); }
-} else if (wakeLock) { await wakeLock.release(); wakeLock = null; }
+if (timerRunning) await requestWakeLock();
+else if (wakeLock) { await wakeLock.release().catch(() => {}); wakeLock = null; }
 });
 }
 function updateBookmarkInDOM(id, isBookmarked) {
@@ -1500,18 +1581,6 @@ bookmarkBtn.innerHTML = isBookmarked ? '<i class="fas fa-heart"></i>' : '<i clas
 bookmarkBtn.title = isBookmarked ? 'Remove from favorites' : 'Add to favorites';
 }
 });
-}
-function initImageObserver() {
-if ('IntersectionObserver' in window) {
-imageObserver = new IntersectionObserver((entries) => {
-entries.forEach(entry => {
-if (entry.isIntersecting) {
-const img = entry.target;
-if (img.dataset.src) { img.src = img.dataset.src; img.removeAttribute('data-src'); imageObserver.unobserve(img); }
-}
-});
-}, { rootMargin: '100px' });
-}
 }
 function handleImageUpload(e, mode) {
 const file = e.target.files && e.target.files[0];
@@ -1534,6 +1603,8 @@ canvas.toBlob((blob) => {
 if (blob) {
 const url = createObjectURL(blob, mode === 'add' ? 'temp_add' : 'temp_edit');
 assignImage(mode, url);
+} else {
+assignImage(mode, ev.target.result);
 }
 }, 'image/jpeg', 0.78);
 };
@@ -1542,35 +1613,56 @@ img.src = ev.target.result;
 reader.readAsDataURL(file);
 }
 function assignImage(mode, dataUrl) {
-if (mode === 'add' && addRecipeImageFile) revokeCardBlob('temp_add');
-else if (mode === 'edit' && editRecipeImageFile) revokeCardBlob('temp_edit');
 if (mode === 'add') {
+if (addRecipeImageFile) revokeCardBlob('temp_add');
 addImagePreview.style.display = 'block';
 addImagePreviewImg.src = dataUrl;
 removeAddImageBtn.style.display = 'flex';
 addRecipeImageFile = dataUrl;
 showToast('Image loaded', 'success', 1500);
 } else {
+if (editRecipeImageFile) revokeCardBlob('temp_edit');
+if (editRecipeId.value) revokeCardBlob(editRecipeId.value + '_edit');
 editImagePreview.style.display = 'block';
 editImagePreviewImg.src = dataUrl;
 removeEditImageBtn.style.display = 'flex';
 editRecipeImageFile = dataUrl;
+editImageAction = 'new';
 showToast('Image loaded', 'success', 1500);
+}
+}
+function clearImagePreviewVisual(mode) {
+if (mode === 'add') {
+addImagePreview.style.display = 'none';
+addImagePreviewImg.src = '';
+addImageUpload.value = '';
+removeAddImageBtn.style.display = 'none';
+} else {
+editImagePreview.style.display = 'none';
+editImagePreviewImg.src = '';
+editImageUpload.value = '';
+removeEditImageBtn.style.display = 'none';
 }
 }
 function resetImagePreview(mode) {
 if (mode === 'add') {
-addImagePreview.style.display = 'none';
-addImagePreviewImg.src = '';
-document.getElementById('addImageUpload').value = '';
-removeAddImageBtn.style.display = 'none';
+clearImagePreviewVisual('add');
 if (addRecipeImageFile) { revokeCardBlob('temp_add'); addRecipeImageFile = null; }
 } else {
-editImagePreview.style.display = 'none';
-editImagePreviewImg.src = '';
-document.getElementById('editImageUpload').value = '';
-removeEditImageBtn.style.display = 'none';
+clearImagePreviewVisual('edit');
 if (editRecipeImageFile) { revokeCardBlob('temp_edit'); editRecipeImageFile = null; }
+if (editRecipeId.value) revokeCardBlob(editRecipeId.value + '_edit');
+editImageAction = 'unchanged';
+}
+}
+function removeImagePreview(mode) {
+if (mode === 'add') {
+resetImagePreview('add');
+} else {
+clearImagePreviewVisual('edit');
+if (editRecipeImageFile) { revokeCardBlob('temp_edit'); editRecipeImageFile = null; }
+if (editRecipeId.value) revokeCardBlob(editRecipeId.value + '_edit');
+editImageAction = 'removed';
 }
 }
 function renderCategories() {
@@ -1582,12 +1674,18 @@ const allTag = document.createElement('div');
 allTag.className = 'category-tag' + (currentFilterCategory === 'all' ? ' active' : '');
 allTag.dataset.category = 'all';
 allTag.textContent = 'All';
+allTag.tabIndex = 0;
+allTag.setAttribute('role', 'button');
+allTag.setAttribute('aria-pressed', currentFilterCategory === 'all' ? 'true' : 'false');
 categoriesContainer.appendChild(allTag);
 sortedCategories.forEach(category => {
 const recipeCount = categoryCounts[category] || 0;
 const tag = document.createElement('div');
 tag.className = 'category-tag' + (currentFilterCategory === category ? ' active' : '');
 tag.dataset.category = category;
+tag.tabIndex = 0;
+tag.setAttribute('role', 'button');
+tag.setAttribute('aria-pressed', currentFilterCategory === category ? 'true' : 'false');
 const labelSpan = document.createElement('span');
 labelSpan.style.display = 'inline-block';
 labelSpan.style.minWidth = '8px';
@@ -1597,6 +1695,9 @@ const removeBtn = document.createElement('span');
 removeBtn.className = 'remove-category';
 removeBtn.dataset.category = category;
 removeBtn.style.marginLeft = '8px';
+removeBtn.tabIndex = 0;
+removeBtn.setAttribute('role', 'button');
+removeBtn.setAttribute('aria-label', `Remove category ${category}`);
 const icon = document.createElement('i');
 icon.className = 'fas fa-times';
 removeBtn.appendChild(icon);
@@ -1776,9 +1877,15 @@ const descEl = card.querySelector('.recipe-description');
 if (!descContainer || !descEl) return;
 stopDescriptionScroll(cardId);
 const textContent = description || '';
+const fallback = 'Delicious recipe ready to try!';
+const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const charThreshold = currentViewMode === 'list' ? SCROLL_CONFIG.listCharThreshold : SCROLL_CONFIG.gridCharThreshold;
-if (textContent.length <= charThreshold) { descEl.innerHTML = textToHtml(textContent); descEl.style.transform = ''; return; }
-descEl.innerHTML = textToHtml(textContent);
+if (reducedMotion || textContent.length <= charThreshold) {
+descEl.innerHTML = textToHtml(textContent) || fallback;
+descEl.style.transform = '';
+return;
+}
+descEl.innerHTML = textToHtml(textContent) || fallback;
 requestAnimationFrame(() => {
 requestAnimationFrame(() => {
 const containerHeight = descContainer.clientHeight;
@@ -1833,11 +1940,15 @@ currentState.animationFrameId = requestAnimationFrame(animate);
 state.animationFrameId = requestAnimationFrame(animate);
 }
 async function renderRecipes() {
+const renderId = ++currentRenderRequestId;
 const searchTerm = searchInput.value.toLowerCase().trim();
-filteredRecipes = await filterRecipesAsync(searchTerm, currentFilterCategory, showFavoritesOnly);
+const filtered = await filterRecipesAsync(searchTerm, currentFilterCategory, showFavoritesOnly);
+if (renderId !== currentRenderRequestId) return;
+filteredRecipes = filtered;
 descriptionScrollStates.forEach((state, cardId) => { stopDescriptionScroll(cardId); });
 descriptionScrollStates.clear();
-revokeAllObjectURLs();
+revokeCardObjectURLs();
+if (infiniteScrollObserver) { infiniteScrollObserver.disconnect(); infiniteScrollObserver = null; }
 clearContainer(recipesGrid);
 if (filteredRecipes.length === 0) {
 emptyState.style.display = 'block';
@@ -1853,8 +1964,9 @@ if (filteredRecipes.length > BATCH_SIZE) setupInfiniteScroll();
 }
 }
 function setupInfiniteScroll() {
+if (infiniteScrollObserver) infiniteScrollObserver.disconnect();
 let renderedCount = BATCH_SIZE;
-const observer = new IntersectionObserver((entries) => {
+infiniteScrollObserver = new IntersectionObserver((entries) => {
 entries.forEach(entry => {
 if (entry.isIntersecting && renderedCount < filteredRecipes.length) {
 const fragment = document.createDocumentFragment();
@@ -1863,15 +1975,16 @@ for (let i = renderedCount; i < end; i++) { fragment.appendChild(createRecipeCar
 recipesGrid.appendChild(fragment);
 renderedCount = end;
 if (renderedCount < filteredRecipes.length) {
-observer.disconnect();
-observer.observe(recipesGrid.lastElementChild);
+infiniteScrollObserver.disconnect();
+infiniteScrollObserver.observe(recipesGrid.lastElementChild);
 } else {
-observer.disconnect();
+infiniteScrollObserver.disconnect();
+infiniteScrollObserver = null;
 }
 }
 });
 }, { rootMargin: '400px' });
-observer.observe(recipesGrid.lastElementChild);
+if (recipesGrid.lastElementChild) infiniteScrollObserver.observe(recipesGrid.lastElementChild);
 }
 function createRecipeCard(r) {
 const card = document.createElement('div');
@@ -1891,6 +2004,7 @@ const icon = document.createElement('i');
 icon.className = 'fas fa-utensils';
 imageDiv.appendChild(icon);
 dbWrapper.get(STORE_IMAGES, targetImageId).then(imageData => {
+if (!card.isConnected) return;
 if (imageData && imageData.blob) {
 const img = document.createElement('img');
 const url = createObjectURL(imageData.blob, r.id + '_card');
@@ -1900,7 +2014,7 @@ img.loading = 'lazy';
 imageDiv.innerHTML = '';
 imageDiv.appendChild(img);
 }
-});
+}).catch(() => {});
 } else if (r.image && isSafeImageSrc(r.image)) {
 const img = document.createElement('img');
 img.src = r.image;
@@ -2007,6 +2121,7 @@ resetAddRecipeForm();
 addRecipeForm.style.display = 'block';
 recipesContainer.style.display = 'none';
 window.scrollTo({ top: 0, behavior: 'smooth' });
+addRecipeTitle.focus();
 }
 function hideAddRecipeForm() {
 resetImagePreview('add');
@@ -2026,12 +2141,18 @@ currentTags = [];
 renderTagsInput(addTagsInput, addTagsContainer, () => currentTags);
 clearContainer(addIngredientsContainer);
 addIngredientField(addIngredientsContainer);
-document.getElementById('addImageUpload').value = '';
+addImageUpload.value = '';
 resetImagePreview('add');
 addRecipeImageFile = null;
 }
 function showEditUI(recipe) {
 closeRecipeModal();
+const previousEditId = editRecipeId.value;
+if (previousEditId) revokeCardBlob(previousEditId + '_edit');
+revokeCardBlob('temp_edit');
+editRecipeImageFile = null;
+editImageAction = 'unchanged';
+clearImagePreviewVisual('edit');
 editRecipeId.value = recipe.id;
 editRecipeTitle.value = recipe.title;
 editRecipeDescription.value = recipe.description || '';
@@ -2053,34 +2174,31 @@ last.querySelector('.ingredient-amount').value = ing.amount || '';
 last.querySelector('.ingredient-unit').value = ing.unit || '';
 });
 } else { addIngredientField(editIngredientsContainer); }
-resetImagePreview('edit');
-editRecipeOldImage = recipe.imageId || recipe.image || null;
 const targetImageId = recipe.thumbId || recipe.imageId;
 if (targetImageId && dbWrapper.db) {
 dbWrapper.get(STORE_IMAGES, targetImageId).then(imageData => {
+if (editRecipeId.value !== recipe.id || editImageAction !== 'unchanged') return;
 if (imageData && imageData.blob) {
 const url = createObjectURL(imageData.blob, recipe.id + '_edit');
 editImagePreview.style.display = 'block';
 editImagePreviewImg.src = url;
 removeEditImageBtn.style.display = 'flex';
-editRecipeImageFile = url;
 }
-});
+}).catch(() => {});
 } else if (recipe.image && isSafeImageSrc(recipe.image)) {
 editImagePreview.style.display = 'block';
 editImagePreviewImg.src = recipe.image;
 removeEditImageBtn.style.display = 'flex';
-editRecipeImageFile = recipe.image;
-} else { editRecipeImageFile = null; }
+}
 editRecipeUI.style.display = 'block';
 recipesContainer.style.display = 'none';
 window.scrollTo({ top: 0, behavior: 'smooth' });
+editRecipeTitle.focus();
 }
 function hideEditUI() {
 resetImagePreview('edit');
 editRecipeUI.style.display = 'none';
 recipesContainer.style.display = 'block';
-editRecipeOldImage = null;
 }
 function addIngredientField(container) {
 const row = document.createElement('div');
@@ -2151,9 +2269,9 @@ ingredients.push({ name, amount, unit });
 const hasAny = ingredients.some(i => i.name || i.amount || i.unit);
 if (!hasAny) { showToast('Please add at least one ingredient', 'warning'); return; }
 const newRecipe = {
-id: 'r_' + Date.now().toString(36),
+id: generateId(),
 title, description, category, tags: [...currentTags], ingredients,
-instructions: instructions ? instructions.split('\n') : [],
+instructions: instructions ? instructions.split(/\r?\n/) : [],
 time, temp, detailType, detailValue,
 ingredientStates: ingredients.map(() => ''), bookmarked: false
 };
@@ -2166,6 +2284,7 @@ blob = await response.blob();
 blob = dataURLtoBlob(addRecipeImageFile);
 }
 if (blob) {
+if (dbWrapper.db) {
 const fullId = `img_${newRecipe.id}_full`;
 const thumbId = `img_${newRecipe.id}_thumb`;
 await dbWrapper.put(STORE_IMAGES, { id: fullId, blob: blob, recipeId: newRecipe.id });
@@ -2173,6 +2292,9 @@ const thumbBlob = await generateThumbnail(blob);
 await dbWrapper.put(STORE_IMAGES, { id: thumbId, blob: thumbBlob, recipeId: newRecipe.id });
 newRecipe.imageId = fullId;
 newRecipe.thumbId = thumbId;
+} else {
+newRecipe.image = await blobToDataURL(blob);
+}
 }
 }
 recipes.push(newRecipe);
@@ -2189,14 +2311,14 @@ e.preventDefault();
 const id = editRecipeId.value;
 const recipe = recipes.find(r => r.id === id);
 if (!recipe) { showToast('Recipe not found', 'error'); return; }
-const oldImageId = recipe.imageId;
-const oldThumbId = recipe.thumbId;
+const oldImageId = recipe.imageId || null;
+const oldThumbId = recipe.thumbId || null;
 recipe.title = editRecipeTitle.value.trim();
 recipe.description = editRecipeDescription.value.trim();
 recipe.category = editRecipeCategory.value;
 recipe.tags = [...editCurrentTags];
 const instr = editRecipeInstructions.value.trim();
-recipe.instructions = instr ? instr.split('\n') : [];
+recipe.instructions = instr ? instr.split(/\r?\n/) : [];
 recipe.time = editRecipeTime.value.trim();
 recipe.temp = editRecipeTemp.value.trim();
 recipe.detailType = editRecipeDetailType.value;
@@ -2214,7 +2336,7 @@ if (!hasAny) { showToast('Please provide at least one ingredient', 'warning'); r
 recipe.ingredients = ing;
 recipe.ingredientStates = (recipe.ingredientStates || []).slice(0, ing.length);
 while ((recipe.ingredientStates || []).length < ing.length) recipe.ingredientStates.push('');
-if (editRecipeImageFile) {
+if (editImageAction === 'new' && editRecipeImageFile) {
 let blob;
 if (editRecipeImageFile.startsWith('blob:')) {
 const response = await fetch(editRecipeImageFile);
@@ -2223,26 +2345,38 @@ blob = await response.blob();
 blob = dataURLtoBlob(editRecipeImageFile);
 }
 if (blob) {
-const fullId = oldImageId || `img_${recipe.id}_full`;
-const thumbId = oldThumbId || `img_${recipe.id}_thumb`;
+if (dbWrapper.db) {
+const sharedOldFull = oldImageId && isImageReferencedByOtherRecipes(oldImageId, recipe.id);
+const sharedOldThumb = oldThumbId && isImageReferencedByOtherRecipes(oldThumbId, recipe.id);
+const fullId = oldImageId ? (sharedOldFull ? `img_${recipe.id}_full_${Date.now().toString(36)}` : oldImageId) : `img_${recipe.id}_full`;
+const thumbId = oldThumbId ? (sharedOldThumb ? `img_${recipe.id}_thumb_${Date.now().toString(36)}` : oldThumbId) : `img_${recipe.id}_thumb`;
 await dbWrapper.put(STORE_IMAGES, { id: fullId, blob: blob, recipeId: recipe.id });
 const thumbBlob = await generateThumbnail(blob);
 await dbWrapper.put(STORE_IMAGES, { id: thumbId, blob: thumbBlob, recipeId: recipe.id });
 recipe.imageId = fullId;
 recipe.thumbId = thumbId;
 delete recipe.image;
-}
-} else if (oldImageId) {
-await dbWrapper.delete(STORE_IMAGES, oldImageId);
-if (oldThumbId) await dbWrapper.delete(STORE_IMAGES, oldThumbId);
+if (oldImageId && oldImageId !== fullId) await deleteImageIfUnreferenced(oldImageId, recipe.id);
+if (oldThumbId && oldThumbId !== thumbId) await deleteImageIfUnreferenced(oldThumbId, recipe.id);
+} else {
+recipe.image = await blobToDataURL(blob);
 delete recipe.imageId;
 delete recipe.thumbId;
+}
+}
+} else if (editImageAction === 'removed') {
+if (dbWrapper.db) {
+await deleteImageIfUnreferenced(oldImageId, recipe.id);
+await deleteImageIfUnreferenced(oldThumbId, recipe.id);
+}
+delete recipe.imageId;
+delete recipe.thumbId;
+delete recipe.image;
 }
 await saveRecipeToDB(recipe);
 renderCategories();
 renderRecipes();
 hideEditUI();
-editRecipeOldImage = null;
 showToast('Recipe updated', 'success');
 }
 function showRecipeDetail(recipe) {
@@ -2264,13 +2398,14 @@ modalRecipeTags.appendChild(tagSpan);
 }
 if (recipe.imageId && dbWrapper.db) {
 dbWrapper.get(STORE_IMAGES, recipe.imageId).then(imageData => {
+if (!currentViewRecipe || currentViewRecipe.id !== recipe.id) return;
 if (imageData && imageData.blob) {
 const url = createObjectURL(imageData.blob, recipe.id + '_modal');
 modalRecipeImageElement.src = url;
 modalRecipeImageElement.style.display = 'block';
 modalRecipeImageIcon.style.display = 'none';
 }
-});
+}).catch(() => {});
 } else if (recipe.image && isSafeImageSrc(recipe.image)) {
 modalRecipeImageElement.src = recipe.image;
 modalRecipeImageElement.style.display = 'block';
@@ -2345,7 +2480,7 @@ const baseText = displayAmount ? `${displayAmount}${unitText ? ' ' + unitText : 
 right.textContent = baseText;
 if (ing.amount && ing.unit) {
 const parsed = parseFractionAmount(ing.amount);
-if (parsed.value > 0) {
+if (parsed.numeric && parsed.value > 0) {
 const converted = getConversion(parsed.value.toString(), ing.unit);
 if (converted) {
 const convertedParts = converted.split(' ');
@@ -2391,24 +2526,36 @@ updateBookmarkInDOM(currentViewRecipe.id, currentViewRecipe.bookmarked);
 showToast(currentViewRecipe.bookmarked ? 'Added to favorites' : 'Removed from favorites', 'info');
 }
 function openRecipeModal() {
+lastFocusedElement = document.activeElement;
 recipeModal.classList.add('active');
 recipeModal.setAttribute('aria-hidden', 'false');
 document.body.style.overflow = 'hidden';
+closeModalBtn.focus();
+}
+function closeImageZoom(recipeId = currentViewRecipe?.id) {
+if (!imageZoomModal.classList.contains('active')) return;
+imageZoomModal.classList.remove('active');
+if (recipeId) revokeCardBlob(recipeId + '_zoom');
+imageZoomImg.src = '';
+if (recipeModal.classList.contains('active')) closeModalBtn.focus();
 }
 function closeRecipeModal() {
+const recipeId = currentViewRecipe?.id;
+closeImageZoom(recipeId);
 recipeModal.classList.remove('active');
 recipeModal.setAttribute('aria-hidden', 'true');
 document.body.style.overflow = '';
-currentViewRecipe = null;
-revokeCardBlob(modalRecipeImageElement.src ? currentViewRecipe?.id + '_modal' : '');
+if (recipeId) revokeCardBlob(recipeId + '_modal');
 modalRecipeImageElement.src = '';
+currentViewRecipe = null;
+if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') lastFocusedElement.focus();
 }
 async function deleteRecipe(id) {
 if (!confirm('Delete this recipe?')) return;
 const recipe = recipes.find(r => r.id === id);
-if (recipe) {
-if (recipe.imageId && dbWrapper.db) await dbWrapper.delete(STORE_IMAGES, recipe.imageId);
-if (recipe.thumbId && dbWrapper.db) await dbWrapper.delete(STORE_IMAGES, recipe.thumbId);
+if (recipe && dbWrapper.db) {
+await deleteImageIfUnreferenced(recipe.imageId, id);
+await deleteImageIfUnreferenced(recipe.thumbId, id);
 }
 recipes = recipes.filter(r => r.id !== id);
 await deleteRecipeFromDB(id);
@@ -2435,10 +2582,10 @@ const imageData = await dbWrapper.get(STORE_IMAGES, recipe.imageId);
 if (imageData && imageData.blob) {
 const base64 = await blobToDataURL(imageData.blob);
 exportRecipe.image = base64;
+}
+}
 delete exportRecipe.imageId;
 delete exportRecipe.thumbId;
-}
-}
 const data = {
 recipes: [exportRecipe],
 categories: categories.filter(c => c === recipe.category),
@@ -2528,10 +2675,10 @@ const imageData = await dbWrapper.get(STORE_IMAGES, recipe.imageId);
 if (imageData && imageData.blob) {
 const base64 = await blobToDataURL(imageData.blob);
 exportRecipe.image = base64;
+}
+}
 delete exportRecipe.imageId;
 delete exportRecipe.thumbId;
-}
-}
 chunks.push(JSON.stringify(exportRecipe));
 if (i < recipes.length - 1) chunks.push(',');
 if (i % 50 === 0) await new Promise(r => setTimeout(r, 0));
@@ -2574,8 +2721,10 @@ if (filename === 'data.json') {
 metadata = JSON.parse(strFromU8(content));
 } else if (filename.startsWith('images/')) {
 const parts = filename.split('/');
-const imgId = parts[1].split('.')[0];
-const ext = parts[1].split('.').pop();
+const base = parts.slice(1).join('/');
+const dotIndex = base.lastIndexOf('.');
+const imgId = dotIndex === -1 ? base : base.slice(0, dotIndex);
+const ext = dotIndex === -1 ? '' : base.slice(dotIndex + 1).toLowerCase();
 const mime = ext === 'png' ? 'image/png' : (ext === 'webp' ? 'image/webp' : 'image/jpeg');
 imageBlobs[imgId] = new Blob([content], { type: mime });
 }
@@ -2605,16 +2754,82 @@ await processImportedRecipes(parsed.recipes, parsed.categories);
 };
 r.readAsText(file);
 }
+async function migrateRecipeImage(recipe) {
+if (!dbWrapper.db) return;
+if (recipe.image && typeof recipe.image === 'string' && recipe.image.startsWith('data:image/')) {
+try {
+const blob = dataURLtoBlob(recipe.image);
+const fullId = `img_${recipe.id}_full`;
+await dbWrapper.put(STORE_IMAGES, { id: fullId, blob: blob, recipeId: recipe.id });
+const thumbBlob = await generateThumbnail(blob);
+const thumbId = `img_${recipe.id}_thumb`;
+await dbWrapper.put(STORE_IMAGES, { id: thumbId, blob: thumbBlob, recipeId: recipe.id });
+recipe.imageId = fullId;
+recipe.thumbId = thumbId;
+delete recipe.image;
+} catch (e) { console.warn('Failed to migrate imported image', e); }
+}
+}
+async function prepareImportedRecipeForStorage(recipe, finalId) {
+recipe.id = finalId;
+recipe.title = typeof recipe.title === 'string' ? recipe.title.trim() : '';
+recipe.description = typeof recipe.description === 'string' ? recipe.description : '';
+recipe.category = typeof recipe.category === 'string' && recipe.category.trim() ? recipe.category.trim() : 'Uncategorized';
+recipe.tags = Array.isArray(recipe.tags) ? recipe.tags.filter(t => typeof t === 'string' && t.trim()).map(t => t.trim()) : [];
+recipe.ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients.map(i => ({ name: i?.name || '', amount: i?.amount || '', unit: i?.unit || '' })) : [];
+recipe.instructions = Array.isArray(recipe.instructions) ? recipe.instructions.map(s => typeof s === 'string' ? s : String(s ?? '')) : [];
+recipe.time = recipe.time != null ? String(recipe.time) : '';
+recipe.temp = recipe.temp != null ? String(recipe.temp) : '';
+recipe.detailType = typeof recipe.detailType === 'string' ? recipe.detailType : '';
+recipe.detailValue = recipe.detailValue != null ? String(recipe.detailValue) : '';
+recipe.bookmarked = Boolean(recipe.bookmarked);
+recipe.ingredientStates = Array.isArray(recipe.ingredientStates) ? recipe.ingredientStates.slice(0, recipe.ingredients.length).map(s => s === 'state-added' ? 'state-added' : '') : recipe.ingredients.map(() => '');
+while (recipe.ingredientStates.length < recipe.ingredients.length) recipe.ingredientStates.push('');
+if (recipe.image && typeof recipe.image === 'string' && recipe.image.startsWith('data:image/')) {
+await migrateRecipeImage(recipe);
+return;
+}
+if (dbWrapper.db && recipe.imageId) {
+const desiredFullId = `img_${finalId}_full`;
+const desiredThumbId = `img_${finalId}_thumb`;
+const fullRecord = await dbWrapper.get(STORE_IMAGES, recipe.imageId);
+if (fullRecord && fullRecord.blob) {
+await dbWrapper.put(STORE_IMAGES, { id: desiredFullId, blob: fullRecord.blob, recipeId: finalId });
+recipe.imageId = desiredFullId;
+} else {
+delete recipe.imageId;
+delete recipe.thumbId;
+return;
+}
+if (recipe.thumbId) {
+const thumbRecord = await dbWrapper.get(STORE_IMAGES, recipe.thumbId);
+if (thumbRecord && thumbRecord.blob) {
+await dbWrapper.put(STORE_IMAGES, { id: desiredThumbId, blob: thumbRecord.blob, recipeId: finalId });
+recipe.thumbId = desiredThumbId;
+} else {
+recipe.thumbId = null;
+}
+}
+if (!recipe.thumbId) {
+const fullRecord2 = await dbWrapper.get(STORE_IMAGES, recipe.imageId);
+if (fullRecord2 && fullRecord2.blob) {
+const thumbBlob = await generateThumbnail(fullRecord2.blob);
+await dbWrapper.put(STORE_IMAGES, { id: desiredThumbId, blob: thumbBlob, recipeId: finalId });
+recipe.thumbId = desiredThumbId;
+}
+}
+}
+}
 async function processImportedRecipes(importedRecipes, importedCategories) {
 if (importedCategories && Array.isArray(importedCategories)) {
-const newCategories = importedCategories.filter(c => !categories.includes(c));
+const newCategories = importedCategories.filter(c => typeof c === 'string' && c.trim() && !categories.includes(c.trim())).map(c => c.trim());
 categories = [...categories, ...newCategories];
 }
-const existingKeys = new Set(recipes.map(r => `${r.title.toLowerCase()}|${r.category.toLowerCase()}`));
+const existingKeys = new Set(recipes.map(r => `${(r.title || '').toLowerCase()}|${(r.category || 'uncategorized').toLowerCase()}`));
 const duplicates = [];
 const newRecipes = [];
 importedRecipes.forEach(recipe => {
-const key = `${recipe.title.toLowerCase()}|${(recipe.category || 'uncategorized').toLowerCase()}`;
+const key = `${(recipe.title || '').toLowerCase()}|${(recipe.category || 'uncategorized').toLowerCase()}`;
 if (existingKeys.has(key)) {
 duplicates.push(recipe);
 } else {
@@ -2625,12 +2840,9 @@ existingKeys.add(key);
 importStats = { new: newRecipes.length, duplicates: duplicates.length, skipped: 0, replaced: 0 };
 showToast('Processing imported images...', 'info', 2000);
 for (const recipe of newRecipes) {
-if (!recipe.id) recipe.id = 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
-recipe.bookmarked = recipe.bookmarked || false;
-recipe.ingredientStates = recipe.ingredientStates || (recipe.ingredients || []).map(() => '');
-if (recipe.image && typeof recipe.image === 'string' && recipe.image.startsWith('data:image/')) {
-await migrateRecipeImage(recipe);
-}
+let finalId = recipe.id;
+if (!finalId || recipes.some(r => r.id === finalId)) finalId = generateId();
+await prepareImportedRecipeForStorage(recipe, finalId);
 recipes.push(recipe);
 }
 if (newRecipes.length > 0) {
@@ -2649,21 +2861,6 @@ duplicateResolutions = {};
 showDuplicateModal(duplicates);
 }
 }
-async function migrateRecipeImage(recipe) {
-if (recipe.image && typeof recipe.image === 'string' && recipe.image.startsWith('data:image/')) {
-try {
-const blob = dataURLtoBlob(recipe.image);
-const fullId = `img_${recipe.id}_full`;
-await dbWrapper.put(STORE_IMAGES, { id: fullId, blob: blob, recipeId: recipe.id });
-const thumbBlob = await generateThumbnail(blob);
-const thumbId = `img_${recipe.id}_thumb`;
-await dbWrapper.put(STORE_IMAGES, { id: thumbId, blob: thumbBlob, recipeId: recipe.id });
-recipe.imageId = fullId;
-recipe.thumbId = thumbId;
-delete recipe.image;
-} catch (e) { console.warn('Failed to migrate imported image', e); }
-}
-}
 function showDuplicateModal(duplicates) {
 clearContainer(duplicateItemsContainer);
 duplicates.forEach((recipe, index) => {
@@ -2673,14 +2870,52 @@ item.innerHTML = `<div class="duplicate-item-header"><span class="duplicate-item
 duplicateItemsContainer.appendChild(item);
 });
 updateDuplicateStats();
+finishImportBtn.disabled = duplicates.length > 0;
+lastFocusedElement = document.activeElement;
 duplicateModal.classList.add('active');
 duplicateModal.setAttribute('aria-hidden', 'false');
+closeDuplicateModalBtn.focus();
 }
 function updateDuplicateStats() {
 dupStatNew.textContent = importStats.new;
 dupStatDuplicates.textContent = importStats.duplicates;
 dupStatSkipped.textContent = importStats.skipped;
 dupStatReplaced.textContent = importStats.replaced;
+}
+async function resolveImportDuplicate(recipe, action) {
+if (action === 'skip') {
+importStats.skipped++;
+return;
+}
+if (action === 'replace') {
+importStats.replaced++;
+const existingIdx = recipes.findIndex(r => (r.title || '').toLowerCase() === (recipe.title || '').toLowerCase() && (r.category || 'uncategorized').toLowerCase() === (recipe.category || 'uncategorized').toLowerCase());
+if (existingIdx >= 0) {
+const existing = recipes[existingIdx];
+recipe.bookmarked = recipe.bookmarked || existing.bookmarked || false;
+if (dbWrapper.db) {
+await deleteImageIfUnreferenced(existing.imageId, existing.id);
+await deleteImageIfUnreferenced(existing.thumbId, existing.id);
+}
+await prepareImportedRecipeForStorage(recipe, existing.id);
+recipes[existingIdx] = recipe;
+await saveRecipeToDB(recipe);
+}
+return;
+}
+if (action === 'rename') {
+const baseName = recipe.title || 'Untitled';
+let newName = baseName;
+let counter = 2;
+while (recipes.some(r => r.title === newName)) { newName = `${baseName} (${counter})`; counter++; }
+recipe.title = newName;
+const newId = generateId();
+await prepareImportedRecipeForStorage(recipe, newId);
+recipes.push(recipe);
+await saveRecipeToDB(recipe);
+importStats.new++;
+showToast(`Renamed to "${newName}"`, 'info', 2000);
+}
 }
 duplicateItemsContainer.addEventListener('click', async function(e) {
 const btn = e.target.closest('button[data-action]');
@@ -2690,72 +2925,22 @@ const action = btn.dataset.action;
 const recipe = pendingImportData?.duplicates?.[index];
 if (!recipe) return;
 duplicateResolutions[index] = action;
-if (action === 'skip') { importStats.skipped++; }
-else if (action === 'replace') {
-importStats.replaced++;
-const existingIdx = recipes.findIndex(r => r.title.toLowerCase() === recipe.title.toLowerCase() && r.category.toLowerCase() === (recipe.category || 'uncategorized').toLowerCase());
-if (existingIdx >= 0) {
-recipe.id = recipes[existingIdx].id;
-recipe.bookmarked = recipe.bookmarked || false;
-recipe.ingredientStates = recipe.ingredientStates || (recipe.ingredients || []).map(() => '');
-if (recipe.image && typeof recipe.image === 'string' && recipe.image.startsWith('data:image/')) await migrateRecipeImage(recipe);
-recipes[existingIdx] = recipe;
-await saveRecipeToDB(recipe);
-}
-} else if (action === 'rename') {
-const baseName = recipe.title;
-let newName = baseName;
-let counter = 2;
-while (recipes.some(r => r.title === newName)) { newName = `${baseName} (${counter})`; counter++; }
-recipe.title = newName;
-recipe.id = 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
-recipe.bookmarked = recipe.bookmarked || false;
-recipe.ingredientStates = recipe.ingredientStates || (recipe.ingredients || []).map(() => '');
-if (recipe.image && typeof recipe.image === 'string' && recipe.image.startsWith('data:image/')) await migrateRecipeImage(recipe);
-recipes.push(recipe);
-await saveRecipeToDB(recipe);
-importStats.new++;
-showToast(`Renamed to "${newName}"`, 'info', 2000);
-}
+await resolveImportDuplicate(recipe, action);
 updateDuplicateStats();
 btn.closest('.duplicate-item')?.remove();
 const remaining = duplicateItemsContainer.querySelectorAll('.duplicate-item').length;
-if (remaining === 0) finishImportBtn.disabled = false;
+finishImportBtn.disabled = remaining !== 0;
 });
 async function applyGlobalResolution(action) {
 if (!pendingImportData?.duplicates) return;
 for (const [index, recipe] of pendingImportData.duplicates.entries()) {
 if (duplicateResolutions[index]) continue;
 duplicateResolutions[index] = action;
-if (action === 'skip') { importStats.skipped++; }
-else if (action === 'replace') {
-importStats.replaced++;
-const existingIdx = recipes.findIndex(r => r.title.toLowerCase() === recipe.title.toLowerCase() && r.category.toLowerCase() === (recipe.category || 'uncategorized').toLowerCase());
-if (existingIdx >= 0) {
-recipe.id = recipes[existingIdx].id;
-recipe.bookmarked = recipe.bookmarked || false;
-recipe.ingredientStates = recipe.ingredientStates || (recipe.ingredients || []).map(() => '');
-if (recipe.image && typeof recipe.image === 'string' && recipe.image.startsWith('data:image/')) await migrateRecipeImage(recipe);
-recipes[existingIdx] = recipe;
-await saveRecipeToDB(recipe);
-}
-} else if (action === 'rename') {
-const baseName = recipe.title;
-let newName = baseName;
-let counter = 2;
-while (recipes.some(r => r.title === newName)) { newName = `${baseName} (${counter})`; counter++; }
-recipe.title = newName;
-recipe.id = 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
-recipe.bookmarked = recipe.bookmarked || false;
-recipe.ingredientStates = recipe.ingredientStates || (recipe.ingredients || []).map(() => '');
-if (recipe.image && typeof recipe.image === 'string' && recipe.image.startsWith('data:image/')) await migrateRecipeImage(recipe);
-recipes.push(recipe);
-await saveRecipeToDB(recipe);
-importStats.new++;
-}
+await resolveImportDuplicate(recipe, action);
 }
 updateDuplicateStats();
 clearContainer(duplicateItemsContainer);
+finishImportBtn.disabled = false;
 showToast(`Applied "${action}" to all remaining duplicates`, 'info', 2000);
 }
 async function finalizeImport() {
@@ -2777,6 +2962,8 @@ duplicateModal.classList.remove('active');
 duplicateModal.setAttribute('aria-hidden', 'true');
 pendingImportData = null;
 duplicateResolutions = {};
+finishImportBtn.disabled = true;
+if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') lastFocusedElement.focus();
 }
 function initAudioContext() {
 if (!audioContext) {
@@ -2849,11 +3036,7 @@ function toggleTimer() {
 if (timerAlertActive) { stopTimerAlert(); return; }
 if (timerRunning) pauseTimer(); else startTimer();
 }
-function startTimerLoop() {
-stopTimerLoop();
-timerEndTime = Date.now() + (timerSecondsTotal * 1000);
-lastDisplayedSecond = timerSecondsTotal;
-function tick() {
+function timerTick() {
 if (!timerRunning) return;
 const now = Date.now();
 const remaining = Math.max(0, Math.floor((timerEndTime - now) / 1000 + 0.01));
@@ -2865,6 +3048,7 @@ updateTimerToast();
 saveTimerState();
 }
 if (remaining <= 0) {
+stopTimerLoop();
 timerRunning = false;
 timerSecondsTotal = 0;
 updateTimerSegments();
@@ -2872,10 +3056,18 @@ showToast('Timer complete!', 'success');
 startTimerAlert();
 return;
 }
-if (document.visibilityState === 'visible') timerAnimationFrame = requestAnimationFrame(tick);
-else timerBackgroundInterval = setInterval(tick, 250);
+scheduleTimerTick();
 }
-tick();
+function scheduleTimerTick() {
+stopTimerLoop();
+if (document.visibilityState === 'visible') timerAnimationFrame = requestAnimationFrame(timerTick);
+else timerBackgroundInterval = setInterval(timerTick, 250);
+}
+function startTimerLoop() {
+stopTimerLoop();
+timerEndTime = Date.now() + (timerSecondsTotal * 1000);
+lastDisplayedSecond = timerSecondsTotal;
+scheduleTimerTick();
 }
 function stopTimerLoop() {
 if (timerAnimationFrame) { cancelAnimationFrame(timerAnimationFrame); timerAnimationFrame = null; }
