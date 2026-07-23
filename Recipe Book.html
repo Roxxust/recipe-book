@@ -1877,7 +1877,7 @@ const descEl = card.querySelector('.recipe-description');
 if (!descContainer || !descEl) return;
 stopDescriptionScroll(cardId);
 const textContent = description || '';
-const fallback = 'Delicious recipe ready to try!';
+const fallback = '';
 const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const charThreshold = currentViewMode === 'list' ? SCROLL_CONFIG.listCharThreshold : SCROLL_CONFIG.gridCharThreshold;
 if (reducedMotion || textContent.length <= charThreshold) {
@@ -2053,7 +2053,7 @@ const descContainer = document.createElement('div');
 descContainer.className = 'recipe-description-container';
 const descP = document.createElement('p');
 descP.className = 'recipe-description';
-descP.innerHTML = textToHtml(r.description) || 'Delicious recipe ready to try!';
+descP.innerHTML = textToHtml(r.description) || '';
 descContainer.appendChild(descP);
 topDiv.appendChild(descContainer);
 const metaDiv = document.createElement('div');
