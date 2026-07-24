@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=0.95,viewport-fit=cover" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#0f0f0f">
 <title>Recipe Book</title>
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Roxxust/recipe-book/main/recipe-book.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- fflate for streaming ZIP compression (prevents OOM on large exports) -->
 <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js"></script>
 <style>
 :root{
@@ -15,6 +16,7 @@
 --warning:#ffb84d; --info:#4dabf7;
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,Arial,sans-serif}
+html{color-scheme:dark}
 html,body{height:100%}
 body{
 background:var(--dark-bg);
@@ -28,6 +30,7 @@ padding-bottom:88px;
 header{padding:18px 0;text-align:center;border-bottom:1px solid rgba(255,255,255,0.03)}
 header h1{font-size:2rem;color:var(--accent);display:inline-flex;gap:8px;align-items:center}
 .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:16px 0}
+.form-open .controls{display:none}
 .button-controls{display:flex;gap:10px;flex-wrap:wrap}
 .btn{background:var(--card-bg);border:1px solid var(--border);padding:10px 14px;border-radius:8px;color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:8px;touch-action:manipulation;transition:all 0.2s}
 .btn:hover{background:#2a2a2a}
@@ -69,6 +72,7 @@ content-visibility: auto;
 contain-intrinsic-size: 240px 380px;
 }
 .recipe-card:hover{transform:translateY(-6px);border-color:var(--accent)}
+.recipe-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .recipe-bookmark{position:absolute;top:8px;right:8px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;transition:all 0.2s}
 .recipe-bookmark:hover{background:var(--danger)}
 .recipe-bookmark.active{background:var(--danger);color:#000}
@@ -162,14 +166,24 @@ flex-shrink:0;
 .toast-warning .toast-icon{background:var(--warning);color:#000}
 .toast-info .toast-icon{background:var(--info);color:#000}
 .toast-timer .toast-icon{background:var(--accent);color:#000}
-.toast-message{flex:1;color:var(--text);font-size:.95rem}
+.toast-message{flex:1;color:var(--text);font-size:.95rem;display:flex;align-items:center;flex-wrap:wrap}
 .toast-timer .toast-message{font-variant-numeric:tabular-nums;font-weight:bold}
 .toast-close{background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:4px}
 @keyframes slideIn{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
 @keyframes slideOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(100%)}}
 .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.8);z-index:1000;opacity:0;visibility:hidden;transition:all .18s}
 .modal.active{opacity:1;visibility:visible}
-.modal-content{background:var(--card-bg);width:95%;max-width:900px;border-radius:12px;max-height:90vh;overflow:auto;border:1px solid var(--border);-webkit-overflow-scrolling:touch}
+.modal-content{
+background:var(--card-bg);
+width:95%;
+max-width:900px;
+border-radius:12px;
+max-height:90vh;
+overflow:auto;
+border:1px solid var(--border);
+-webkit-overflow-scrolling:touch;
+position:relative;
+}
 .modal-header{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card-bg);z-index:10}
 .modal-title{color:var(--accent)}
 .modal-header-actions{display:flex;gap:8px;align-items:center}
@@ -211,6 +225,7 @@ min-height: 1px;
 content: none;
 }
 .ingredients-list li{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--border);transition:all .12s;cursor:pointer;flex-wrap:wrap}
+.ingredients-list li:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ingredients-list li.state-added{background:rgba(47,224,198,.06);border-left:4px solid var(--success)}
 .ingredients-list li .converted-amount{color:var(--text-secondary);font-size:.85rem;margin-left:8px;padding:2px 6px;background:#1a1a1a;border-radius:4px}
 .scaling-controls{display:flex;align-items:center;gap:8px;margin:12px 0;padding:12px;background:#202020;border-radius:10px;flex-wrap:wrap}
@@ -225,6 +240,7 @@ content: none;
 .timer-segment-input{width:42px;height:38px;text-align:center;font-size:1.1rem;font-variant-numeric:tabular-nums;background:#1a1a1a;border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px;transition:all 0.2s}
 .timer-segment-input:focus{border-color:var(--accent);outline:2px solid var(--accent);outline-offset:2px;background:#202020}
 .timer-segment-input:hover{border-color:var(--accent)}
+.timer-segment-input:disabled{opacity:.5;cursor:not-allowed}
 .timer-separator{color:var(--text-secondary);font-size:1.2rem;font-weight:bold;margin:0 2px}
 .timer-segment-label{font-size:0.6rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
 .timer-btn{width:44px;height:44px;border-radius:8px;background:#2a2a2a;border:none;color:var(--text);cursor:pointer;font-size:1rem;transition:all 0.2s;display:flex;align-items:center;justify-content:center}
@@ -234,6 +250,7 @@ content: none;
 .timer-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 .timer-preset{padding:6px 12px;border-radius:6px;background:#151515;border:1px solid var(--border);color:var(--text);cursor:pointer;font-size:.85rem;transition:all 0.2s}
 .timer-preset:hover{border-color:var(--accent)}
+.timer-preset:disabled{opacity:.5;cursor:not-allowed}
 .timer-alert-info{color:var(--text-secondary);font-size:.85rem;margin-top:8px}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
 .form-container,.edit-ui{background:var(--card-bg);padding:14px;border-radius:12px;border:1px solid var(--border);margin-top:14px;overflow:hidden}
@@ -270,8 +287,13 @@ textarea{min-height:90px;resize:vertical}
 .image-zoom-close{position:absolute;top:20px;right:20px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:1.5rem;cursor:pointer}
 .search-container{flex:1;min-width:200px;max-width:400px}
 .search-input{width:100%;padding:10px 14px;border-radius:8px;background:#222;border:1px solid var(--border);color:var(--text);display:flex;align-items:center;gap:10px}
-.search-input input{background:transparent;border:none;color:var(--text);flex:1;outline:none}
-.search-input i{color:var(--text-secondary)}
+.search-input input{background:transparent;border:none;color:var(--text);flex:1;outline:none;min-width:0}
+.search-input .search-icon{color:var(--text-secondary);pointer-events:none;flex-shrink:0}
+.search-input .search-clear-btn{background:none;border:none;padding:0;margin:0;color:var(--danger);cursor:pointer;display:none;align-items:center;justify-content:center;flex-shrink:0;width:20px;height:20px}
+.search-input .search-clear-btn:hover{color:#ff9aa6}
+.search-input .search-clear-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.search-input.has-text .search-icon{display:none}
+.search-input.has-text .search-clear-btn{display:flex}
 .duplicate-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:2000;opacity:0;visibility:hidden;transition:all 0.18s}
 .duplicate-modal.active{opacity:1;visibility:visible}
 .duplicate-content{background:var(--card-bg);width:95%;max-width:700px;border-radius:12px;max-height:85vh;overflow:auto;border:1px solid var(--border)}
@@ -291,6 +313,10 @@ textarea{min-height:90px;resize:vertical}
 .duplicate-actions-global{display:flex;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
 *:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.category-tag:focus-visible,.view-mode-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.scroll-to-top{position:fixed;bottom:30px;right:30px;width:50px;height:50px;border-radius:50%;background:var(--accent);color:#000;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:100;transition:opacity 0.3s, transform 0.3s}
+.scroll-to-top.visible{display:flex}
+.scroll-to-top:hover{transform:translateY(-4px)}
+.modal-scroll-to-top{position:absolute;bottom:20px;right:20px;z-index:1001}
 @media (prefers-reduced-motion: reduce) {
 *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
@@ -356,6 +382,19 @@ border-radius: 10px;
 font-size: 3rem;
 color: var(--text-secondary);
 }
+@media print {
+body { background: white; color: black; padding: 0; }
+.controls, .form-container, .edit-ui, .toast-container, .recipe-bookmark, .scaling-controls, .timer-section, .modal-header-actions, #recipeModal > div > div:last-child, .scroll-to-top { display: none !important; }
+.modal { position: static; background: none; opacity: 1; visibility: visible; }
+.modal-content { max-height: none; border: none; box-shadow: none; background: white; color: black; }
+.recipe-image { height: auto; max-height: 300px; }
+.ingredients-list li { color: black; border-color: #ccc; }
+.instructions-list li { color: black; }
+.instructions-list li::before { color: black; }
+.section-title { color: black; }
+.recipe-category { background: #ddd !important; color: black; }
+.recipe-tag { background: #eee; color: #333; }
+}
 </style>
 </head>
 <body>
@@ -368,18 +407,21 @@ color: var(--text-secondary);
 <button class="btn btn-accent" id="addRecipeBtn"><i class="fas fa-plus"></i> Add Recipe</button>
 </div>
 <div class="search-container">
-<div class="search-input">
-<i class="fas fa-search"></i>
-<input type="text" id="searchInput" placeholder="Search recipes, ingredients, tags...">
+<div class="search-input" id="searchInputWrapper">
+<i class="fas fa-search search-icon"></i>
+<button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Clear search" title="Clear search">
+<i class="fas fa-times"></i>
+</button>
+<input type="text" id="searchInput" placeholder="Search recipes, ingredients, tags..." aria-label="Search recipes">
 </div>
 </div>
 <div class="category-filter">
 <div class="categories-container" id="categoriesContainer"></div>
 <div class="view-mode-toggle" role="toolbar" aria-label="View mode">
-<button class="view-mode-btn favorites-btn" id="favoritesFilterBtn" title="Favorites"><i class="far fa-heart"></i></button>
+<button class="view-mode-btn favorites-btn" id="favoritesFilterBtn" title="Favorites" aria-label="Toggle favorites filter"><i class="far fa-heart"></i></button>
 <span style="font-size:.9rem;color:var(--text-secondary);margin-left:4px">View:</span>
-<button class="view-mode-btn grid-mode active" id="gridModeBtn" title="Grid"><i class="fas fa-th"></i></button>
-<button class="view-mode-btn list-mode" id="listModeBtn" title="List"><i class="fas fa-list"></i></button>
+<button class="view-mode-btn grid-mode active" id="gridModeBtn" title="Grid" aria-label="Grid view"><i class="fas fa-th"></i></button>
+<button class="view-mode-btn list-mode" id="listModeBtn" title="List" aria-label="List view"><i class="fas fa-list"></i></button>
 </div>
 </div>
 </div>
@@ -388,61 +430,61 @@ color: var(--text-secondary);
 <div id="recipesGrid" class="recipes-grid" aria-live="polite"></div>
 </div>
 <div id="addRecipeForm" class="form-container" style="display:none;">
-<div class="form-header"><h2 class="form-title"><i class="fas fa-receipt"></i> Add Recipe</h2><button class="btn" id="closeAddFormBtn">&times;</button></div>
+<div class="form-header"><h2 class="form-title"><i class="fas fa-receipt"></i> Add Recipe</h2><button class="btn" id="closeAddFormBtn" aria-label="Close add recipe form">&times;</button></div>
 <form id="addRecipeFormInner">
-<div class="form-group"><label>Category</label><select id="addRecipeCategory" required></select></div>
-<div class="form-group"><label>Title</label><input id="addRecipeTitle" required></div>
+<div class="form-group"><label for="addRecipeCategory">Category</label><select id="addRecipeCategory" required></select></div>
+<div class="form-group"><label for="addRecipeTitle">Title</label><input id="addRecipeTitle" required></div>
 <div style="margin-top:8px" class="image-upload-container">
-<label>Image</label>
+<label for="addImageUpload">Image</label>
 <div class="image-upload-area" id="addImageUploadArea">
 <label for="addImageUpload" style="display:block;cursor:pointer"><i class="fas fa-cloud-upload-alt"></i><p id="addImageHint" style="color:var(--text-secondary)">click or tap to choose photo</p></label>
 <input type="file" id="addImageUpload" accept="image/*" style="display:none">
 <div class="image-preview" id="addImagePreview"><img id="addImagePreviewImg" alt="preview"></div>
-<button type="button" class="remove-image-btn" id="removeAddImageBtn" title="Remove image"><i class="fas fa-times"></i></button>
+<button type="button" class="remove-image-btn" id="removeAddImageBtn" title="Remove image" aria-label="Remove image"><i class="fas fa-times"></i></button>
 </div>
 </div>
-<div class="form-group"><label>Description</label><textarea id="addRecipeDescription"></textarea></div>
+<div class="form-group"><label for="addRecipeDescription">Description</label><textarea id="addRecipeDescription"></textarea></div>
 <div class="form-group">
-<label>Tags</label>
+<label for="addTagsInput">Tags</label>
 <div class="tags-input-container" id="addTagsContainer">
-<input type="text" class="tags-input" id="addTagsInput" placeholder="e.g. crispy, chewy, soft, <10m, etc.">
+<input type="text" class="tags-input" id="addTagsInput" placeholder="e.g. crispy, chewy, soft, <10m, etc." aria-label="Add tags">
 </div>
 <div class="label-hint"><i class="fas fa-info-circle"></i> Separate tags with commas</div>
 </div>
 <div class="form-group"><label>Ingredients</label><div id="addIngredientsContainer"></div><button type="button" class="add-ingredient-btn" id="addAddIngredientBtn"><i class="fas fa-plus"></i> Add Ingredient</button></div>
-<div class="form-group"><label>Instructions</label><textarea id="addRecipeInstructions" placeholder="One step per line. Supports **bold**, *italic*, `code`"></textarea></div>
-<div style="display:flex;gap:10px"><div style="flex:1"><label>Temperature</label><input id="addRecipeTemp" placeholder="e.g., 350"></div><div style="flex:1"><label>Cook time</label><input id="addRecipeTime" placeholder="e.g., 25"></div></div>
-<div style="display:flex;gap:10px;margin-top:10px"><div style="flex:1"><label>Detail type</label><select id="addRecipeDetailType"><option value="">None</option><option value="servings">Servings</option><option value="makes">Makes</option><option value="pans">Pans</option></select></div><div style="flex:1"><label>Value</label><input id="addRecipeDetailValue"></div></div>
+<div class="form-group"><label for="addRecipeInstructions">Instructions</label><textarea id="addRecipeInstructions" placeholder="One step per line. Supports **bold**, *italic*, `code`"></textarea></div>
+<div style="display:flex;gap:10px"><div style="flex:1"><label for="addRecipeTemp">Temperature</label><input id="addRecipeTemp" placeholder="e.g., 350F"></div><div style="flex:1"><label for="addRecipeTime">Cook time</label><input id="addRecipeTime" placeholder="e.g., 25"></div></div>
+<div style="display:flex;gap:10px;margin-top:10px"><div style="flex:1"><label for="addRecipeDetailType">Detail type</label><select id="addRecipeDetailType"><option value="">None</option><option value="servings">Servings</option><option value="makes">Makes</option><option value="pans">Pans</option></select></div><div style="flex:1"><label for="addRecipeDetailValue">Value</label><input id="addRecipeDetailValue"></div></div>
 <div class="form-actions"><button type="button" class="btn" id="cancelAddRecipeBtn">Cancel</button><button type="submit" class="btn btn-accent">Save</button></div>
 </form>
 </div>
 <div id="editRecipeUI" class="edit-ui" style="display:none;">
-<div class="edit-ui-header"><h2 class="form-title"><i class="fas fa-edit"></i> Edit Recipe</h2><button class="btn" id="closeEditFormBtn">&times;</button></div>
+<div class="edit-ui-header"><h2 class="form-title"><i class="fas fa-edit"></i> Edit Recipe</h2><button class="btn" id="closeEditFormBtn" aria-label="Close edit recipe form">&times;</button></div>
 <form id="editRecipeForm">
 <input type="hidden" id="editRecipeId">
-<div class="form-group"><label>Category</label><select id="editRecipeCategory" required></select></div>
-<div class="form-group"><label>Title</label><input id="editRecipeTitle" required></div>
+<div class="form-group"><label for="editRecipeCategory">Category</label><select id="editRecipeCategory" required></select></div>
+<div class="form-group"><label for="editRecipeTitle">Title</label><input id="editRecipeTitle" required></div>
 <div style="margin-top:8px" class="image-upload-container">
-<label>Image</label>
+<label for="editImageUpload">Image</label>
 <div class="image-upload-area" id="editImageUploadArea">
 <label for="editImageUpload" style="display:block;cursor:pointer"><i class="fas fa-cloud-upload-alt"></i><p style="color:var(--text-secondary)">click or tap to choose photo</p></label>
 <input type="file" id="editImageUpload" accept="image/*" style="display:none">
 <div class="image-preview" id="editImagePreview"><img id="editImagePreviewImg" alt="preview"></div>
-<button type="button" class="remove-image-btn" id="removeEditImageBtn" title="Remove image"><i class="fas fa-times"></i></button>
+<button type="button" class="remove-image-btn" id="removeEditImageBtn" title="Remove image" aria-label="Remove image"><i class="fas fa-times"></i></button>
 </div>
 </div>
-<div class="form-group"><label>Description</label><textarea id="editRecipeDescription"></textarea></div>
+<div class="form-group"><label for="editRecipeDescription">Description</label><textarea id="editRecipeDescription"></textarea></div>
 <div class="form-group">
-<label>Tags</label>
+<label for="editTagsInput">Tags</label>
 <div class="tags-input-container" id="editTagsContainer">
-<input type="text" class="tags-input" id="editTagsInput" placeholder="e.g. crispy, chewy, soft, <10m, etc.">
+<input type="text" class="tags-input" id="editTagsInput" placeholder="e.g. crispy, chewy, soft, <10m, etc." aria-label="Edit tags">
 </div>
 <div class="label-hint"><i class="fas fa-info-circle"></i> Separate tags with commas</div>
 </div>
 <div class="form-group"><label>Ingredients</label><div id="editIngredientsContainer"></div><button type="button" class="add-ingredient-btn" id="addEditIngredientBtn"><i class="fas fa-plus"></i> Add Ingredient</button></div>
-<div class="form-group"><label>Instructions</label><textarea id="editRecipeInstructions" placeholder="One step per line. Supports **bold**, *italic*, `code`"></textarea></div>
-<div style="display:flex;gap:10px"><div style="flex:1"><label>Temperature</label><input id="editRecipeTemp" placeholder="e.g., 350"></div><div style="flex:1"><label>Cook time</label><input id="editRecipeTime" placeholder="e.g., 25"></div></div>
-<div style="display:flex;gap:10px;margin-top:10px"><div style="flex:1"><label>Detail type</label><select id="editRecipeDetailType"><option value="">None</option><option value="servings">Servings</option><option value="makes">Makes</option><option value="pans">Pans</option></select></div><div style="flex:1"><label>Value</label><input id="editRecipeDetailValue"></div></div>
+<div class="form-group"><label for="editRecipeInstructions">Instructions</label><textarea id="editRecipeInstructions" placeholder="One step per line. Supports **bold**, *italic*, `code`"></textarea></div>
+<div style="display:flex;gap:10px"><div style="flex:1"><label for="editRecipeTemp">Temperature</label><input id="editRecipeTemp" placeholder="e.g., 350F"></div><div style="flex:1"><label for="editRecipeTime">Cook time</label><input id="editRecipeTime" placeholder="e.g., 25"></div></div>
+<div style="display:flex;gap:10px;margin-top:10px"><div style="flex:1"><label for="editRecipeDetailType">Detail type</label><select id="editRecipeDetailType"><option value="">None</option><option value="servings">Servings</option><option value="makes">Makes</option><option value="pans">Pans</option></select></div><div style="flex:1"><label for="editRecipeDetailValue">Value</label><input id="editRecipeDetailValue"></div></div>
 <div class="form-actions"><button type="button" class="btn" id="cancelEditBtn">Cancel</button><button type="submit" class="btn btn-accent">Save</button></div>
 </form>
 </div>
@@ -451,8 +493,8 @@ color: var(--text-secondary);
 <div class="modal-header">
 <h2 class="modal-title" id="modalRecipeTitle">Recipe</h2>
 <div class="modal-header-actions">
-<button class="modal-action-btn favorites-btn" id="modalBookmarkBtn" title="Toggle favorite"><i class="far fa-heart"></i></button>
-<button class="modal-action-btn close-btn" id="closeModalBtn" title="Close"><i class="fas fa-times"></i></button>
+<button class="modal-action-btn favorites-btn" id="modalBookmarkBtn" title="Toggle favorite" aria-label="Toggle favorite"><i class="far fa-heart"></i></button>
+<button class="modal-action-btn close-btn" id="closeModalBtn" title="Close" aria-label="Close recipe details"><i class="fas fa-times"></i></button>
 </div>
 </div>
 <div class="modal-body" id="modalBody">
@@ -496,11 +538,11 @@ color: var(--text-secondary);
 <span class="timer-segment-label">sec</span>
 </div>
 </div>
-<button class="timer-btn" id="timerStartBtn" title="Start"><i class="fas fa-play"></i></button>
-<button class="timer-btn" id="timerResetBtn" title="Reset"><i class="fas fa-redo"></i></button>
+<button class="timer-btn" id="timerStartBtn" title="Start" aria-label="Start or stop timer"><i class="fas fa-play"></i></button>
+<button class="timer-btn" id="timerResetBtn" title="Reset" aria-label="Reset timer"><i class="fas fa-redo"></i></button>
 </div>
 <div class="timer-presets">
-<button class="timer-preset" data-seconds="0"><i class="fa-regular fa-rectangle-xmark"></i></button>
+<button class="timer-preset" data-seconds="0" aria-label="Clear timer"><i class="fa-regular fa-rectangle-xmark"></i></button>
 <button class="timer-preset" data-seconds="60">1m</button>
 <button class="timer-preset" data-seconds="120">2m</button>
 <button class="timer-preset" data-seconds="300">5m</button>
@@ -522,13 +564,14 @@ color: var(--text-secondary);
 <button class="btn" id="editRecipeBtnModal"><i class="fas fa-edit"></i> Edit</button>
 <button class="btn btn-danger" id="deleteRecipeBtn"><i class="fas fa-trash"></i> Delete</button>
 </div>
+<button id="modalScrollToTopBtn" class="scroll-to-top modal-scroll-to-top" aria-label="Scroll modal to top"><i class="fas fa-arrow-up"></i></button>
 </div>
 </div>
 <div id="duplicateModal" class="duplicate-modal" aria-hidden="true">
 <div class="duplicate-content" role="dialog" aria-modal="true" aria-labelledby="duplicateModalTitle">
 <div class="duplicate-header">
 <h3 class="duplicate-title" id="duplicateModalTitle"><i class="fas fa-clone"></i> Resolve Duplicate Recipes</h3>
-<button class="close-modal" id="closeDuplicateModalBtn">&times;</button>
+<button class="close-modal" id="closeDuplicateModalBtn" aria-label="Close duplicate import dialog">&times;</button>
 </div>
 <div class="duplicate-body">
 <p style="color:var(--text-secondary);margin-bottom:16px">Some recipes in the import file match existing recipes. Choose how to handle each:</p>
@@ -560,27 +603,55 @@ color: var(--text-secondary);
 </div>
 </div>
 </div>
-<div id="imageZoomModal" class="image-zoom-modal">
-<button class="image-zoom-close" id="imageZoomClose">&times;</button>
+<div id="shortcutsModal" class="modal" aria-hidden="true">
+<div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="shortcutsModalTitle" style="max-width:500px">
+<div class="modal-header">
+<h2 class="modal-title" id="shortcutsModalTitle">Keyboard Shortcuts</h2>
+<button class="modal-action-btn close-btn" id="closeShortcutsBtn" aria-label="Close shortcuts dialog"><i class="fas fa-times"></i></button>
+</div>
+<div class="modal-body">
+<ul class="instructions-list">
+<li><strong>Ctrl/Cmd + N:</strong> Add new recipe</li>
+<li><strong>Ctrl/Cmd + F:</strong> Focus search bar</li>
+<li><strong>Esc:</strong> Close modals or forms</li>
+<li><strong>?:</strong> Toggle this help menu</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="imageZoomModal" class="image-zoom-modal" role="dialog" aria-modal="true" aria-label="Image zoom">
+<button class="image-zoom-close" id="imageZoomClose" aria-label="Close image zoom">&times;</button>
 <img id="imageZoomImg" alt="zoomed recipe image">
 </div>
 <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="false"></div>
 <input type="file" id="importFileInput" accept=".json,.zip" style="display:none">
+<button id="scrollToTopBtn" class="scroll-to-top" aria-label="Scroll to top"><i class="fas fa-arrow-up"></i></button>
 </div>
 <script>
 (function(){
+const SCHEMA_VERSION = 2;
+const MIGRATION_FLAG = 'recipeBookMigrationComplete';
+const ALLOWED_DETAIL_TYPES = ['', 'servings', 'makes', 'pans'];
 function parseInlineMarkdown(text) {
-let result = escapeHtml(text);
+const escaped = escapeHtml(text);
+const codeBlocks = [];
+let result = escaped.replace(/`(.+?)`/g, function(m, code) {
+codeBlocks.push(code);
+return '%%CODE' + (codeBlocks.length - 1) + '%%';
+});
 result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 result = result.replace(/__(.+?)__/g, '<strong>$1</strong>');
-result = result.replace(/\*(.+?)\*/g, '<em>$1</em>');
-result = result.replace(/_(.+?)_/g, '<em>$1</em>');
-result = result.replace(/`(.+?)`/g, '<code>$1</code>');
+result = result.replace(/(?<!\w)\*(.+?)\*(?!\w)/g, '<em>$1</em>');
+result = result.replace(/(?<!\w)_(.+?)_(?!\w)/g, '<em>$1</em>');
+result = result.replace(/%%CODE(\d+)%%/g, function(m, idx) {
+const i = Number(idx);
+return i < codeBlocks.length ? '<code>' + codeBlocks[i] + '</code>' : m;
+});
 return result;
 }
 function textToHtml(text) {
 if (!text) return '';
-return escapeHtml(text).replace(/\n/g, '<br>');
+return escapeHtml(text).replace(/(?:\r\n|\r|\n)/g, '<br>');
 }
 const DB_NAME = 'RecipeBookDB';
 const DB_VERSION = 2;
@@ -603,15 +674,9 @@ resolve(true);
 };
 request.onupgradeneeded = (event) => {
 const db = event.target.result;
-if (!db.objectStoreNames.contains(STORE_RECIPES)) {
-db.createObjectStore(STORE_RECIPES, { keyPath: 'id' });
-}
-if (!db.objectStoreNames.contains(STORE_CATEGORIES)) {
-db.createObjectStore(STORE_CATEGORIES, { keyPath: 'id' });
-}
-if (!db.objectStoreNames.contains(STORE_IMAGES)) {
-db.createObjectStore(STORE_IMAGES, { keyPath: 'id' });
-}
+if (!db.objectStoreNames.contains(STORE_RECIPES)) db.createObjectStore(STORE_RECIPES, { keyPath: 'id' });
+if (!db.objectStoreNames.contains(STORE_CATEGORIES)) db.createObjectStore(STORE_CATEGORIES, { keyPath: 'id' });
+if (!db.objectStoreNames.contains(STORE_IMAGES)) db.createObjectStore(STORE_IMAGES, { keyPath: 'id' });
 };
 });
 }
@@ -650,9 +715,7 @@ if (!this.db || !items || items.length === 0) return false;
 return new Promise((resolve, reject) => {
 const tx = this.db.transaction(storeName, 'readwrite');
 const store = tx.objectStore(storeName);
-for (const item of items) {
-store.put(item);
-}
+for (const item of items) store.put(item);
 tx.oncomplete = () => resolve(true);
 tx.onerror = () => reject(tx.error);
 });
@@ -663,16 +726,6 @@ return new Promise((resolve, reject) => {
 const tx = this.db.transaction(storeName, 'readwrite');
 const store = tx.objectStore(storeName);
 const request = store.delete(key);
-request.onerror = () => reject(request.error);
-request.onsuccess = () => resolve(true);
-});
-}
-async clear(storeName) {
-if (!this.db) return false;
-return new Promise((resolve, reject) => {
-const tx = this.db.transaction(storeName, 'readwrite');
-const store = tx.objectStore(storeName);
-const request = store.clear();
 request.onerror = () => reject(request.error);
 request.onsuccess = () => resolve(true);
 });
@@ -742,7 +795,9 @@ const gridModeBtn = document.getElementById('gridModeBtn');
 const listModeBtn = document.getElementById('listModeBtn');
 const modalMeta = document.getElementById('modalMeta');
 const toastContainer = document.getElementById('toastContainer');
+const searchInputWrapper = document.getElementById('searchInputWrapper');
 const searchInput = document.getElementById('searchInput');
+const searchClearBtn = document.getElementById('searchClearBtn');
 const favoritesFilterBtn = document.getElementById('favoritesFilterBtn');
 const imageZoomModal = document.getElementById('imageZoomModal');
 const imageZoomImg = document.getElementById('imageZoomImg');
@@ -774,6 +829,11 @@ const dupStatNew = document.getElementById('dupStatNew');
 const dupStatDuplicates = document.getElementById('dupStatDuplicates');
 const dupStatSkipped = document.getElementById('dupStatSkipped');
 const dupStatReplaced = document.getElementById('dupStatReplaced');
+const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+const modalScrollToTopBtn = document.getElementById('modalScrollToTopBtn');
+const recipeModalContent = recipeModal.querySelector('.modal-content');
+const shortcutsModal = document.getElementById('shortcutsModal');
+const closeShortcutsBtn = document.getElementById('closeShortcutsBtn');
 let categories = [];
 let recipes = [];
 let filteredRecipes = [];
@@ -787,6 +847,8 @@ let showFavoritesOnly = false;
 let currentTags = [];
 let editCurrentTags = [];
 let currentScale = 1;
+let addFormDirty = false;
+let editFormDirty = false;
 const BATCH_SIZE = 50;
 const recipeBlobUrls = new Map();
 let pendingImportData = null;
@@ -812,7 +874,11 @@ let infiniteScrollObserver = null;
 let currentRenderRequestId = 0;
 let currentSearchRequestId = 0;
 const pendingSearchResolvers = new Map();
+const pendingSearchPayloads = new Map();
 let lastFocusedElement = null;
+let descriptionVisibilityObserver = null;
+let broadcastChannel = null;
+let pendingDeletedRecipe = null;
 const SCROLL_CONFIG = {
 scrollSpeed: 28,
 resetSpeed: 180,
@@ -822,54 +888,43 @@ gridCharThreshold: 90,
 listCharThreshold: 405
 };
 const descriptionScrollStates = new Map();
-const descriptionScrollObserver = new MutationObserver((mutations) => {
-const removedCardIds = new Set();
-mutations.forEach(mutation => {
-mutation.removedNodes.forEach(node => {
-if (node.nodeType === 1 && node.classList && node.classList.contains('recipe-card')) {
-const cardId = node.dataset.id;
-if (cardId) removedCardIds.add(cardId);
-}
-if (node.nodeType === 1 && node.querySelectorAll) {
-node.querySelectorAll('.recipe-card').forEach(card => {
-const cardId = card.dataset.id;
-if (cardId) removedCardIds.add(cardId);
-});
-}
-});
-});
-removedCardIds.forEach(cardId => {
-stopDescriptionScroll(cardId);
-revokeCardBlob(cardId + '_card');
-});
-});
+let descriptionScrollObserver = null;
 let searchWorker = null;
 function createObjectURL(blob, key) {
 const url = URL.createObjectURL(blob);
 const oldUrl = recipeBlobUrls.get(key);
-if (oldUrl) URL.revokeObjectURL(oldUrl);
+if (oldUrl) {
+try { URL.revokeObjectURL(oldUrl); } catch (e) {}
+}
 recipeBlobUrls.set(key, url);
 return url;
 }
 function revokeCardBlob(key) {
 const url = recipeBlobUrls.get(key);
 if (url) {
-URL.revokeObjectURL(url);
+try { URL.revokeObjectURL(url); } catch (e) {}
 recipeBlobUrls.delete(key);
 }
 }
+function revokeTrackedUrl(url) {
+if (!url || typeof url !== 'string' || !url.startsWith('blob:')) return;
+try { URL.revokeObjectURL(url); } catch (e) {}
+for (const [key, value] of Array.from(recipeBlobUrls.entries())) {
+if (value === url) recipeBlobUrls.delete(key);
+}
+}
 function revokeCardObjectURLs() {
-recipeBlobUrls.forEach((url, key) => {
+for (const [key, url] of Array.from(recipeBlobUrls.entries())) {
 if (key.endsWith('_card')) {
 try { URL.revokeObjectURL(url); } catch (e) {}
 recipeBlobUrls.delete(key);
 }
-});
+}
 }
 function revokeAllObjectURLs() {
-recipeBlobUrls.forEach(url => {
+for (const url of recipeBlobUrls.values()) {
 try { URL.revokeObjectURL(url); } catch (e) {}
-});
+}
 recipeBlobUrls.clear();
 }
 function generateId(prefix = 'r') {
@@ -887,58 +942,41 @@ if (!referenced) {
 try { await dbWrapper.delete(STORE_IMAGES, imageId); } catch (e) { console.warn('Failed to delete image', e); }
 }
 }
-function initSearchWorker() {
-const workerCode = `
-self.onmessage = function(e) {
-const data = e.data || {};
-const recipes = data.recipes || [];
-const searchTerm = data.searchTerm || '';
-const category = data.category || 'all';
-const showFavorites = !!data.showFavorites;
-const requestId = data.requestId;
-let filtered = recipes;
-if (category !== 'all') {
-filtered = filtered.filter(r => r.category === category);
-}
-if (showFavorites) {
-filtered = filtered.filter(r => r.bookmarked);
-}
-if (searchTerm) {
-const term = searchTerm.toLowerCase();
-filtered = filtered.filter(r => {
-return (r.title && r.title.toLowerCase().includes(term)) ||
-(r.description && r.description.toLowerCase().includes(term)) ||
-(r.tags && r.tags.some(t => t.toLowerCase().includes(term))) ||
-(r.ingredients && r.ingredients.some(i => i.name && i.name.toLowerCase().includes(term)));
-});
-}
-filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-self.postMessage({ requestId: requestId, results: filtered });
-};
-`;
+async function cleanupUnreferencedImages() {
+if (!dbWrapper.db) return;
 try {
-const blob = new Blob([workerCode], { type: 'application/javascript' });
-const workerUrl = URL.createObjectURL(blob);
-searchWorker = new Worker(workerUrl);
-URL.revokeObjectURL(workerUrl);
-searchWorker.onmessage = (e) => {
-const requestId = e.data && e.data.requestId;
-const results = e.data && e.data.results;
-const resolve = pendingSearchResolvers.get(requestId);
-if (resolve) {
-resolve(results);
-pendingSearchResolvers.delete(requestId);
+const images = await dbWrapper.getAll(STORE_IMAGES);
+if (!images) return;
+const referenced = new Set();
+recipes.forEach(r => {
+if (r.imageId) referenced.add(r.imageId);
+if (r.thumbId) referenced.add(r.thumbId);
+});
+for (const img of images) {
+if (!referenced.has(img.id)) {
+await dbWrapper.delete(STORE_IMAGES, img.id);
 }
-};
+}
 } catch (e) {
-console.warn('Web Worker initialization failed, falling back to main thread search.', e);
+console.warn('Failed to cleanup unreferenced images', e);
 }
 }
-function filterRecipesAsync(searchTerm, category, showFavorites) {
-const requestId = ++currentSearchRequestId;
-return new Promise((resolve) => {
-if (!searchWorker) {
-let filtered = recipes;
+function createSearchDocs() {
+return recipes.map(r => ({
+id: r.id,
+title: r.title || '',
+description: r.description || '',
+category: r.category || '',
+tags: Array.isArray(r.tags) ? r.tags : [],
+ingredients: Array.isArray(r.ingredients) ? r.ingredients.map(i => ({ name: (i && i.name) || '' })) : [],
+instructions: Array.isArray(r.instructions) ? r.instructions.join(' ') : '',
+bookmarked: Boolean(r.bookmarked),
+createdAt: r.createdAt || 0,
+updatedAt: r.updatedAt || 0
+}));
+}
+function localSearchIds(docs, searchTerm, category, showFavorites) {
+let filtered = docs;
 if (category !== 'all') filtered = filtered.filter(r => r.category === category);
 if (showFavorites) filtered = filtered.filter(r => r.bookmarked);
 if (searchTerm) {
@@ -947,39 +985,126 @@ filtered = filtered.filter(r => {
 return (r.title && r.title.toLowerCase().includes(term)) ||
 (r.description && r.description.toLowerCase().includes(term)) ||
 (r.tags && r.tags.some(t => t.toLowerCase().includes(term))) ||
-(r.ingredients && r.ingredients.some(i => i.name && i.name.toLowerCase().includes(term)));
+(r.ingredients && r.ingredients.some(i => i.name && i.name.toLowerCase().includes(term))) ||
+(r.instructions && r.instructions.toLowerCase().includes(term));
 });
 }
 filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-resolve(filtered);
+return filtered.map(r => r.id);
+}
+function idsToRecipes(ids) {
+const map = new Map(recipes.map(r => [r.id, r]));
+return ids.map(id => map.get(id)).filter(Boolean);
+}
+function fallbackPendingSearches() {
+pendingSearchResolvers.forEach((resolve, requestId) => {
+const payload = pendingSearchPayloads.get(requestId);
+if (payload) {
+resolve(idsToRecipes(localSearchIds(payload.docs, payload.searchTerm, payload.category, payload.showFavorites)));
+}
+});
+pendingSearchResolvers.clear();
+pendingSearchPayloads.clear();
+}
+function initSearchWorker() {
+const workerCode = `
+self.onmessage = function(e) {
+const data = e.data || {};
+const docs = data.docs || [];
+const searchTerm = data.searchTerm || '';
+const category = data.category || 'all';
+const showFavorites = !!data.showFavorites;
+const requestId = data.requestId;
+let filtered = docs;
+if (category !== 'all') {
+filtered = filtered.filter(function(r) { return r.category === category; });
+}
+if (showFavorites) {
+filtered = filtered.filter(function(r) { return r.bookmarked; });
+}
+if (searchTerm) {
+const term = searchTerm.toLowerCase();
+filtered = filtered.filter(function(r) {
+return (r.title && r.title.toLowerCase().includes(term)) ||
+(r.description && r.description.toLowerCase().includes(term)) ||
+(r.tags && r.tags.some(function(t) { return t.toLowerCase().includes(term); })) ||
+(r.ingredients && r.ingredients.some(function(i) { return i.name && i.name.toLowerCase().includes(term); })) ||
+(r.instructions && r.instructions.toLowerCase().includes(term));
+});
+}
+filtered.sort(function(a, b) { return (a.title || '').localeCompare(b.title || ''); });
+self.postMessage({ requestId: requestId, ids: filtered.map(function(r) { return r.id; }) });
+};
+`;
+try {
+const blob = new Blob([workerCode], { type: 'application/javascript' });
+const workerUrl = URL.createObjectURL(blob);
+searchWorker = new Worker(workerUrl);
+searchWorker.onmessage = (e) => {
+const requestId = e.data && e.data.requestId;
+const ids = (e.data && e.data.ids) || [];
+const resolve = pendingSearchResolvers.get(requestId);
+if (resolve) {
+resolve(ids);
+pendingSearchResolvers.delete(requestId);
+pendingSearchPayloads.delete(requestId);
+}
+};
+searchWorker.onerror = () => {
+console.warn('Search worker failed, falling back to main thread search.');
+fallbackPendingSearches();
+try { searchWorker.terminate(); } catch (e) {}
+searchWorker = null;
+try { URL.revokeObjectURL(workerUrl); } catch (e) {}
+};
+} catch (e) {
+console.warn('Web Worker initialization failed, falling back to main thread search.', e);
+searchWorker = null;
+}
+}
+function filterRecipesAsync(searchTerm, category, showFavorites) {
+const requestId = ++currentSearchRequestId;
+const docs = createSearchDocs();
+return new Promise((resolve) => {
+if (!searchWorker) {
+resolve(idsToRecipes(localSearchIds(docs, searchTerm, category, showFavorites)));
 return;
 }
-pendingSearchResolvers.set(requestId, resolve);
-searchWorker.postMessage({ recipes, searchTerm, category, showFavorites, requestId });
+pendingSearchResolvers.set(requestId, (ids) => resolve(idsToRecipes(ids)));
+pendingSearchPayloads.set(requestId, { docs, searchTerm, category, showFavorites });
+searchWorker.postMessage({ docs, searchTerm, category, showFavorites, requestId });
 });
 }
 function showToast(message, type = 'info', duration = 4000) {
 const toast = document.createElement('div');
 toast.className = `toast toast-${type}`;
 const icons = { success: 'fa-check', error: 'fa-times', warning: 'fa-exclamation', info: 'fa-info', timer: 'fa-stopwatch' };
-toast.innerHTML = `<div class="toast-icon"><i class="fas ${icons[type] || icons.info}"></i></div><span class="toast-message">${escapeHtml(message)}</span><button class="toast-close"><i class="fas fa-times"></i></button>`;
+toast.innerHTML = `<div class="toast-icon"><i class="fas ${icons[type] || icons.info}"></i></div><span class="toast-message">${escapeHtml(message)}</span><button class="toast-close" aria-label="Dismiss notification"><i class="fas fa-times"></i></button>`;
 toastContainer.appendChild(toast);
 requestAnimationFrame(() => { toast.classList.add('show'); });
 const closeBtn = toast.querySelector('.toast-close');
 closeBtn.addEventListener('click', () => removeToast(toast));
-const timeout = setTimeout(() => { removeToast(toast); }, duration);
+let timeout = setTimeout(() => { removeToast(toast); }, duration);
 toast.addEventListener('mouseenter', () => clearTimeout(timeout));
-toast.addEventListener('mouseleave', () => { setTimeout(() => removeToast(toast), duration); });
+toast.addEventListener('mouseleave', () => {
+timeout = setTimeout(() => removeToast(toast), duration);
+});
 return toast;
 }
 function removeToast(toast) {
 if (!toast || !toast.parentNode) return;
 toast.classList.add('hiding');
-toast.addEventListener('animationend', () => { if (toast.parentNode) toast.remove(); });
+const remove = () => { if (toast.parentNode) toast.remove(); };
+toast.addEventListener('animationend', remove, { once: true });
+setTimeout(remove, 500);
 }
 function updateTimerToast() {
+if (timerToastElement && !timerToastElement.parentNode) timerToastElement = null;
 if (!timerRunning && !timerAlertActive) {
-if (timerToastElement) { removeToast(timerToastElement); timerToastElement = null; }
+if (timerToastElement) {
+removeToast(timerToastElement);
+timerToastElement = null;
+}
 return;
 }
 const timeDisplay = formatTime(timerSecondsTotal);
@@ -989,12 +1114,15 @@ const typeClass = timerAlertActive ? 'toast-warning' : 'toast-timer';
 if (!timerToastElement) {
 timerToastElement = document.createElement('div');
 timerToastElement.className = `toast ${typeClass}`;
-timerToastElement.innerHTML = `<div class="toast-icon"><i class="fas ${iconClass}"></i></div><span class="toast-message">${escapeHtml(statusText)}</span><button class="toast-close"><i class="fas fa-times"></i></button>`;
+timerToastElement.innerHTML = `<div class="toast-icon"><i class="fas ${iconClass}"></i></div><span class="toast-message">${escapeHtml(statusText)}</span><button class="toast-close" aria-label="Dismiss timer notification"><i class="fas fa-times"></i></button>`;
 toastContainer.appendChild(timerToastElement);
 requestAnimationFrame(() => { timerToastElement.classList.add('show'); });
 timerToastElement.querySelector('.toast-close').addEventListener('click', () => {
 if (timerAlertActive) stopTimerAlert(); else pauseTimer();
-if (timerToastElement) { removeToast(timerToastElement); timerToastElement = null; }
+if (timerToastElement) {
+removeToast(timerToastElement);
+timerToastElement = null;
+}
 });
 } else {
 timerToastElement.className = `toast ${typeClass} show`;
@@ -1010,6 +1138,13 @@ const scaleOptions = [
 { value: 4, label: '4x', btn: scale4xBtn }
 ];
 const pointerDrag = { active:false, element:null, container:null, offsetX:0, offsetY:0, placeholder:null, lastClientY:null, scrollInterval:null };
+const unicodeFractionMap = {
+'½': 0.5, '⅓': 0.333333, '⅔': 0.666666, '¼': 0.25, '¾': 0.75,
+'⅛': 0.125, '⅜': 0.375, '⅝': 0.625, '⅞': 0.875,
+'⅕': 0.2, '⅖': 0.4, '⅗': 0.6, '⅘': 0.8,
+'⅙': 0.166666, '⅚': 0.833333, '⅐': 0.142857, '⅑': 0.111111, '⅒': 0.1
+};
+const unicodeFractionChars = Object.keys(unicodeFractionMap).join('');
 function parseFractionAmount(amountStr) {
 if (!amountStr || typeof amountStr !== 'string') return { value: 0, original: amountStr || '', numeric: false };
 const trimmed = amountStr.trim();
@@ -1020,13 +1155,27 @@ const whole = parseInt(mixedMatch[1], 10);
 const num = parseInt(mixedMatch[2], 10);
 const denom = parseInt(mixedMatch[3], 10);
 if (denom !== 0) return { value: whole + (num / denom), original: trimmed, numeric: true };
+return { value: 0, original: trimmed, numeric: false };
 }
 const fractionMatch = trimmed.match(/^(\d+)\/(\d+)$/);
 if (fractionMatch) {
 const num = parseInt(fractionMatch[1], 10);
 const denom = parseInt(fractionMatch[2], 10);
 if (denom !== 0) return { value: num / denom, original: trimmed, numeric: true };
+return { value: 0, original: trimmed, numeric: false };
 }
+try {
+const mixedUnicodeMatch = trimmed.match(new RegExp(`^(\\d+)\\s*([${unicodeFractionChars}])$`));
+if (mixedUnicodeMatch) {
+const whole = parseInt(mixedUnicodeMatch[1], 10);
+const frac = unicodeFractionMap[mixedUnicodeMatch[2]] || 0;
+return { value: whole + frac, original: trimmed, numeric: true };
+}
+const unicodeOnlyMatch = trimmed.match(new RegExp(`^([${unicodeFractionChars}])$`));
+if (unicodeOnlyMatch) {
+return { value: unicodeFractionMap[unicodeOnlyMatch[1]] || 0, original: trimmed, numeric: true };
+}
+} catch (e) {}
 const numValue = parseFloat(trimmed);
 if (!isNaN(numValue)) return { value: numValue, original: trimmed, numeric: true };
 return { value: 0, original: trimmed, numeric: false };
@@ -1037,7 +1186,8 @@ if (!parsed.original) return '';
 if (!parsed.numeric || parsed.value === 0) return parsed.original;
 if (scale === 1) return parsed.original;
 const scaledValue = parsed.value * scale;
-if (scaledValue % 1 === 0) return scaledValue.toString();
+const nearestInteger = Math.round(scaledValue);
+if (Math.abs(scaledValue - nearestInteger) < 1e-9) return nearestInteger.toString();
 const commonFractions = [
 { value: 0.125, display: '1/8' }, { value: 0.25, display: '1/4' }, { value: 0.333333, display: '1/3' },
 { value: 0.375, display: '3/8' }, { value: 0.5, display: '1/2' }, { value: 0.625, display: '5/8' },
@@ -1046,14 +1196,139 @@ const commonFractions = [
 const fractionalPart = scaledValue - Math.floor(scaledValue);
 const wholePart = Math.floor(scaledValue);
 for (const frac of commonFractions) {
-if (Math.abs(fractionalPart - frac.value) < 0.01) {
+if (Math.abs(fractionalPart - frac.value) < 0.015) {
 return wholePart === 0 ? frac.display : `${wholePart} ${frac.display}`;
 }
 }
 return scaledValue.toFixed(2);
 }
-initApp();
-async function initApp() {
+function updateSearchUI() {
+const hasText = searchInput.value.trim().length > 0;
+if (hasText) searchInputWrapper.classList.add('has-text');
+else searchInputWrapper.classList.remove('has-text');
+}
+function clearSearchInput() {
+if (searchInput.value !== '') {
+searchInput.value = '';
+updateSearchUI();
+renderRecipes();
+}
+searchInput.focus();
+}
+function normalizeCategoryName(name) {
+const trimmed = (name || '').trim();
+return trimmed || 'Uncategorized';
+}
+function ensureCategoryExists(category) {
+const normalized = normalizeCategoryName(category);
+if (!categories.some(c => c.toLowerCase() === normalized.toLowerCase())) {
+categories.push(normalized);
+}
+const existing = categories.find(c => c.toLowerCase() === normalized.toLowerCase());
+return existing || normalized;
+}
+async function normalizeAllRecipeCategories() {
+let categoriesChanged = false;
+const changedRecipes = [];
+for (const recipe of recipes) {
+const original = recipe.category;
+const normalized = ensureCategoryExists(original);
+if (normalized !== original) {
+recipe.category = normalized;
+changedRecipes.push(recipe);
+categoriesChanged = true;
+}
+}
+if (changedRecipes.length > 0) {
+try {
+if (dbWrapper.db) await dbWrapper.putBulk(STORE_RECIPES, changedRecipes);
+else await saveAllToLocalStorage();
+} catch (e) {
+console.warn('Failed to save normalized recipes', e);
+}
+}
+if (categoriesChanged) await saveCategoriesToDB();
+return categoriesChanged;
+}
+function updateEmptyState() {
+if (filteredRecipes.length === 0) {
+emptyState.style.display = 'block';
+if (recipes.length === 0) {
+emptyState.innerHTML = '<i class="fas fa-book-open" style="font-size:2rem;margin-bottom:8px;display:block"></i><h3>No recipes yet</h3><p>Tap Add Recipe to start.</p>';
+} else {
+emptyState.innerHTML = '<i class="fas fa-search" style="font-size:2rem;margin-bottom:8px;display:block"></i><h3>No matching recipes</h3><p>Try clearing search or changing filters.</p>';
+}
+} else {
+emptyState.style.display = 'none';
+}
+}
+function markAddDirty() { addFormDirty = true; }
+function markEditDirty() { editFormDirty = true; }
+function setImportExportDisabled(disabled) {
+exportDataBtn.disabled = disabled;
+importDataBtn.disabled = disabled;
+}
+function setDuplicateGlobalButtonsDisabled(disabled) {
+applyAllSkipBtn.disabled = disabled;
+applyAllReplaceBtn.disabled = disabled;
+applyAllRenameBtn.disabled = disabled;
+if (disabled) {
+finishImportBtn.disabled = true;
+} else {
+finishImportBtn.disabled = duplicateItemsContainer.querySelectorAll('.duplicate-item').length > 0;
+}
+}
+function getInstructionLines(recipe) {
+if (!recipe) return [];
+if (Array.isArray(recipe.instructions)) return recipe.instructions;
+if (typeof recipe.instructions === 'string') return recipe.instructions.split(/(?:\r\n|\r|\n)/);
+return [];
+}
+function sanitizeImportedRecipe(recipe) {
+if (!recipe || typeof recipe !== 'object') return null;
+const sanitized = {
+id: recipe.id || generateId(),
+title: typeof recipe.title === 'string' ? recipe.title.trim() : '',
+description: typeof recipe.description === 'string' ? recipe.description.trim() : '',
+category: normalizeCategoryName(recipe.category),
+tags: Array.isArray(recipe.tags) ? recipe.tags.filter(t => typeof t === 'string' && t.trim()).map(t => t.trim()) : [],
+ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients.filter(i => i && typeof i === 'object').map(i => ({
+name: typeof i.name === 'string' ? i.name.trim() : '',
+amount: typeof i.amount === 'string' ? i.amount.trim() : '',
+unit: typeof i.unit === 'string' ? i.unit.trim() : ''
+})).filter(i => i.name || i.amount || i.unit) : [],
+instructions: [],
+time: recipe.time != null ? String(recipe.time).trim() : '',
+temp: recipe.temp != null ? String(recipe.temp).trim() : '',
+detailType: ALLOWED_DETAIL_TYPES.includes(recipe.detailType) ? recipe.detailType : '',
+detailValue: recipe.detailValue != null ? String(recipe.detailValue).trim() : '',
+bookmarked: Boolean(recipe.bookmarked),
+ingredientStates: [],
+createdAt: recipe.createdAt || Date.now(),
+updatedAt: recipe.updatedAt || Date.now()
+};
+if (Array.isArray(recipe.instructions)) {
+sanitized.instructions = recipe.instructions.filter(s => typeof s === 'string').map(s => s.trim());
+} else if (typeof recipe.instructions === 'string') {
+sanitized.instructions = recipe.instructions.split(/(?:\r\n|\r|\n)/).map(s => s.trim()).filter(s => s);
+}
+sanitized.ingredientStates = Array.isArray(recipe.ingredientStates)
+? recipe.ingredientStates.slice(0, sanitized.ingredients.length).map(s => s === 'state-added' ? 'state-added' : '')
+: sanitized.ingredients.map(() => '');
+while (sanitized.ingredientStates.length < sanitized.ingredients.length) sanitized.ingredientStates.push('');
+if (recipe.image && typeof recipe.image === 'string' && isSafeImageSrc(recipe.image)) {
+sanitized.image = recipe.image;
+}
+if (recipe.imageId && typeof recipe.imageId === 'string') {
+sanitized.imageId = recipe.imageId;
+}
+if (recipe.thumbId && typeof recipe.thumbId === 'string') {
+sanitized.thumbId = recipe.thumbId;
+}
+return sanitized;
+}
+function initApp() {
+return (async function() {
 try {
 await dbWrapper.open();
 await migrateFromLocalStorage();
@@ -1062,26 +1337,74 @@ await migrateImagesToBlobStore();
 console.warn('IndexedDB not available, using localStorage', e);
 }
 await loadData();
+await normalizeAllRecipeCategories();
 await loadSettings();
 applyViewMode();
-if (!categories || categories.length === 0) categories = ['Cookies'];
+if (!categories || categories.length === 0) {
+categories = ['Cookies'];
+await saveCategoriesToDB();
+}
+descriptionVisibilityObserver = new IntersectionObserver(handleDescriptionVisibility, { rootMargin: '100px', threshold: 0 });
+descriptionScrollObserver = new MutationObserver((mutations) => {
+const removedCardIds = new Set();
+mutations.forEach(mutation => {
+mutation.removedNodes.forEach(node => {
+if (node.nodeType === 1 && node.classList && node.classList.contains('recipe-card')) {
+const cardId = node.dataset.id;
+if (cardId) removedCardIds.add(cardId);
+}
+});
+});
+removedCardIds.forEach(cardId => {
+stopDescriptionScroll(cardId);
+revokeCardBlob(cardId + '_card');
+});
+});
+descriptionScrollObserver.observe(recipesGrid, { childList: true });
 renderCategories();
 populateCategoryDropdowns();
 renderRecipes();
 setupEventListeners();
-setupTagsInput(addTagsInput, addTagsContainer, () => currentTags);
-setupTagsInput(editTagsInput, editTagsContainer, () => editCurrentTags);
+setupTagsInput(addTagsInput, addTagsContainer, () => currentTags, 'add');
+setupTagsInput(editTagsInput, editTagsContainer, () => editCurrentTags, 'edit');
 clearContainer(addIngredientsContainer);
-addIngredientField(addIngredientsContainer);
+addIngredientField(addIngredientsContainer, null, 'add');
 clearContainer(editIngredientsContainer);
-addIngredientField(editIngredientsContainer);
+addIngredientField(editIngredientsContainer, null, 'edit');
 updateScaleButtons();
 await restoreTimerState();
 initTimerSegmentInputs();
-descriptionScrollObserver.observe(document.body, { childList: true, subtree: true });
+syncTimerControls();
 initSearchWorker();
+initBroadcastChannel();
+injectPwaManifest();
 finishImportBtn.disabled = true;
+updateSearchUI();
 showToast('Recipe Book loaded', 'success', 2000);
+})();
+}
+function injectPwaManifest() {
+if (window.location.protocol === 'file:') return;
+const manifest = {
+name: "Recipe Book",
+short_name: "Recipes",
+start_url: window.location.href,
+scope: window.location.pathname,
+display: "standalone",
+background_color: "#0f0f0f",
+theme_color: "#6fb8ff",
+icons: [{
+src: "https://raw.githubusercontent.com/Roxxust/recipe-book/main/recipe-book.png",
+sizes: "192x192",
+type: "image/png"
+}]
+};
+const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+const manifestUrl = URL.createObjectURL(manifestBlob);
+const link = document.createElement('link');
+link.rel = 'manifest';
+link.href = manifestUrl;
+document.head.appendChild(link);
 }
 async function generateThumbnail(blob, maxSize = 400) {
 return new Promise((resolve) => {
@@ -1222,6 +1545,7 @@ if (timerMinutes) timerMinutes.value = m.toString().padStart(2, '0');
 if (timerSeconds) timerSeconds.value = s.toString().padStart(2, '0');
 }
 function setTimerFromPreset(seconds) {
+if (timerRunning || timerAlertActive) return;
 timerSecondsTotal = seconds;
 timerInitialSeconds = seconds;
 lastDisplayedSecond = seconds;
@@ -1231,8 +1555,12 @@ saveTimerState();
 async function saveTimerState() {
 try {
 const timerState = {
-timerSeconds: timerSecondsTotal, timerInitialSeconds, timerRunning, timerAlertActive,
-timerAlertStartTime, timerEndTime
+timerSeconds: timerSecondsTotal,
+timerInitialSeconds,
+timerRunning,
+timerAlertActive,
+timerAlertStartTime,
+timerEndTime
 };
 localStorage.setItem('recipeBookTimerState', JSON.stringify(timerState));
 } catch (e) { console.warn('Failed to save timer state', e); }
@@ -1240,12 +1568,15 @@ localStorage.setItem('recipeBookTimerState', JSON.stringify(timerState));
 async function restoreTimerState() {
 try {
 const saved = localStorage.getItem('recipeBookTimerState');
-if (!saved) return;
+if (!saved) {
+syncTimerControls();
+return;
+}
 const state = JSON.parse(saved);
 const now = Date.now();
-timerSecondsTotal = state.timerSeconds;
-timerInitialSeconds = state.timerInitialSeconds;
-timerAlertActive = state.timerAlertActive || false;
+timerSecondsTotal = state.timerSeconds || 0;
+timerInitialSeconds = state.timerInitialSeconds || 0;
+timerAlertActive = false;
 timerAlertStartTime = state.timerAlertStartTime || 0;
 timerEndTime = state.timerEndTime || null;
 lastDisplayedSecond = timerSecondsTotal;
@@ -1254,26 +1585,39 @@ if (state.timerRunning && !state.timerAlertActive && timerEndTime) {
 const remaining = Math.max(0, Math.floor((timerEndTime - now) / 1000));
 if (remaining > 0) {
 timerSecondsTotal = remaining;
-timerRunning = true;
+lastDisplayedSecond = remaining;
 updateTimerSegments();
+timerRunning = true;
 startTimerLoop();
 updateTimerToast();
 showToast('Timer restored', 'info', 3000);
+} else {
+timerRunning = false;
+timerSecondsTotal = 0;
+updateTimerSegments();
+showToast('Timer complete!', 'success');
+startTimerAlert();
 }
 }
 if (state.timerAlertActive) {
-const alertElapsed = now - state.timerAlertStartTime;
+const alertElapsed = now - (state.timerAlertStartTime || 0);
 if (alertElapsed < timerAlertDuration) {
-timerAlertActive = true;
-timerStartBtn.classList.add('alerting');
-timerStartBtn.innerHTML = '<i class="fas fa-stop"></i>';
-startTimerAlert();
+startTimerAlert(state.timerAlertStartTime || Date.now());
+} else {
+timerAlertActive = false;
 updateTimerToast();
-} else { timerAlertActive = false; updateTimerToast(); }
 }
-} catch (e) { console.warn('Failed to restore timer state', e); }
+}
+syncTimerControls();
+} catch (e) {
+console.warn('Failed to restore timer state', e);
+syncTimerControls();
+}
 }
 async function migrateFromLocalStorage() {
+try {
+const migrationComplete = localStorage.getItem(MIGRATION_FLAG);
+if (migrationComplete === 'true') return;
 const localRecipes = localStorage.getItem('recipeBookRecipes');
 const localCategories = localStorage.getItem('recipeBookCategories');
 if (localRecipes && dbWrapper.db) {
@@ -1281,7 +1625,7 @@ const parsedRecipes = JSON.parse(localRecipes);
 if (Array.isArray(parsedRecipes) && parsedRecipes.length > 0) {
 const existing = await dbWrapper.getAll(STORE_RECIPES) || [];
 if (existing.length === 0) {
-for (const recipe of parsedRecipes) { await dbWrapper.put(STORE_RECIPES, recipe); }
+for (const recipe of parsedRecipes) await dbWrapper.put(STORE_RECIPES, recipe);
 showToast('Migrated to IndexedDB', 'info', 3000);
 }
 }
@@ -1290,11 +1634,20 @@ if (localCategories && dbWrapper.db) {
 const parsedCategories = JSON.parse(localCategories);
 if (Array.isArray(parsedCategories) && parsedCategories.length > 0) {
 const existing = await dbWrapper.getAll(STORE_CATEGORIES) || [];
-if (existing.length === 0) { await dbWrapper.put(STORE_CATEGORIES, { id: 'categories', items: parsedCategories }); }
+if (existing.length === 0) {
+await dbWrapper.put(STORE_CATEGORIES, { id: 'categories', items: parsedCategories });
 }
+}
+}
+localStorage.setItem(MIGRATION_FLAG, 'true');
+localStorage.removeItem('recipeBookRecipes');
+localStorage.removeItem('recipeBookCategories');
+} catch (e) {
+console.warn('Failed to migrate from localStorage', e);
 }
 }
 async function loadData() {
+try {
 if (dbWrapper.db) {
 const recipesData = await dbWrapper.getAll(STORE_RECIPES);
 const categoriesData = await dbWrapper.getAll(STORE_CATEGORIES);
@@ -1304,18 +1657,43 @@ categories = categoriesData?.[0]?.items || [];
 recipes = JSON.parse(localStorage.getItem('recipeBookRecipes')) || [];
 categories = JSON.parse(localStorage.getItem('recipeBookCategories')) || [];
 }
+} catch (e) {
+console.warn('Failed to load data', e);
+recipes = [];
+categories = [];
+}
+if (!Array.isArray(recipes)) recipes = [];
+if (!Array.isArray(categories)) categories = [];
 }
 async function saveRecipeToDB(recipe) {
+try {
 if (dbWrapper.db) await dbWrapper.put(STORE_RECIPES, recipe);
 else await saveAllToLocalStorage();
+broadcastUpdate('recipe', recipe.id);
+} catch (e) {
+console.warn('Failed to save recipe', e);
+showToast('Failed to save recipe', 'error');
+}
 }
 async function deleteRecipeFromDB(id) {
+try {
 if (dbWrapper.db) await dbWrapper.delete(STORE_RECIPES, id);
 else await saveAllToLocalStorage();
+broadcastUpdate('delete', id);
+} catch (e) {
+console.warn('Failed to delete recipe', e);
+showToast('Failed to delete recipe', 'error');
+}
 }
 async function saveCategoriesToDB() {
+try {
 if (dbWrapper.db) await dbWrapper.put(STORE_CATEGORIES, { id: 'categories', items: categories });
 else await saveAllToLocalStorage();
+broadcastUpdate('categories');
+} catch (e) {
+console.warn('Failed to save categories', e);
+showToast('Failed to save categories', 'error');
+}
 }
 async function saveAllToLocalStorage() {
 try {
@@ -1323,7 +1701,13 @@ localStorage.setItem('recipeBookRecipes', JSON.stringify(recipes));
 localStorage.setItem('recipeBookCategories', JSON.stringify(categories));
 } catch (e) { showToast('Storage full', 'warning'); }
 }
-async function loadSettings() { currentViewMode = localStorage.getItem('recipeBookViewMode') || 'grid'; }
+async function loadSettings() {
+try {
+currentViewMode = localStorage.getItem('recipeBookViewMode') || 'grid';
+} catch (e) {
+currentViewMode = 'grid';
+}
+}
 function applyViewMode() {
 document.body.classList.toggle('view-list', currentViewMode === 'list');
 document.body.classList.toggle('view-grid', currentViewMode === 'grid');
@@ -1336,14 +1720,20 @@ stopTimerLoop();
 if (timerAlertInterval) { clearInterval(timerAlertInterval); timerAlertInterval = null; }
 saveTimerState();
 revokeAllObjectURLs();
+if (descriptionVisibilityObserver) {
+descriptionVisibilityObserver.disconnect();
+descriptionVisibilityObserver = null;
+}
+if (descriptionScrollObserver) {
 descriptionScrollObserver.disconnect();
+descriptionScrollObserver = null;
+}
 if (infiniteScrollObserver) { infiniteScrollObserver.disconnect(); infiniteScrollObserver = null; }
-descriptionScrollStates.forEach((state, cardId) => { stopDescriptionScroll(cardId); });
+for (const cardId of Array.from(descriptionScrollStates.keys())) stopDescriptionScroll(cardId);
 descriptionScrollStates.clear();
 if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+if (broadcastChannel) { broadcastChannel.close(); broadcastChannel = null; }
 }
-window.addEventListener('beforeunload', cleanupOnUnload);
-window.addEventListener('pagehide', cleanupOnUnload);
 function trapFocusInModal(modal, e) {
 const focusable = Array.from(modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el => !el.disabled && el.offsetParent !== null);
 if (focusable.length === 0) return;
@@ -1370,21 +1760,93 @@ wakeLock = await navigator.wakeLock.request('screen');
 wakeLock.addEventListener('release', () => { wakeLock = null; });
 } catch (err) { console.warn('Wake Lock not available:', err); }
 }
+function initBroadcastChannel() {
+if (typeof BroadcastChannel === 'undefined') return;
+try {
+broadcastChannel = new BroadcastChannel('recipe-book-sync');
+broadcastChannel.onmessage = (event) => {
+const { type, id } = event.data;
+if (type === 'recipe' || type === 'delete' || type === 'categories') {
+loadData().then(() => {
+renderCategories();
+populateCategoryDropdowns();
+renderRecipes();
+});
+}
+};
+} catch (e) {
+console.warn('BroadcastChannel not available', e);
+broadcastChannel = null;
+}
+}
+function broadcastUpdate(type, id = null) {
+if (broadcastChannel) {
+try {
+broadcastChannel.postMessage({ type, id, timestamp: Date.now() });
+} catch (e) {
+console.warn('Failed to broadcast update', e);
+}
+}
+}
+function moveFocusSafely() {
+if (lastFocusedElement && typeof lastFocusedElement.focus === 'function' && document.contains(lastFocusedElement)) {
+lastFocusedElement.focus();
+} else {
+if (!document.body.hasAttribute('tabindex')) {
+document.body.setAttribute('tabindex', '-1');
+}
+document.body.focus();
+}
+}
 function setupEventListeners() {
+window.addEventListener('beforeunload', (e) => {
+if (addFormDirty || editFormDirty) {
+e.preventDefault();
+e.returnValue = '';
+}
+cleanupOnUnload();
+});
+window.addEventListener('pagehide', cleanupOnUnload);
+window.addEventListener('scroll', () => {
+if (window.scrollY > 300) scrollToTopBtn.classList.add('visible');
+else scrollToTopBtn.classList.remove('visible');
+});
+scrollToTopBtn.addEventListener('click', () => {
+window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+recipeModalContent.addEventListener('scroll', () => {
+if (recipeModalContent.scrollTop > 300) {
+modalScrollToTopBtn.classList.add('visible');
+} else {
+modalScrollToTopBtn.classList.remove('visible');
+}
+});
+modalScrollToTopBtn.addEventListener('click', () => {
+recipeModalContent.scrollTo({ top: 0, behavior: 'smooth' });
+});
+closeShortcutsBtn.addEventListener('click', () => {
+moveFocusSafely();
+shortcutsModal.classList.remove('active');
+shortcutsModal.setAttribute('aria-hidden', 'true');
+});
 gridModeBtn.addEventListener('click', () => { currentViewMode = 'grid'; applyViewMode(); renderRecipes(); });
 listModeBtn.addEventListener('click', () => { currentViewMode = 'list'; applyViewMode(); renderRecipes(); });
 addRecipeBtn.addEventListener('click', showAddRecipeForm);
-cancelAddRecipeBtn.addEventListener('click', hideAddRecipeForm);
-closeAddFormBtn.addEventListener('click', hideAddRecipeForm);
-addAddIngredientBtn.addEventListener('click', () => addIngredientField(addIngredientsContainer));
+cancelAddRecipeBtn.addEventListener('click', () => hideAddRecipeForm(false));
+closeAddFormBtn.addEventListener('click', () => hideAddRecipeForm(false));
+addAddIngredientBtn.addEventListener('click', () => { markAddDirty(); addIngredientField(addIngredientsContainer, null, 'add'); });
 addRecipeFormInner.addEventListener('submit', saveNewRecipe);
-cancelEditBtn.addEventListener('click', hideEditUI);
-closeEditFormBtn.addEventListener('click', hideEditUI);
-addEditIngredientBtn.addEventListener('click', () => addIngredientField(editIngredientsContainer));
+addRecipeFormInner.addEventListener('input', markAddDirty);
+addRecipeFormInner.addEventListener('change', markAddDirty);
+cancelEditBtn.addEventListener('click', () => hideEditUI(false));
+closeEditFormBtn.addEventListener('click', () => hideEditUI(false));
+addEditIngredientBtn.addEventListener('click', () => { markEditDirty(); addIngredientField(editIngredientsContainer, null, 'edit'); });
 editRecipeForm.addEventListener('submit', saveEditedRecipe);
+editRecipeForm.addEventListener('input', markEditDirty);
+editRecipeForm.addEventListener('change', markEditDirty);
 addImageUpload.addEventListener('change', e => handleImageUpload(e, 'add'));
 editImageUpload.addEventListener('change', e => handleImageUpload(e, 'edit'));
-removeAddImageBtn.addEventListener('click', e => { e.stopPropagation(); resetImagePreview('add'); });
+removeAddImageBtn.addEventListener('click', e => { e.stopPropagation(); resetImagePreview('add'); markAddDirty(); });
 removeEditImageBtn.addEventListener('click', e => { e.stopPropagation(); removeImagePreview('edit'); });
 recipesGrid.addEventListener('click', async e => {
 const recipeCard = e.target.closest('.recipe-card');
@@ -1395,6 +1857,7 @@ const id = bookmark.dataset.id;
 const recipe = recipes.find(r => r.id === id);
 if (recipe) {
 recipe.bookmarked = !recipe.bookmarked;
+recipe.updatedAt = Date.now();
 await saveRecipeToDB(recipe);
 if (showFavoritesOnly && !recipe.bookmarked) {
 const card = bookmark.closest('.recipe-card');
@@ -1404,10 +1867,7 @@ revokeCardBlob(id + '_card');
 card.remove();
 }
 filteredRecipes = filteredRecipes.filter(r => r.id !== id);
-if (filteredRecipes.length === 0) {
-emptyState.style.display = 'block';
-recipesGrid.style.display = 'none';
-}
+updateEmptyState();
 } else {
 updateBookmarkInDOM(id, recipe.bookmarked);
 }
@@ -1433,12 +1893,35 @@ recipeModal.addEventListener('click', e => { if (e.target === recipeModal) close
 exportDataBtn.addEventListener('click', () => exportData());
 importDataBtn.addEventListener('click', () => importFileInput.click());
 importFileInput.addEventListener('change', handleImportFile);
-closeDuplicateModalBtn.addEventListener('click', closeDuplicateModal);
+closeDuplicateModalBtn.addEventListener('click', () => closeDuplicateModal(false));
 applyAllSkipBtn.addEventListener('click', () => applyGlobalResolution('skip'));
 applyAllReplaceBtn.addEventListener('click', () => applyGlobalResolution('replace'));
 applyAllRenameBtn.addEventListener('click', () => applyGlobalResolution('rename'));
 finishImportBtn.addEventListener('click', finalizeImport);
-duplicateModal.addEventListener('click', e => { if (e.target === duplicateModal) closeDuplicateModal(); });
+duplicateModal.addEventListener('click', e => { if (e.target === duplicateModal) closeDuplicateModal(false); });
+duplicateItemsContainer.addEventListener('click', async function(e) {
+const btn = e.target.closest('button[data-action]');
+if (!btn) return;
+const index = parseInt(btn.dataset.index, 10);
+const action = btn.dataset.action;
+const recipe = pendingImportData?.duplicates?.[index];
+if (!recipe) return;
+const item = btn.closest('.duplicate-item');
+if (item) item.querySelectorAll('button').forEach(b => b.disabled = true);
+duplicateResolutions[index] = action;
+try {
+await resolveImportDuplicate(recipe, action);
+} catch (err) {
+console.warn('Failed to resolve duplicate', err);
+showToast('Failed to resolve duplicate', 'error');
+if (item) item.querySelectorAll('button').forEach(b => b.disabled = false);
+return;
+}
+updateDuplicateStats();
+if (item) item.remove();
+const remaining = duplicateItemsContainer.querySelectorAll('.duplicate-item').length;
+finishImportBtn.disabled = remaining !== 0;
+});
 categoriesContainer.addEventListener('pointerup', function(e) {
 const remove = e.target.closest('.remove-category');
 if (remove && remove.dataset.category) { removeCategory(remove.dataset.category); return; }
@@ -1472,7 +1955,16 @@ const cur = currentViewRecipe.ingredientStates[index] || '';
 const next = (cur === 'state-added') ? '' : 'state-added';
 currentViewRecipe.ingredientStates[index] = next;
 li.classList.toggle('state-added', next === 'state-added');
+li.setAttribute('aria-checked', next === 'state-added' ? 'true' : 'false');
+currentViewRecipe.updatedAt = Date.now();
 await saveRecipeToDB(currentViewRecipe);
+});
+modalIngredientsList.addEventListener('keydown', function(e) {
+if (e.key !== 'Enter' && e.key !== ' ') return;
+const li = e.target.closest('li');
+if (!li) return;
+e.preventDefault();
+li.click();
 });
 modalBookmarkBtn.addEventListener('click', toggleCurrentRecipeBookmark);
 favoritesFilterBtn.addEventListener('click', () => {
@@ -1482,7 +1974,18 @@ favoritesFilterBtn.innerHTML = showFavoritesOnly ? '<i class="fas fa-heart"></i>
 renderRecipes();
 showToast(showFavoritesOnly ? 'Showing favorites' : 'Showing all recipes', 'info');
 });
-searchInput.addEventListener('input', debounce(() => { renderRecipes(); }, 300));
+const debouncedRenderRecipes = debounce(() => { renderRecipes(); }, 300);
+searchInput.addEventListener('input', () => {
+updateSearchUI();
+debouncedRenderRecipes();
+});
+searchClearBtn.addEventListener('click', clearSearchInput);
+searchInput.addEventListener('keydown', (e) => {
+if (e.key === 'Escape' && searchInput.value !== '') {
+e.stopPropagation();
+clearSearchInput();
+}
+});
 document.getElementById('modalRecipeImage').addEventListener('click', async () => {
 if (!currentViewRecipe) return;
 if (currentViewRecipe.imageId) {
@@ -1516,16 +2019,30 @@ if (e.key === 'Tab') {
 if (recipeModal.classList.contains('active')) { trapFocusInModal(recipeModal, e); return; }
 if (duplicateModal.classList.contains('active')) { trapFocusInModal(duplicateModal, e); return; }
 if (imageZoomModal.classList.contains('active')) { trapFocusInModal(imageZoomModal, e); return; }
+if (shortcutsModal.classList.contains('active')) { trapFocusInModal(shortcutsModal, e); return; }
 }
 if (e.key === 'Escape') {
 if (imageZoomModal.classList.contains('active')) { closeImageZoom(); return; }
 if (recipeModal.classList.contains('active')) { closeRecipeModal(); return; }
-if (duplicateModal.classList.contains('active')) { closeDuplicateModal(); return; }
-if (addRecipeForm.style.display === 'block') { hideAddRecipeForm(); return; }
-if (editRecipeUI.style.display === 'block') { hideEditUI(); return; }
+if (duplicateModal.classList.contains('active')) { closeDuplicateModal(false); return; }
+if (shortcutsModal.classList.contains('active')) { 
+moveFocusSafely();
+shortcutsModal.classList.remove('active'); 
+shortcutsModal.setAttribute('aria-hidden', 'true'); 
+return; 
+}
+if (addRecipeForm.style.display === 'block') { hideAddRecipeForm(false); return; }
+if (editRecipeUI.style.display === 'block') { hideEditUI(false); return; }
+}
+if (e.key === '?' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+shortcutsModal.classList.toggle('active');
+shortcutsModal.setAttribute('aria-hidden', shortcutsModal.classList.contains('active') ? 'false' : 'true');
+if (shortcutsModal.classList.contains('active')) closeShortcutsBtn.focus();
+return;
 }
 const tagName = (e.target.tagName || '').toUpperCase();
 if (tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') return;
+if (addRecipeForm.style.display === 'block' || editRecipeUI.style.display === 'block') return;
 if (e.ctrlKey || e.metaKey) {
 if (e.key === 'n') { e.preventDefault(); showAddRecipeForm(); }
 if (e.key === 'f') { e.preventDefault(); searchInput.focus(); }
@@ -1537,8 +2054,11 @@ document.addEventListener('pointerup', onPointerUp);
 document.addEventListener('pointercancel', onPointerUp);
 const shouldScrollOnFocus = window.matchMedia && window.matchMedia('(hover: none)').matches;
 if (shouldScrollOnFocus) {
-document.querySelectorAll('input,textarea,select').forEach(inp => {
-inp.addEventListener('focus', function() { setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 220); });
+document.addEventListener('focusin', (e) => {
+const target = e.target;
+if (target && target.matches && target.matches('input,textarea,select')) {
+setTimeout(() => { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 220);
+}
 });
 }
 setInterval(() => { if (timerRunning || timerAlertActive) saveTimerState(); }, 5000);
@@ -1558,7 +2078,7 @@ scheduleTimerTick();
 if (audioContext && audioContext.state === 'suspended') {
 try { await audioContext.resume(); } catch (e) { console.warn('Failed to resume AudioContext', e); }
 }
-if (timerRunning) await requestWakeLock();
+if (timerRunning || timerAlertActive) await requestWakeLock();
 } else {
 if (timerRunning) {
 stopTimerLoop();
@@ -1567,7 +2087,7 @@ scheduleTimerTick();
 }
 });
 document.addEventListener('timerStateChanged', async () => {
-if (timerRunning) await requestWakeLock();
+if (timerRunning || timerAlertActive) await requestWakeLock();
 else if (wakeLock) { await wakeLock.release().catch(() => {}); wakeLock = null; }
 });
 }
@@ -1587,9 +2107,8 @@ const file = e.target.files && e.target.files[0];
 if (!file) return;
 if (!file.type.startsWith('image/')) { showToast('Please select an image file', 'error'); return; }
 showToast('Processing image...', 'info', 1500);
-const reader = new FileReader();
-reader.onload = function(ev) {
-if (file.size < 900000) { assignImage(mode, ev.target.result); return; }
+if (file.size >= 900000) {
+const sourceUrl = URL.createObjectURL(file);
 const img = new Image();
 img.onload = function() {
 const MAX_W = 1000;
@@ -1598,36 +2117,49 @@ const canvas = document.createElement('canvas');
 canvas.width = Math.round(img.width * scale);
 canvas.height = Math.round(img.height * scale);
 const ctx = canvas.getContext('2d');
+ctx.fillStyle = '#ffffff';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 canvas.toBlob((blob) => {
+URL.revokeObjectURL(sourceUrl);
 if (blob) {
 const url = createObjectURL(blob, mode === 'add' ? 'temp_add' : 'temp_edit');
 assignImage(mode, url);
 } else {
-assignImage(mode, ev.target.result);
+const fallbackUrl = createObjectURL(file, mode === 'add' ? 'temp_add' : 'temp_edit');
+assignImage(mode, fallbackUrl);
 }
 }, 'image/jpeg', 0.78);
 };
-img.src = ev.target.result;
+img.onerror = function() {
+URL.revokeObjectURL(sourceUrl);
+showToast('Failed to load image', 'error');
 };
+img.src = sourceUrl;
+return;
+}
+const reader = new FileReader();
+reader.onload = function(ev) { assignImage(mode, ev.target.result); };
 reader.readAsDataURL(file);
 }
 function assignImage(mode, dataUrl) {
 if (mode === 'add') {
-if (addRecipeImageFile) revokeCardBlob('temp_add');
+if (addRecipeImageFile && addRecipeImageFile !== dataUrl) revokeTrackedUrl(addRecipeImageFile);
 addImagePreview.style.display = 'block';
 addImagePreviewImg.src = dataUrl;
 removeAddImageBtn.style.display = 'flex';
 addRecipeImageFile = dataUrl;
+markAddDirty();
 showToast('Image loaded', 'success', 1500);
 } else {
-if (editRecipeImageFile) revokeCardBlob('temp_edit');
+if (editRecipeImageFile && editRecipeImageFile !== dataUrl) revokeTrackedUrl(editRecipeImageFile);
 if (editRecipeId.value) revokeCardBlob(editRecipeId.value + '_edit');
 editImagePreview.style.display = 'block';
 editImagePreviewImg.src = dataUrl;
 removeEditImageBtn.style.display = 'flex';
 editRecipeImageFile = dataUrl;
 editImageAction = 'new';
+markEditDirty();
 showToast('Image loaded', 'success', 1500);
 }
 }
@@ -1647,10 +2179,18 @@ removeEditImageBtn.style.display = 'none';
 function resetImagePreview(mode) {
 if (mode === 'add') {
 clearImagePreviewVisual('add');
-if (addRecipeImageFile) { revokeCardBlob('temp_add'); addRecipeImageFile = null; }
+if (addRecipeImageFile) {
+revokeTrackedUrl(addRecipeImageFile);
+revokeCardBlob('temp_add');
+addRecipeImageFile = null;
+}
 } else {
 clearImagePreviewVisual('edit');
-if (editRecipeImageFile) { revokeCardBlob('temp_edit'); editRecipeImageFile = null; }
+if (editRecipeImageFile) {
+revokeTrackedUrl(editRecipeImageFile);
+revokeCardBlob('temp_edit');
+editRecipeImageFile = null;
+}
 if (editRecipeId.value) revokeCardBlob(editRecipeId.value + '_edit');
 editImageAction = 'unchanged';
 }
@@ -1658,11 +2198,17 @@ editImageAction = 'unchanged';
 function removeImagePreview(mode) {
 if (mode === 'add') {
 resetImagePreview('add');
+markAddDirty();
 } else {
 clearImagePreviewVisual('edit');
-if (editRecipeImageFile) { revokeCardBlob('temp_edit'); editRecipeImageFile = null; }
+if (editRecipeImageFile) {
+revokeTrackedUrl(editRecipeImageFile);
+revokeCardBlob('temp_edit');
+editRecipeImageFile = null;
+}
 if (editRecipeId.value) revokeCardBlob(editRecipeId.value + '_edit');
 editImageAction = 'removed';
+markEditDirty();
 }
 }
 function renderCategories() {
@@ -1706,6 +2252,8 @@ categoriesContainer.appendChild(tag);
 });
 }
 function populateCategoryDropdowns() {
+const addCurrent = addRecipeCategory.value;
+const editCurrent = editRecipeCategory.value;
 clearContainer(addRecipeCategory);
 clearContainer(editRecipeCategory);
 categories.forEach(c => {
@@ -1719,25 +2267,35 @@ addNew.value = 'add-new-category';
 addNew.textContent = 'Add New Category...';
 addRecipeCategory.appendChild(addNew);
 editRecipeCategory.appendChild(addNew.cloneNode(true));
-if (categories.length > 0) { addRecipeCategory.value = categories[0]; editRecipeCategory.value = categories[0]; }
+if (addCurrent && addCurrent !== 'add-new-category' && categories.includes(addCurrent)) addRecipeCategory.value = addCurrent;
+else if (categories.length > 0) addRecipeCategory.value = categories[0];
+if (editCurrent && editCurrent !== 'add-new-category' && categories.includes(editCurrent)) editRecipeCategory.value = editCurrent;
+else if (categories.length > 0) editRecipeCategory.value = categories[0];
 addRecipeCategory.onchange = handleAddNewCategorySelect;
 editRecipeCategory.onchange = handleAddNewCategorySelect;
 }
 function handleAddNewCategorySelect(e) {
 const select = e.target;
+const previousValue = select.value;
 if (select.value === 'add-new-category') {
 setTimeout(() => {
 const newCategory = prompt('Enter new category name:');
 if (newCategory && newCategory.trim()) {
-if (!categories.includes(newCategory.trim())) {
-categories.push(newCategory.trim());
+const normalized = normalizeCategoryName(newCategory);
+if (!categories.some(c => c.toLowerCase() === normalized.toLowerCase())) {
+categories.push(normalized);
 populateCategoryDropdowns();
 renderCategories();
-select.value = newCategory.trim();
+select.value = normalized;
 saveCategoriesToDB();
-showToast(`Category "${newCategory.trim()}" added`, 'success');
-} else { showToast('Category already exists', 'warning'); select.selectedIndex = 0; }
-} else { select.selectedIndex = 0; }
+showToast(`Category "${normalized}" added`, 'success');
+} else {
+showToast('Category already exists', 'warning');
+select.value = previousValue !== 'add-new-category' ? previousValue : (categories[0] || '');
+}
+} else {
+select.value = previousValue !== 'add-new-category' ? previousValue : (categories[0] || '');
+}
 }, 20);
 }
 }
@@ -1746,20 +2304,22 @@ if (categories.length <= 1) { showToast('You need at least one category', 'warni
 const inCat = recipes.filter(r => r.category === categoryName);
 if (inCat.length > 0) { showToast(`Cannot delete "${categoryName}" - ${inCat.length} recipe(s) remain`, 'error'); return; }
 categories = categories.filter(c => c !== categoryName);
+if (currentFilterCategory === categoryName) currentFilterCategory = 'all';
 populateCategoryDropdowns();
 renderCategories();
 renderRecipes();
 saveCategoriesToDB();
 showToast(`Category "${categoryName}" removed`, 'success');
 }
-function setupTagsInput(input, container, getTagsFn) {
+function setupTagsInput(input, container, getTagsFn, mode) {
 input.addEventListener('blur', () => {
 const value = input.value.trim();
 if (value) {
 const newTags = value.split(',').map(t => t.trim()).filter(t => t);
 newTags.forEach(tag => { if (!getTagsFn().includes(tag)) getTagsFn().push(tag); });
 input.value = '';
-renderTagsInput(input, container, getTagsFn);
+renderTagsInput(input, container, getTagsFn, mode);
+if (mode === 'add') markAddDirty(); else if (mode === 'edit') markEditDirty();
 }
 });
 input.addEventListener('keydown', (e) => {
@@ -1770,12 +2330,13 @@ if (value) {
 const newTags = value.split(',').map(t => t.trim()).filter(t => t);
 newTags.forEach(tag => { if (!getTagsFn().includes(tag)) getTagsFn().push(tag); });
 input.value = '';
-renderTagsInput(input, container, getTagsFn);
+renderTagsInput(input, container, getTagsFn, mode);
+if (mode === 'add') markAddDirty(); else if (mode === 'edit') markEditDirty();
 }
 }
 });
 }
-function renderTagsInput(input, container, getTagsFn) {
+function renderTagsInput(input, container, getTagsFn, mode) {
 const existingTags = container.querySelectorAll('.tag-item');
 existingTags.forEach(tag => tag.remove());
 getTagsFn().forEach((tag, index) => {
@@ -1785,7 +2346,8 @@ tagEl.innerHTML = `<span>${escapeHtml(tag)}</span><span class="remove-tag" data-
 container.insertBefore(tagEl, input);
 tagEl.querySelector('.remove-tag').addEventListener('click', () => {
 getTagsFn().splice(index, 1);
-renderTagsInput(input, container, getTagsFn);
+renderTagsInput(input, container, getTagsFn, mode);
+if (mode === 'add') markAddDirty(); else if (mode === 'edit') markEditDirty();
 });
 });
 }
@@ -1799,7 +2361,7 @@ return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '
 function isSafeImageSrc(src) {
 if (!src || typeof src !== 'string') return false;
 const s = src.trim();
-return s.startsWith('data:image/') || s.startsWith('blob:');
+return s.startsWith('data:image/png') || s.startsWith('data:image/jpeg') || s.startsWith('data:image/webp') || s.startsWith('data:image/gif') || s.startsWith('blob:');
 }
 function debounce(func, wait) {
 let timeout;
@@ -1817,18 +2379,41 @@ if (h > 0) return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '
 return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 const imperialToMetric = {
-'tsp': { factor: 4.92892, to: 'ml' }, 'tbsp': { factor: 14.7868, to: 'ml' }, 'cup': { factor: 236.588, to: 'ml' },
-'cups': { factor: 236.588, to: 'ml' }, 'fl oz': { factor: 29.5735, to: 'ml' }, 'oz': { factor: 28.3495, to: 'g' },
-'lb': { factor: 453.592, to: 'g' }, 'lbs': { factor: 453.592, to: 'g' }, 'pint': { factor: 473.176, to: 'ml' },
-'quart': { factor: 946.353, to: 'ml' }, 'gallon': { factor: 3785.41, to: 'ml' }
+'tsp': { factor: 4.92892, to: 'ml' },
+'teaspoon': { factor: 4.92892, to: 'ml' },
+'teaspoons': { factor: 4.92892, to: 'ml' },
+'tbsp': { factor: 14.7868, to: 'ml' },
+'tablespoon': { factor: 14.7868, to: 'ml' },
+'tablespoons': { factor: 14.7868, to: 'ml' },
+'cup': { factor: 236.588, to: 'ml' },
+'cups': { factor: 236.588, to: 'ml' },
+'fl oz': { factor: 29.5735, to: 'ml' },
+'fluid ounce': { factor: 29.5735, to: 'ml' },
+'fluid ounces': { factor: 29.5735, to: 'ml' },
+'oz': { factor: 28.3495, to: 'g' },
+'ounce': { factor: 28.3495, to: 'g' },
+'ounces': { factor: 28.3495, to: 'g' },
+'lb': { factor: 453.592, to: 'g' },
+'lbs': { factor: 453.592, to: 'g' },
+'pound': { factor: 453.592, to: 'g' },
+'pounds': { factor: 453.592, to: 'g' },
+'pint': { factor: 473.176, to: 'ml' },
+'pints': { factor: 473.176, to: 'ml' },
+'quart': { factor: 946.353, to: 'ml' },
+'quarts': { factor: 946.353, to: 'ml' },
+'gallon': { factor: 3785.41, to: 'ml' },
+'gallons': { factor: 3785.41, to: 'ml' }
 };
+const metricVolumeUnits = ['ml', 'milliliter', 'milliliters', 'l', 'liter', 'liters'];
+const metricWeightUnits = ['g', 'gram', 'grams', 'kg', 'kilogram', 'kilograms'];
 function convertMetricToImperial(amount, unit) {
 if (!amount || !unit) return '';
 const numAmount = parseFloat(amount);
 if (isNaN(numAmount) || numAmount <= 0) return '';
 const lowerUnit = unit.toLowerCase();
-if (lowerUnit === 'ml' || lowerUnit === 'l') {
-const mlAmount = lowerUnit === 'l' ? numAmount * 1000 : numAmount;
+if (metricVolumeUnits.includes(lowerUnit)) {
+const isLiter = ['l', 'liter', 'liters'].includes(lowerUnit);
+const mlAmount = isLiter ? numAmount * 1000 : numAmount;
 if (mlAmount >= 3785.41) { const c = mlAmount / 3785.41; return `${formatConversionAmount(c)} gallon${c >= 2 ? 's' : ''}`; }
 if (mlAmount >= 946.353) { const c = mlAmount / 946.353; return `${formatConversionAmount(c)} quart${c >= 2 ? 's' : ''}`; }
 if (mlAmount >= 473.176) { const c = mlAmount / 473.176; return `${formatConversionAmount(c)} pint${c >= 2 ? 's' : ''}`; }
@@ -1836,8 +2421,9 @@ if (mlAmount >= 236.588) { const c = mlAmount / 236.588; return `${formatConvers
 if (mlAmount >= 14.7868) { const c = mlAmount / 14.7868; return `${formatConversionAmount(c)} tbsp`; }
 const c = mlAmount / 4.92892; return `${formatConversionAmount(c)} tsp`;
 }
-if (lowerUnit === 'g' || lowerUnit === 'kg') {
-const gAmount = lowerUnit === 'kg' ? numAmount * 1000 : numAmount;
+if (metricWeightUnits.includes(lowerUnit)) {
+const isKg = ['kg', 'kilogram', 'kilograms'].includes(lowerUnit);
+const gAmount = isKg ? numAmount * 1000 : numAmount;
 if (gAmount >= 453.592) { const c = gAmount / 453.592; return `${formatConversionAmount(c)} ${c >= 2 ? 'lbs' : 'lb'}`; }
 const c = gAmount / 28.3495; return `${formatConversionAmount(c)} oz`;
 }
@@ -1867,10 +2453,50 @@ function getConversion(amount, unit) {
 if (!amount || !unit) return '';
 const lowerUnit = unit.toLowerCase();
 if (imperialToMetric[lowerUnit]) return convertImperialToMetric(amount, unit);
-if (['ml', 'l', 'g', 'kg'].includes(lowerUnit)) return convertMetricToImperial(amount, unit);
+if (metricVolumeUnits.includes(lowerUnit) || metricWeightUnits.includes(lowerUnit)) return convertMetricToImperial(amount, unit);
 return '';
 }
-function initDescriptionScroll(card, description) {
+function parseTemperature(temp) {
+if (!temp) return null;
+const str = String(temp).trim();
+const match = str.match(/^(\d+(?:\.\d+)?)\s*°?\s*([CF])?$/i);
+if (!match) return null;
+const value = parseFloat(match[1]);
+const unit = (match[2] || '').toUpperCase();
+if (isNaN(value)) return null;
+return { value, unit };
+}
+function formatTempValue(val) {
+if (!val) return '';
+const str = String(val).trim();
+const parsed = parseTemperature(str);
+if (!parsed) return str;
+if (parsed.unit) return `${parsed.value}°${parsed.unit}`;
+if (/^\d+$/.test(str)) return `${parsed.value}°`;
+return str;
+}
+function getTemperatureConversion(temp) {
+const parsed = parseTemperature(temp);
+if (!parsed) return '';
+if (parsed.unit === 'C') {
+const f = parsed.value * 9 / 5 + 32;
+return `(${formatConversionAmount(f)}°F)`;
+}
+if (parsed.unit === 'F') {
+const c = (parsed.value - 32) * 5 / 9;
+return `(${formatConversionAmount(c)}°C)`;
+}
+return '';
+}
+function handleDescriptionVisibility(entries) {
+entries.forEach(entry => {
+const card = entry.target;
+if (!card || !card.dataset || !card.dataset.id) return;
+if (entry.isIntersecting) startDescriptionScroll(card);
+else pauseDescriptionScroll(card.dataset.id);
+});
+}
+function prepareDescriptionScroll(card, description) {
 const cardId = card.dataset.id;
 const descContainer = card.querySelector('.recipe-description-container');
 const descEl = card.querySelector('.recipe-description');
@@ -1878,23 +2504,54 @@ if (!descContainer || !descEl) return;
 stopDescriptionScroll(cardId);
 const textContent = description || '';
 const fallback = '';
+descEl.dataset.raw = textContent;
+descEl.innerHTML = textToHtml(textContent) || fallback;
+descEl.style.transform = '';
+}
+function startDescriptionScroll(card) {
+const cardId = card.dataset.id;
+const descContainer = card.querySelector('.recipe-description-container');
+const descEl = card.querySelector('.recipe-description');
+if (!descContainer || !descEl) return;
+const textContent = descEl.dataset.raw || '';
 const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const charThreshold = currentViewMode === 'list' ? SCROLL_CONFIG.listCharThreshold : SCROLL_CONFIG.gridCharThreshold;
 if (reducedMotion || textContent.length <= charThreshold) {
-descEl.innerHTML = textToHtml(textContent) || fallback;
 descEl.style.transform = '';
 return;
 }
-descEl.innerHTML = textToHtml(textContent) || fallback;
+const existing = descriptionScrollStates.get(cardId);
+if (existing) {
+if (existing.paused) resumeScrollCycle(cardId);
+return;
+}
 requestAnimationFrame(() => {
 requestAnimationFrame(() => {
 const containerHeight = descContainer.clientHeight;
 const contentHeight = descEl.scrollHeight;
 const maxScroll = contentHeight - containerHeight;
-if (maxScroll <= 0) { descEl.style.transform = ''; return; }
+if (maxScroll <= 0) {
+descEl.style.transform = '';
+return;
+}
 runScrollCycle(cardId, descEl, maxScroll);
 });
 });
+}
+function pauseDescriptionScroll(cardId) {
+const state = descriptionScrollStates.get(cardId);
+if (state && !state.paused) {
+if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
+state.paused = true;
+}
+}
+function resumeScrollCycle(cardId) {
+const state = descriptionScrollStates.get(cardId);
+if (!state || !state.paused) return;
+state.paused = false;
+state.phaseStartTime = performance.now();
+state.startPosition = state.position;
+state.animationFrameId = requestAnimationFrame((t) => animateScroll(cardId, t));
 }
 function stopDescriptionScroll(cardId) {
 const state = descriptionScrollStates.get(cardId);
@@ -1904,76 +2561,160 @@ descriptionScrollStates.delete(cardId);
 }
 }
 function runScrollCycle(cardId, descEl, maxScroll) {
-const state = { phase: 'topPause', position: 0, maxScroll: maxScroll, startTime: performance.now(), phaseStartTime: performance.now() };
+const state = {
+descEl,
+phase: 'topPause',
+position: 0,
+maxScroll,
+startPosition: 0,
+phaseStartTime: performance.now(),
+animationFrameId: null,
+paused: false
+};
 descriptionScrollStates.set(cardId, state);
-function animate(currentTime) {
-const currentState = descriptionScrollStates.get(cardId);
-if (!currentState) return;
-const elapsed = currentTime - currentState.phaseStartTime;
-switch (currentState.phase) {
+state.animationFrameId = requestAnimationFrame((t) => animateScroll(cardId, t));
+}
+function animateScroll(cardId, currentTime) {
+const state = descriptionScrollStates.get(cardId);
+if (!state || state.paused) return;
+const elapsed = currentTime - state.phaseStartTime;
+switch (state.phase) {
 case 'topPause':
-if (elapsed >= SCROLL_CONFIG.topPauseMs) { currentState.phase = 'scrollDown'; currentState.phaseStartTime = currentTime; currentState.startPosition = currentState.position; }
+if (elapsed >= SCROLL_CONFIG.topPauseMs) {
+state.phase = 'scrollDown';
+state.phaseStartTime = currentTime;
+state.startPosition = state.position;
+}
 break;
 case 'scrollDown': {
-const distanceToScroll = currentState.maxScroll - currentState.startPosition;
+const distanceToScroll = state.maxScroll - state.startPosition;
+if (distanceToScroll === 0) {
+state.phase = 'bottomPause';
+state.phaseStartTime = currentTime;
+state.position = state.maxScroll;
+break;
+}
 const timeNeeded = (distanceToScroll / SCROLL_CONFIG.scrollSpeed) * 1000;
 const progress = Math.min(elapsed / timeNeeded, 1);
-currentState.position = currentState.startPosition + (distanceToScroll * progress);
-if (progress >= 1) { currentState.phase = 'bottomPause'; currentState.phaseStartTime = currentTime; currentState.position = currentState.maxScroll; }
+state.position = state.startPosition + (distanceToScroll * progress);
+if (progress >= 1) {
+state.phase = 'bottomPause';
+state.phaseStartTime = currentTime;
+state.position = state.maxScroll;
+}
 break;
 }
 case 'bottomPause':
-if (elapsed >= SCROLL_CONFIG.bottomPauseMs) { currentState.phase = 'resetUp'; currentState.phaseStartTime = currentTime; currentState.startPosition = currentState.position; }
+if (elapsed >= SCROLL_CONFIG.bottomPauseMs) {
+state.phase = 'resetUp';
+state.phaseStartTime = currentTime;
+state.startPosition = state.position;
+}
 break;
 case 'resetUp': {
-const distanceToReset = currentState.startPosition;
+const distanceToReset = state.startPosition;
+if (distanceToReset === 0) {
+state.phase = 'topPause';
+state.phaseStartTime = currentTime;
+state.position = 0;
+break;
+}
 const timeNeeded = (distanceToReset / SCROLL_CONFIG.resetSpeed) * 1000;
 const progress = Math.min(elapsed / timeNeeded, 1);
-currentState.position = currentState.startPosition - (distanceToReset * progress);
-if (progress >= 1) { currentState.phase = 'topPause'; currentState.phaseStartTime = currentTime; currentState.position = 0; }
+state.position = state.startPosition - (distanceToReset * progress);
+if (progress >= 1) {
+state.phase = 'topPause';
+state.phaseStartTime = currentTime;
+state.position = 0;
+}
 break;
 }
 }
-descEl.style.transform = `translateY(-${currentState.position}px)`;
-currentState.animationFrameId = requestAnimationFrame(animate);
-}
-state.animationFrameId = requestAnimationFrame(animate);
+state.descEl.style.transform = `translateY(-${state.position}px)`;
+state.animationFrameId = requestAnimationFrame((t) => animateScroll(cardId, t));
 }
 async function renderRecipes() {
 const renderId = ++currentRenderRequestId;
 const searchTerm = searchInput.value.toLowerCase().trim();
 const filtered = await filterRecipesAsync(searchTerm, currentFilterCategory, showFavoritesOnly);
 if (renderId !== currentRenderRequestId) return;
+
+const newIds = filtered.map(r => r.id);
+const currentIds = filteredRecipes.map(r => r.id);
+const isSame = newIds.length === currentIds.length && newIds.every((id, i) => id === currentIds[i]);
+if (isSame) return;
+
 filteredRecipes = filtered;
-descriptionScrollStates.forEach((state, cardId) => { stopDescriptionScroll(cardId); });
-descriptionScrollStates.clear();
-revokeCardObjectURLs();
+
 if (infiniteScrollObserver) { infiniteScrollObserver.disconnect(); infiniteScrollObserver = null; }
-clearContainer(recipesGrid);
-if (filteredRecipes.length === 0) {
-emptyState.style.display = 'block';
-recipesGrid.style.display = 'none';
-} else {
-emptyState.style.display = 'none';
-recipesGrid.style.display = 'grid';
-const fragment = document.createDocumentFragment();
+if (descriptionVisibilityObserver) descriptionVisibilityObserver.disconnect();
+
 const limit = Math.min(BATCH_SIZE, filteredRecipes.length);
-for (let i = 0; i < limit; i++) { fragment.appendChild(createRecipeCard(filteredRecipes[i])); }
-recipesGrid.appendChild(fragment);
+const targetIds = new Set(filteredRecipes.slice(0, limit).map(r => r.id));
+
+const existingCards = new Map();
+for (const card of Array.from(recipesGrid.children)) {
+if (card.classList && card.classList.contains('recipe-card')) {
+existingCards.set(card.dataset.id, card);
+}
+}
+
+for (const [id, card] of existingCards) {
+if (!targetIds.has(id)) {
+stopDescriptionScroll(id);
+card.remove();
+existingCards.delete(id);
+}
+}
+
+let prevNode = null;
+const firstCard = recipesGrid.querySelector('.recipe-card');
+for (let i = 0; i < limit; i++) {
+const recipe = filteredRecipes[i];
+let card = existingCards.get(recipe.id);
+
+if (!card) {
+card = createRecipeCard(recipe);
+existingCards.set(recipe.id, card);
+}
+
+const expectedNextSibling = prevNode ? prevNode.nextSibling : firstCard;
+if (card !== expectedNextSibling) {
+if (prevNode) {
+prevNode.after(card);
+} else {
+recipesGrid.prepend(card);
+}
+}
+
+prevNode = card;
+}
+
+updateEmptyState();
+
 if (filteredRecipes.length > BATCH_SIZE) setupInfiniteScroll();
+if (descriptionVisibilityObserver && filteredRecipes.length > 0) {
+Array.from(recipesGrid.children).forEach(card => {
+if (card.classList && card.classList.contains('recipe-card')) {
+descriptionVisibilityObserver.observe(card);
+}
+});
 }
 }
 function setupInfiniteScroll() {
 if (infiniteScrollObserver) infiniteScrollObserver.disconnect();
-let renderedCount = BATCH_SIZE;
+let renderedCount = recipesGrid.querySelectorAll('.recipe-card').length;
 infiniteScrollObserver = new IntersectionObserver((entries) => {
 entries.forEach(entry => {
 if (entry.isIntersecting && renderedCount < filteredRecipes.length) {
 const fragment = document.createDocumentFragment();
 const end = Math.min(renderedCount + BATCH_SIZE, filteredRecipes.length);
-for (let i = renderedCount; i < end; i++) { fragment.appendChild(createRecipeCard(filteredRecipes[i])); }
+for (let i = renderedCount; i < end; i++) fragment.appendChild(createRecipeCard(filteredRecipes[i]));
 recipesGrid.appendChild(fragment);
 renderedCount = end;
+if (descriptionVisibilityObserver) {
+Array.from(recipesGrid.children).slice(-BATCH_SIZE).forEach(card => descriptionVisibilityObserver.observe(card));
+}
 if (renderedCount < filteredRecipes.length) {
 infiniteScrollObserver.disconnect();
 infiniteScrollObserver.observe(recipesGrid.lastElementChild);
@@ -1990,41 +2731,70 @@ function createRecipeCard(r) {
 const card = document.createElement('div');
 card.className = 'recipe-card';
 card.dataset.id = r.id;
+card.tabIndex = 0;
+card.setAttribute('role', 'button');
+card.setAttribute('aria-label', `Open recipe: ${r.title || 'Untitled'}`);
+card.addEventListener('keydown', (e) => {
+if (e.key === 'Enter' || e.key === ' ') {
+if (e.target.closest('.recipe-bookmark')) return;
+e.preventDefault();
+const recipe = recipes.find(x => x.id === r.id);
+if (recipe) showRecipeDetail(recipe);
+}
+});
 const bookmarkBtn = document.createElement('button');
+bookmarkBtn.type = 'button';
 bookmarkBtn.className = 'recipe-bookmark' + (r.bookmarked ? ' active' : '');
 bookmarkBtn.dataset.id = r.id;
 bookmarkBtn.innerHTML = r.bookmarked ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>';
 bookmarkBtn.title = r.bookmarked ? 'Remove from favorites' : 'Add to favorites';
+bookmarkBtn.setAttribute('aria-label', bookmarkBtn.title);
 card.appendChild(bookmarkBtn);
 const imageDiv = document.createElement('div');
 imageDiv.className = 'recipe-image';
 const targetImageId = r.thumbId || r.imageId;
-if (targetImageId && dbWrapper.db) {
-const icon = document.createElement('i');
-icon.className = 'fas fa-utensils';
-imageDiv.appendChild(icon);
-dbWrapper.get(STORE_IMAGES, targetImageId).then(imageData => {
-if (!card.isConnected) return;
-if (imageData && imageData.blob) {
-const img = document.createElement('img');
-const url = createObjectURL(imageData.blob, r.id + '_card');
-img.src = url;
-img.alt = (r.title || 'recipe image');
-img.loading = 'lazy';
-imageDiv.innerHTML = '';
-imageDiv.appendChild(img);
-}
-}).catch(() => {});
+const cardImageUrlKey = r.id + '_card';
+const cachedUrl = recipeBlobUrls.get(cardImageUrlKey);
+
+if (cachedUrl) {
+    const img = document.createElement('img');
+    img.src = cachedUrl;
+    img.alt = (r.title || 'recipe image');
+    img.loading = 'lazy';
+    imageDiv.appendChild(img);
+} else if (targetImageId && dbWrapper.db) {
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-utensils';
+    imageDiv.appendChild(icon);
+    dbWrapper.get(STORE_IMAGES, targetImageId).then(imageData => {
+        if (!card.isConnected) return;
+        if (imageData && imageData.blob) {
+            const img = document.createElement('img');
+            const url = createObjectURL(imageData.blob, cardImageUrlKey);
+            img.src = url;
+            img.alt = (r.title || 'recipe image');
+            img.loading = 'lazy';
+            imageDiv.innerHTML = '';
+            imageDiv.appendChild(img);
+        } else if (r.image && isSafeImageSrc(r.image)) {
+            const img = document.createElement('img');
+            img.src = r.image;
+            img.alt = (r.title || 'recipe image');
+            img.loading = 'lazy';
+            imageDiv.innerHTML = '';
+            imageDiv.appendChild(img);
+        }
+    }).catch(() => {});
 } else if (r.image && isSafeImageSrc(r.image)) {
-const img = document.createElement('img');
-img.src = r.image;
-img.alt = (r.title || 'recipe image');
-img.loading = 'lazy';
-imageDiv.appendChild(img);
+    const img = document.createElement('img');
+    img.src = r.image;
+    img.alt = (r.title || 'recipe image');
+    img.loading = 'lazy';
+    imageDiv.appendChild(img);
 } else {
-const icon = document.createElement('i');
-icon.className = 'fas fa-utensils';
-imageDiv.appendChild(icon);
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-utensils';
+    imageDiv.appendChild(icon);
 }
 const contentDiv = document.createElement('div');
 contentDiv.className = 'recipe-content';
@@ -2053,7 +2823,7 @@ const descContainer = document.createElement('div');
 descContainer.className = 'recipe-description-container';
 const descP = document.createElement('p');
 descP.className = 'recipe-description';
-descP.innerHTML = textToHtml(r.description) || '';
+descP.innerHTML = textToHtml(r.description) || 'Delicious recipe ready to try!';
 descContainer.appendChild(descP);
 topDiv.appendChild(descContainer);
 const metaDiv = document.createElement('div');
@@ -2064,7 +2834,7 @@ metaItem.className = 'meta-item';
 const icon = document.createElement('i');
 icon.className = 'far fa-clock';
 metaItem.appendChild(icon);
-metaItem.appendChild(document.createTextNode(' ' + escapeHtml(formatTimeValue(r.time))));
+metaItem.appendChild(document.createTextNode(' ' + formatTimeValue(r.time)));
 metaDiv.appendChild(metaItem);
 }
 if (r.temp) {
@@ -2073,7 +2843,7 @@ metaItem.className = 'meta-item';
 const icon = document.createElement('i');
 icon.className = 'fas fa-temperature-high';
 metaItem.appendChild(icon);
-metaItem.appendChild(document.createTextNode(' ' + escapeHtml(formatTempValue(r.temp))));
+metaItem.appendChild(document.createTextNode(' ' + formatTempValue(r.temp)));
 metaDiv.appendChild(metaItem);
 }
 if (r.detailType && r.detailValue) {
@@ -2082,14 +2852,14 @@ metaItem.className = 'meta-item';
 const icon = document.createElement('i');
 icon.className = 'fas fa-utensils';
 metaItem.appendChild(icon);
-metaItem.appendChild(document.createTextNode(' ' + escapeHtml(r.detailType) + ': ' + escapeHtml(r.detailValue)));
+metaItem.appendChild(document.createTextNode(' ' + r.detailType + ': ' + r.detailValue));
 metaDiv.appendChild(metaItem);
 }
 contentDiv.appendChild(topDiv);
 contentDiv.appendChild(metaDiv);
 card.appendChild(imageDiv);
 card.appendChild(contentDiv);
-initDescriptionScroll(card, r.description);
+prepareDescriptionScroll(card, r.description);
 return card;
 }
 function getCategoryGradient(category) {
@@ -2111,22 +2881,30 @@ if (!val) return '';
 const str = String(val).trim();
 return /^\d+$/.test(str) ? str + 'm' : str;
 }
-function formatTempValue(val) {
-if (!val) return '';
-const str = String(val).trim();
-return /^\d+$/.test(str) ? str + '°' : str;
-}
 function showAddRecipeForm() {
+if (addRecipeForm.style.display === 'block') {
+addRecipeTitle.focus();
+return;
+}
+if (editRecipeUI.style.display === 'block') {
+editRecipeTitle.focus();
+return;
+}
 resetAddRecipeForm();
 addRecipeForm.style.display = 'block';
 recipesContainer.style.display = 'none';
+document.body.classList.add('form-open');
+addFormDirty = false;
 window.scrollTo({ top: 0, behavior: 'smooth' });
 addRecipeTitle.focus();
 }
-function hideAddRecipeForm() {
+function hideAddRecipeForm(force = false) {
+if (!force && addFormDirty && !confirm('Discard unsaved changes?')) return;
 resetImagePreview('add');
 addRecipeForm.style.display = 'none';
 recipesContainer.style.display = 'block';
+document.body.classList.remove('form-open');
+addFormDirty = false;
 }
 function resetAddRecipeForm() {
 addRecipeTitle.value = '';
@@ -2138,12 +2916,13 @@ addRecipeTemp.value = '';
 addRecipeDetailType.value = '';
 addRecipeDetailValue.value = '';
 currentTags = [];
-renderTagsInput(addTagsInput, addTagsContainer, () => currentTags);
+renderTagsInput(addTagsInput, addTagsContainer, () => currentTags, 'add');
 clearContainer(addIngredientsContainer);
-addIngredientField(addIngredientsContainer);
+addIngredientField(addIngredientsContainer, null, 'add');
 addImageUpload.value = '';
 resetImagePreview('add');
 addRecipeImageFile = null;
+addFormDirty = false;
 }
 function showEditUI(recipe) {
 closeRecipeModal();
@@ -2153,27 +2932,27 @@ revokeCardBlob('temp_edit');
 editRecipeImageFile = null;
 editImageAction = 'unchanged';
 clearImagePreviewVisual('edit');
+const originalCategory = recipe.category;
+recipe.category = ensureCategoryExists(recipe.category);
+if (recipe.category !== originalCategory) saveCategoriesToDB();
+populateCategoryDropdowns();
 editRecipeId.value = recipe.id;
 editRecipeTitle.value = recipe.title;
 editRecipeDescription.value = recipe.description || '';
 editRecipeCategory.value = recipe.category;
-editRecipeInstructions.value = Array.isArray(recipe.instructions) ? recipe.instructions.join('\n') : (recipe.instructions || '');
+editRecipeInstructions.value = getInstructionLines(recipe).join('\n');
 editRecipeTime.value = recipe.time || '';
 editRecipeTemp.value = recipe.temp || '';
 editRecipeDetailType.value = recipe.detailType || '';
 editRecipeDetailValue.value = recipe.detailValue || '';
 editCurrentTags = recipe.tags ? [...recipe.tags] : [];
-renderTagsInput(editTagsInput, editTagsContainer, () => editCurrentTags);
+renderTagsInput(editTagsInput, editTagsContainer, () => editCurrentTags, 'edit');
 clearContainer(editIngredientsContainer);
 if (recipe.ingredients && recipe.ingredients.length > 0) {
-recipe.ingredients.forEach(ing => {
-addIngredientField(editIngredientsContainer);
-const last = editIngredientsContainer.lastElementChild;
-last.querySelector('.ingredient-name').value = ing.name || '';
-last.querySelector('.ingredient-amount').value = ing.amount || '';
-last.querySelector('.ingredient-unit').value = ing.unit || '';
-});
-} else { addIngredientField(editIngredientsContainer); }
+recipe.ingredients.forEach(ing => addIngredientField(editIngredientsContainer, ing, 'edit'));
+} else {
+addIngredientField(editIngredientsContainer, null, 'edit');
+}
 const targetImageId = recipe.thumbId || recipe.imageId;
 if (targetImageId && dbWrapper.db) {
 dbWrapper.get(STORE_IMAGES, targetImageId).then(imageData => {
@@ -2182,6 +2961,10 @@ if (imageData && imageData.blob) {
 const url = createObjectURL(imageData.blob, recipe.id + '_edit');
 editImagePreview.style.display = 'block';
 editImagePreviewImg.src = url;
+removeEditImageBtn.style.display = 'flex';
+} else if (recipe.image && isSafeImageSrc(recipe.image)) {
+editImagePreview.style.display = 'block';
+editImagePreviewImg.src = recipe.image;
 removeEditImageBtn.style.display = 'flex';
 }
 }).catch(() => {});
@@ -2192,22 +2975,39 @@ removeEditImageBtn.style.display = 'flex';
 }
 editRecipeUI.style.display = 'block';
 recipesContainer.style.display = 'none';
+document.body.classList.add('form-open');
+editFormDirty = false;
 window.scrollTo({ top: 0, behavior: 'smooth' });
 editRecipeTitle.focus();
 }
-function hideEditUI() {
+function hideEditUI(force = false) {
+if (!force && editFormDirty && !confirm('Discard unsaved changes?')) return;
 resetImagePreview('edit');
 editRecipeUI.style.display = 'none';
 recipesContainer.style.display = 'block';
+document.body.classList.remove('form-open');
+editFormDirty = false;
 }
-function addIngredientField(container) {
+function ensureUnitOption(unitSelect, unit) {
+const value = (unit || '').trim();
+if (!value) return;
+const exists = Array.from(unitSelect.options).some(option => option.value === value);
+if (!exists) {
+const option = document.createElement('option');
+option.value = value;
+option.textContent = value;
+unitSelect.appendChild(option);
+}
+unitSelect.value = value;
+}
+function addIngredientField(container, ing = null, mode = null) {
 const row = document.createElement('div');
 row.className = 'ingredient-row';
 const dragBtn = document.createElement('button');
 dragBtn.type = 'button';
 dragBtn.className = 'drag-handle';
-dragBtn.title = 'Drag to reorder';
-dragBtn.setAttribute('aria-label', 'Drag to reorder');
+dragBtn.title = 'Drag to reorder, or press Alt+Arrow Up/Down';
+dragBtn.setAttribute('aria-label', 'Reorder ingredient');
 const dragIcon = document.createElement('i');
 dragIcon.className = 'fas fa-grip-vertical';
 dragBtn.appendChild(dragIcon);
@@ -2215,13 +3015,16 @@ const nameInput = document.createElement('input');
 nameInput.type = 'text';
 nameInput.className = 'ingredient-name';
 nameInput.placeholder = 'Ingredient name';
+nameInput.setAttribute('aria-label', 'Ingredient name');
 const amountInput = document.createElement('input');
 amountInput.type = 'text';
 amountInput.className = 'ingredient-amount';
 amountInput.placeholder = 'Qt.';
+amountInput.setAttribute('aria-label', 'Ingredient amount');
 const unitSelect = document.createElement('select');
 unitSelect.className = 'ingredient-unit';
-const units = ['', 'tsp','tbsp','cup','cups','ml','l','g','kg','oz','lb','lbs','pinch','dash','to taste'];
+unitSelect.setAttribute('aria-label', 'Ingredient unit');
+const units = ['', 'Tsp','Tbsp','Cup(s)','ml','l','g','Kg','Oz','lb(s)','Can','Clove','Packet','Pinch','Dash','Slice','to taste'];
 units.forEach(u => {
 const o = document.createElement('option');
 o.value = u;
@@ -2232,6 +3035,7 @@ const removeBtn = document.createElement('button');
 removeBtn.type = 'button';
 removeBtn.className = 'remove-ingredient';
 removeBtn.title = 'Remove';
+removeBtn.setAttribute('aria-label', 'Remove ingredient');
 const remIcon = document.createElement('i');
 remIcon.className = 'fas fa-times';
 removeBtn.appendChild(remIcon);
@@ -2241,9 +3045,36 @@ row.appendChild(amountInput);
 row.appendChild(unitSelect);
 row.appendChild(removeBtn);
 container.appendChild(row);
+if (ing) {
+nameInput.value = ing.name || '';
+amountInput.value = ing.amount || '';
+ensureUnitOption(unitSelect, ing.unit || '');
+} else {
+unitSelect.value = '';
+}
 removeBtn.addEventListener('click', function() {
+if (mode === 'add') markAddDirty();
+else if (mode === 'edit') markEditDirty();
 if (container.children.length > 1) row.remove();
-else { nameInput.value = ''; amountInput.value = ''; unitSelect.value = ''; }
+else {
+nameInput.value = '';
+amountInput.value = '';
+unitSelect.value = '';
+}
+});
+dragBtn.addEventListener('keydown', (e) => {
+if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+e.preventDefault();
+const currentRow = dragBtn.closest('.ingredient-row');
+const parent = currentRow.parentElement;
+if (e.key === 'ArrowUp' && currentRow.previousElementSibling) {
+parent.insertBefore(currentRow, currentRow.previousElementSibling);
+} else if (e.key === 'ArrowDown' && currentRow.nextElementSibling) {
+parent.insertBefore(currentRow.nextElementSibling, currentRow);
+}
+if (mode === 'add') markAddDirty();
+else if (mode === 'edit') markEditDirty();
+}
 });
 dragBtn.style.touchAction = 'none';
 }
@@ -2251,7 +3082,9 @@ async function saveNewRecipe(e) {
 e.preventDefault();
 const title = addRecipeTitle.value.trim();
 if (!title) { showToast('Please provide a title', 'error'); return; }
-const category = addRecipeCategory.value || categories[0] || 'Uncategorized';
+let category = addRecipeCategory.value;
+if (!category || category === 'add-new-category') category = categories[0] || 'Uncategorized';
+category = ensureCategoryExists(category);
 const description = addRecipeDescription.value.trim();
 const instructions = addRecipeInstructions.value.trim();
 const time = addRecipeTime.value.trim();
@@ -2264,26 +3097,41 @@ rows.forEach(r => {
 const name = r.querySelector('.ingredient-name').value.trim();
 const amount = r.querySelector('.ingredient-amount').value.trim();
 const unit = r.querySelector('.ingredient-unit').value;
-ingredients.push({ name, amount, unit });
+if (name || amount || unit) ingredients.push({ name, amount, unit });
 });
-const hasAny = ingredients.some(i => i.name || i.amount || i.unit);
-if (!hasAny) { showToast('Please add at least one ingredient', 'warning'); return; }
+if (ingredients.length === 0) { showToast('Please add at least one ingredient', 'warning'); return; }
 const newRecipe = {
 id: generateId(),
-title, description, category, tags: [...currentTags], ingredients,
-instructions: instructions ? instructions.split(/\r?\n/) : [],
-time, temp, detailType, detailValue,
-ingredientStates: ingredients.map(() => ''), bookmarked: false
+title,
+description,
+category,
+tags: [...currentTags],
+ingredients,
+instructions: instructions ? instructions.split(/(?:\r\n|\r|\n)/) : [],
+time,
+temp,
+detailType,
+detailValue,
+ingredientStates: ingredients.map(() => ''),
+bookmarked: false,
+createdAt: Date.now(),
+updatedAt: Date.now()
 };
 if (addRecipeImageFile) {
 let blob;
+try {
 if (addRecipeImageFile.startsWith('blob:')) {
 const response = await fetch(addRecipeImageFile);
 blob = await response.blob();
 } else if (addRecipeImageFile.startsWith('data:')) {
 blob = dataURLtoBlob(addRecipeImageFile);
 }
+} catch (err) {
+console.warn('Failed to read image', err);
+showToast('Failed to process image', 'warning');
+}
 if (blob) {
+try {
 if (dbWrapper.db) {
 const fullId = `img_${newRecipe.id}_full`;
 const thumbId = `img_${newRecipe.id}_thumb`;
@@ -2295,6 +3143,10 @@ newRecipe.thumbId = thumbId;
 } else {
 newRecipe.image = await blobToDataURL(blob);
 }
+} catch (err) {
+console.warn('Failed to save image', err);
+showToast('Recipe saved without image', 'warning');
+}
 }
 }
 recipes.push(newRecipe);
@@ -2302,8 +3154,8 @@ await saveRecipeToDB(newRecipe);
 await saveCategoriesToDB();
 renderCategories();
 renderRecipes();
-hideAddRecipeForm();
-addRecipeImageFile = null;
+addFormDirty = false;
+hideAddRecipeForm(true);
 showToast('Recipe saved', 'success');
 }
 async function saveEditedRecipe(e) {
@@ -2315,36 +3167,44 @@ const oldImageId = recipe.imageId || null;
 const oldThumbId = recipe.thumbId || null;
 recipe.title = editRecipeTitle.value.trim();
 recipe.description = editRecipeDescription.value.trim();
-recipe.category = editRecipeCategory.value;
+let category = editRecipeCategory.value;
+if (!category || category === 'add-new-category') category = recipe.category || categories[0] || 'Uncategorized';
+recipe.category = ensureCategoryExists(category);
 recipe.tags = [...editCurrentTags];
 const instr = editRecipeInstructions.value.trim();
-recipe.instructions = instr ? instr.split(/\r?\n/) : [];
+recipe.instructions = instr ? instr.split(/(?:\r\n|\r|\n)/) : [];
 recipe.time = editRecipeTime.value.trim();
 recipe.temp = editRecipeTemp.value.trim();
 recipe.detailType = editRecipeDetailType.value;
 recipe.detailValue = editRecipeDetailValue.value.trim();
+recipe.updatedAt = Date.now();
 const ing = [];
 const rows = editIngredientsContainer.querySelectorAll('.ingredient-row');
 rows.forEach(r => {
 const name = r.querySelector('.ingredient-name').value.trim();
 const amount = r.querySelector('.ingredient-amount').value.trim();
 const unit = r.querySelector('.ingredient-unit').value;
-ing.push({ name, amount, unit });
+if (name || amount || unit) ing.push({ name, amount, unit });
 });
-const hasAny = ing.some(i => i.name || i.amount || i.unit);
-if (!hasAny) { showToast('Please provide at least one ingredient', 'warning'); return; }
+if (ing.length === 0) { showToast('Please provide at least one ingredient', 'warning'); return; }
 recipe.ingredients = ing;
 recipe.ingredientStates = (recipe.ingredientStates || []).slice(0, ing.length);
 while ((recipe.ingredientStates || []).length < ing.length) recipe.ingredientStates.push('');
 if (editImageAction === 'new' && editRecipeImageFile) {
 let blob;
+try {
 if (editRecipeImageFile.startsWith('blob:')) {
 const response = await fetch(editRecipeImageFile);
 blob = await response.blob();
 } else if (editRecipeImageFile.startsWith('data:')) {
 blob = dataURLtoBlob(editRecipeImageFile);
 }
+} catch (err) {
+console.warn('Failed to read image', err);
+showToast('Failed to process image', 'warning');
+}
 if (blob) {
+try {
 if (dbWrapper.db) {
 const sharedOldFull = oldImageId && isImageReferencedByOtherRecipes(oldImageId, recipe.id);
 const sharedOldThumb = oldThumbId && isImageReferencedByOtherRecipes(oldThumbId, recipe.id);
@@ -2363,6 +3223,10 @@ recipe.image = await blobToDataURL(blob);
 delete recipe.imageId;
 delete recipe.thumbId;
 }
+} catch (err) {
+console.warn('Failed to save image', err);
+showToast('Recipe updated without image', 'warning');
+}
 }
 } else if (editImageAction === 'removed') {
 if (dbWrapper.db) {
@@ -2374,9 +3238,11 @@ delete recipe.thumbId;
 delete recipe.image;
 }
 await saveRecipeToDB(recipe);
+await saveCategoriesToDB();
 renderCategories();
 renderRecipes();
-hideEditUI();
+editFormDirty = false;
+hideEditUI(true);
 showToast('Recipe updated', 'success');
 }
 function showRecipeDetail(recipe) {
@@ -2396,6 +3262,9 @@ tagSpan.textContent = tag;
 modalRecipeTags.appendChild(tagSpan);
 });
 }
+modalRecipeImageElement.style.display = 'none';
+modalRecipeImageIcon.style.display = 'block';
+modalRecipeImageElement.src = '';
 if (recipe.imageId && dbWrapper.db) {
 dbWrapper.get(STORE_IMAGES, recipe.imageId).then(imageData => {
 if (!currentViewRecipe || currentViewRecipe.id !== recipe.id) return;
@@ -2404,21 +3273,23 @@ const url = createObjectURL(imageData.blob, recipe.id + '_modal');
 modalRecipeImageElement.src = url;
 modalRecipeImageElement.style.display = 'block';
 modalRecipeImageIcon.style.display = 'none';
+} else if (recipe.image && isSafeImageSrc(recipe.image)) {
+modalRecipeImageElement.src = recipe.image;
+modalRecipeImageElement.style.display = 'block';
+modalRecipeImageIcon.style.display = 'none';
 }
 }).catch(() => {});
 } else if (recipe.image && isSafeImageSrc(recipe.image)) {
 modalRecipeImageElement.src = recipe.image;
 modalRecipeImageElement.style.display = 'block';
 modalRecipeImageIcon.style.display = 'none';
-} else {
-modalRecipeImageElement.style.display = 'none';
-modalRecipeImageIcon.style.display = 'block';
 }
 modalRecipeDescription.innerHTML = textToHtml(recipe.description);
 updateScaledIngredients();
 clearContainer(modalInstructionsList);
-if (recipe.instructions && recipe.instructions.length > 0) {
-recipe.instructions.forEach(step => {
+const instructionLines = getInstructionLines(recipe);
+if (instructionLines.length > 0) {
+instructionLines.forEach(step => {
 const li = document.createElement('li');
 if (step && step.trim() !== '') {
 li.innerHTML = parseInlineMarkdown(step);
@@ -2435,7 +3306,7 @@ metaItem.className = 'meta-item';
 const icon = document.createElement('i');
 icon.className = 'far fa-clock';
 metaItem.appendChild(icon);
-metaItem.appendChild(document.createTextNode(' ' + escapeHtml(formatTimeValue(recipe.time))));
+metaItem.appendChild(document.createTextNode(' ' + formatTimeValue(recipe.time)));
 modalMeta.appendChild(metaItem);
 }
 if (recipe.temp) {
@@ -2444,7 +3315,8 @@ metaItem.className = 'meta-item';
 const icon = document.createElement('i');
 icon.className = 'fas fa-temperature-high';
 metaItem.appendChild(icon);
-metaItem.appendChild(document.createTextNode(' ' + escapeHtml(formatTempValue(recipe.temp))));
+const tempConversion = getTemperatureConversion(recipe.temp);
+metaItem.appendChild(document.createTextNode(' ' + formatTempValue(recipe.temp) + (tempConversion ? ' ' + tempConversion : '')));
 modalMeta.appendChild(metaItem);
 }
 if (recipe.detailType && recipe.detailValue) {
@@ -2453,7 +3325,7 @@ metaItem.className = 'meta-item';
 const icon = document.createElement('i');
 icon.className = 'fas fa-utensils';
 metaItem.appendChild(icon);
-metaItem.appendChild(document.createTextNode(' ' + escapeHtml(recipe.detailType) + ': ' + escapeHtml(recipe.detailValue)));
+metaItem.appendChild(document.createTextNode(' ' + recipe.detailType + ': ' + recipe.detailValue));
 modalMeta.appendChild(metaItem);
 }
 updateTimerToast();
@@ -2471,6 +3343,11 @@ if (currentViewRecipe.ingredients && currentViewRecipe.ingredients.length > 0) {
 currentViewRecipe.ingredients.forEach((ing, idx) => {
 const li = document.createElement('li');
 li.dataset.index = idx;
+li.tabIndex = 0;
+li.setAttribute('role', 'checkbox');
+const isAdded = currentViewRecipe.ingredientStates[idx] === 'state-added';
+li.setAttribute('aria-checked', isAdded ? 'true' : 'false');
+li.setAttribute('aria-label', `Toggle ingredient ${ing.name || ''}`);
 const left = document.createElement('span');
 left.textContent = ing.name || '';
 const right = document.createElement('span');
@@ -2498,7 +3375,7 @@ right.appendChild(convertedSpan);
 }
 li.appendChild(left);
 li.appendChild(right);
-if (currentViewRecipe.ingredientStates[idx] === 'state-added') li.classList.add('state-added');
+if (isAdded) li.classList.add('state-added');
 modalIngredientsList.appendChild(li);
 });
 }
@@ -2506,6 +3383,7 @@ modalIngredientsList.appendChild(li);
 async function toggleCurrentRecipeBookmark() {
 if (!currentViewRecipe) return;
 currentViewRecipe.bookmarked = !currentViewRecipe.bookmarked;
+currentViewRecipe.updatedAt = Date.now();
 await saveRecipeToDB(currentViewRecipe);
 modalBookmarkBtn.innerHTML = currentViewRecipe.bookmarked ? '<i class="fas fa-heart" style="color:#000"></i>' : '<i class="far fa-heart"></i>';
 if (showFavoritesOnly && !currentViewRecipe.bookmarked) {
@@ -2516,10 +3394,7 @@ revokeCardBlob(currentViewRecipe.id + '_card');
 card.remove();
 }
 filteredRecipes = filteredRecipes.filter(r => r.id !== currentViewRecipe.id);
-if (filteredRecipes.length === 0) {
-emptyState.style.display = 'block';
-recipesGrid.style.display = 'none';
-}
+updateEmptyState();
 } else {
 updateBookmarkInDOM(currentViewRecipe.id, currentViewRecipe.bookmarked);
 }
@@ -2534,6 +3409,7 @@ closeModalBtn.focus();
 }
 function closeImageZoom(recipeId = currentViewRecipe?.id) {
 if (!imageZoomModal.classList.contains('active')) return;
+moveFocusSafely();
 imageZoomModal.classList.remove('active');
 if (recipeId) revokeCardBlob(recipeId + '_zoom');
 imageZoomImg.src = '';
@@ -2542,22 +3418,25 @@ if (recipeModal.classList.contains('active')) closeModalBtn.focus();
 function closeRecipeModal() {
 const recipeId = currentViewRecipe?.id;
 closeImageZoom(recipeId);
+moveFocusSafely();
 recipeModal.classList.remove('active');
 recipeModal.setAttribute('aria-hidden', 'true');
 document.body.style.overflow = '';
 if (recipeId) revokeCardBlob(recipeId + '_modal');
 modalRecipeImageElement.src = '';
 currentViewRecipe = null;
-if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') lastFocusedElement.focus();
+modalScrollToTopBtn.classList.remove('visible');
 }
 async function deleteRecipe(id) {
 if (!confirm('Delete this recipe?')) return;
-const recipe = recipes.find(r => r.id === id);
+const recipeIndex = recipes.findIndex(r => r.id === id);
+if (recipeIndex === -1) return;
+const recipe = recipes[recipeIndex];
 if (recipe && dbWrapper.db) {
 await deleteImageIfUnreferenced(recipe.imageId, id);
 await deleteImageIfUnreferenced(recipe.thumbId, id);
 }
-recipes = recipes.filter(r => r.id !== id);
+recipes.splice(recipeIndex, 1);
 await deleteRecipeFromDB(id);
 const card = document.querySelector(`.recipe-card[data-id="${id}"]`);
 if (card) {
@@ -2566,30 +3445,51 @@ revokeCardBlob(id + '_card');
 card.remove();
 }
 filteredRecipes = filteredRecipes.filter(r => r.id !== id);
-if (filteredRecipes.length === 0) {
-emptyState.style.display = 'block';
-recipesGrid.style.display = 'none';
-}
+updateEmptyState();
 renderCategories();
 closeRecipeModal();
-hideEditUI();
-showToast('Recipe deleted', 'success');
+hideEditUI(true);
+pendingDeletedRecipe = recipe;
+const toast = showToast('Recipe deleted', 'info', 6000);
+const undoBtn = document.createElement('button');
+undoBtn.className = 'btn btn-warning';
+undoBtn.style.marginLeft = '12px';
+undoBtn.style.padding = '4px 10px';
+undoBtn.style.fontSize = '0.85rem';
+undoBtn.textContent = 'Undo';
+undoBtn.onclick = async () => {
+if (pendingDeletedRecipe) {
+recipes.push(pendingDeletedRecipe);
+await saveRecipeToDB(pendingDeletedRecipe);
+renderCategories();
+renderRecipes();
+showToast('Recipe restored', 'success');
+pendingDeletedRecipe = null;
+removeToast(toast);
+}
+};
+toast.querySelector('.toast-message').appendChild(undoBtn);
 }
 async function exportSingleRecipe(recipe) {
 const exportRecipe = { ...recipe };
 if (recipe.imageId && dbWrapper.db) {
+try {
 const imageData = await dbWrapper.get(STORE_IMAGES, recipe.imageId);
 if (imageData && imageData.blob) {
 const base64 = await blobToDataURL(imageData.blob);
 exportRecipe.image = base64;
+}
+} catch (e) {
+console.warn('Failed to embed recipe image', e);
 }
 }
 delete exportRecipe.imageId;
 delete exportRecipe.thumbId;
 const data = {
 recipes: [exportRecipe],
-categories: categories.filter(c => c === recipe.category),
+categories: recipe.category ? [recipe.category] : [],
 exportedAt: new Date().toISOString(),
+schemaVersion: SCHEMA_VERSION,
 singleRecipeExport: true
 };
 const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -2614,6 +3514,8 @@ reader.readAsDataURL(blob);
 }
 async function exportData() {
 if (!confirm('Export all recipes and categories?')) return;
+setImportExportDisabled(true);
+try {
 if (typeof fflate === 'undefined') {
 showToast('ZIP library not loaded (offline?). Falling back to JSON export. Large libraries may crash the browser.', 'warning', 5000);
 await exportDataJSON();
@@ -2624,7 +3526,11 @@ const { Zip, AsyncZipDeflate, strToU8 } = fflate;
 const zip = new Zip();
 const chunks = [];
 zip.ondata = (err, data, final) => {
-if (err) return console.error(err);
+if (err) {
+console.error(err);
+showToast('Export failed', 'error');
+return;
+}
 chunks.push(data);
 if (final) {
 const blob = new Blob(chunks, { type: 'application/zip' });
@@ -2645,14 +3551,21 @@ recipes: recipes.map(r => {
 const { imageId, thumbId, ...rest } = r;
 return { ...rest, imageId, thumbId };
 }),
-exportedAt: new Date().toISOString()
+exportedAt: new Date().toISOString(),
+schemaVersion: SCHEMA_VERSION
 };
 const jsonDeflate = new AsyncZipDeflate('data.json');
 zip.add(jsonDeflate);
 jsonDeflate.push(strToU8(JSON.stringify(metadata)), true);
 if (dbWrapper.db) {
-const images = await dbWrapper.getAll(STORE_IMAGES);
+const referenced = new Set();
+recipes.forEach(r => {
+if (r.imageId) referenced.add(r.imageId);
+if (r.thumbId) referenced.add(r.thumbId);
+});
+const images = await dbWrapper.getAll(STORE_IMAGES) || [];
 for (const img of images) {
+if (!referenced.has(img.id)) continue;
 if (img.blob) {
 const ext = img.blob.type.split('/')[1] || 'jpg';
 const imgDeflate = new AsyncZipDeflate(`images/${img.id}.${ext}`);
@@ -2663,6 +3576,12 @@ imgDeflate.push(new Uint8Array(buffer), true);
 }
 }
 zip.end();
+} catch (e) {
+console.error(e);
+showToast('Export failed', 'error');
+} finally {
+setImportExportDisabled(false);
+}
 }
 async function exportDataJSON() {
 const chunks = [];
@@ -2671,10 +3590,14 @@ for (let i = 0; i < recipes.length; i++) {
 const recipe = recipes[i];
 const exportRecipe = { ...recipe };
 if (recipe.imageId && dbWrapper.db) {
+try {
 const imageData = await dbWrapper.get(STORE_IMAGES, recipe.imageId);
 if (imageData && imageData.blob) {
 const base64 = await blobToDataURL(imageData.blob);
 exportRecipe.image = base64;
+}
+} catch (e) {
+console.warn('Failed to embed image during JSON export', e);
 }
 }
 delete exportRecipe.imageId;
@@ -2683,7 +3606,7 @@ chunks.push(JSON.stringify(exportRecipe));
 if (i < recipes.length - 1) chunks.push(',');
 if (i % 50 === 0) await new Promise(r => setTimeout(r, 0));
 }
-chunks.push(`],"exportedAt":"${new Date().toISOString()}","singleRecipeExport":false}`);
+chunks.push(`],"exportedAt":"${new Date().toISOString()}","schemaVersion":${SCHEMA_VERSION},"singleRecipeExport":false}`);
 const blob = new Blob(chunks, { type: 'application/json' });
 const url = URL.createObjectURL(blob);
 const a = document.createElement('a');
@@ -2698,24 +3621,32 @@ showToast('Export complete', 'success');
 async function handleImportFile(e) {
 const file = e.target.files && e.target.files[0];
 if (!file) return;
-if (file.name.endsWith('.zip') && typeof fflate !== 'undefined') {
+setImportExportDisabled(true);
+try {
+if (file.name.endsWith('.zip')) {
+if (typeof fflate === 'undefined') {
+showToast('ZIP library not loaded (offline?). Cannot import ZIP files.', 'error', 5000);
+return;
+}
 await importZip(file);
-} else if (file.name.endsWith('.json') || file.name.endsWith('.zip')) {
-if (file.name.endsWith('.zip')) showToast('ZIP library not loaded. Trying as JSON...', 'warning');
+} else if (file.name.endsWith('.json')) {
 await importJson(file);
 } else {
 showToast('Please select a .zip or .json file', 'error');
 }
+} finally {
 e.target.value = '';
+setImportExportDisabled(false);
+}
 }
 async function importZip(file) {
 showToast('Extracting archive...', 'info');
 const { unzipSync, strFromU8 } = fflate;
+let metadata = null;
+const imageBlobs = {};
 try {
 const buffer = await file.arrayBuffer();
 const unzipped = unzipSync(new Uint8Array(buffer));
-let metadata = null;
-const imageBlobs = {};
 for (const [filename, content] of Object.entries(unzipped)) {
 if (filename === 'data.json') {
 metadata = JSON.parse(strFromU8(content));
@@ -2729,30 +3660,73 @@ const mime = ext === 'png' ? 'image/png' : (ext === 'webp' ? 'image/webp' : 'ima
 imageBlobs[imgId] = new Blob([content], { type: mime });
 }
 }
-if (!metadata || !metadata.recipes) { showToast('Invalid archive format', 'error'); return; }
+} catch (err) {
+console.error(err);
+showToast('Failed to extract ZIP archive', 'error');
+return;
+}
+if (!metadata || !metadata.recipes) {
+showToast('Invalid archive format', 'error');
+return;
+}
+try {
 if (dbWrapper.db) {
-const imageEntries = Object.entries(imageBlobs).map(([id, blob]) => ({ id, blob, recipeId: id.replace('img_', '').replace('_full', '').replace('_thumb', '') }));
+const imageEntries = Object.entries(imageBlobs).map(([id, blob]) => ({
+id,
+blob,
+recipeId: id.replace('img_', '').replace('_full', '').replace('_thumb', '')
+}));
 const CHUNK = 50;
 for (let i = 0; i < imageEntries.length; i += CHUNK) {
 await dbWrapper.putBulk(STORE_IMAGES, imageEntries.slice(i, i + CHUNK));
+}
+} else {
+for (const [imgId, blob] of Object.entries(imageBlobs)) {
+try {
+const dataUrl = await blobToDataURL(blob);
+const recipeId = imgId.replace('img_', '').replace('_full', '').replace('_thumb', '');
+const recipe = metadata.recipes.find(r => r.id === recipeId);
+if (recipe) {
+if (imgId.endsWith('_full')) {
+recipe.image = dataUrl;
+}
+}
+} catch (e) {
+console.warn('Failed to convert image to dataURL', e);
+}
 }
 }
 await processImportedRecipes(metadata.recipes, metadata.categories);
 } catch (err) {
 console.error(err);
-showToast('Failed to extract ZIP archive', 'error');
+showToast('Failed to process imported recipes', 'error');
 }
 }
 async function importJson(file) {
+return new Promise((resolve, reject) => {
 const r = new FileReader();
 r.onload = async function(ev) {
 try {
 const parsed = JSON.parse(ev.target.result);
-if (!parsed.recipes || !Array.isArray(parsed.recipes)) { showToast('Invalid file format - no recipes found', 'error'); return; }
+if (!parsed.recipes || !Array.isArray(parsed.recipes)) {
+showToast('Invalid file format - no recipes found', 'error');
+resolve();
+return;
+}
 await processImportedRecipes(parsed.recipes, parsed.categories);
-} catch (err) { showToast('Invalid JSON file', 'error'); console.error(err); }
+resolve();
+} catch (err) {
+showToast('Failed to process imported recipes', 'error');
+console.error(err);
+resolve();
+}
+};
+r.onerror = () => {
+showToast('Failed to read file', 'error');
+resolve();
 };
 r.readAsText(file);
+});
 }
 async function migrateRecipeImage(recipe) {
 if (!dbWrapper.db) return;
@@ -2774,22 +3748,41 @@ async function prepareImportedRecipeForStorage(recipe, finalId) {
 recipe.id = finalId;
 recipe.title = typeof recipe.title === 'string' ? recipe.title.trim() : '';
 recipe.description = typeof recipe.description === 'string' ? recipe.description : '';
-recipe.category = typeof recipe.category === 'string' && recipe.category.trim() ? recipe.category.trim() : 'Uncategorized';
+recipe.category = ensureCategoryExists(recipe.category);
 recipe.tags = Array.isArray(recipe.tags) ? recipe.tags.filter(t => typeof t === 'string' && t.trim()).map(t => t.trim()) : [];
 recipe.ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients.map(i => ({ name: i?.name || '', amount: i?.amount || '', unit: i?.unit || '' })) : [];
-recipe.instructions = Array.isArray(recipe.instructions) ? recipe.instructions.map(s => typeof s === 'string' ? s : String(s ?? '')) : [];
+if (Array.isArray(recipe.instructions)) {
+recipe.instructions = recipe.instructions.map(s => typeof s === 'string' ? s : String(s ?? ''));
+} else if (typeof recipe.instructions === 'string') {
+recipe.instructions = recipe.instructions.split(/(?:\r\n|\r|\n)/);
+} else {
+recipe.instructions = [];
+}
 recipe.time = recipe.time != null ? String(recipe.time) : '';
 recipe.temp = recipe.temp != null ? String(recipe.temp) : '';
-recipe.detailType = typeof recipe.detailType === 'string' ? recipe.detailType : '';
+recipe.detailType = ALLOWED_DETAIL_TYPES.includes(recipe.detailType) ? recipe.detailType : '';
 recipe.detailValue = recipe.detailValue != null ? String(recipe.detailValue) : '';
 recipe.bookmarked = Boolean(recipe.bookmarked);
-recipe.ingredientStates = Array.isArray(recipe.ingredientStates) ? recipe.ingredientStates.slice(0, recipe.ingredients.length).map(s => s === 'state-added' ? 'state-added' : '') : recipe.ingredients.map(() => '');
+recipe.ingredientStates = Array.isArray(recipe.ingredientStates)
+? recipe.ingredientStates.slice(0, recipe.ingredients.length).map(s => s === 'state-added' ? 'state-added' : '')
+: recipe.ingredients.map(() => '');
 while (recipe.ingredientStates.length < recipe.ingredients.length) recipe.ingredientStates.push('');
+recipe.createdAt = recipe.createdAt || Date.now();
+recipe.updatedAt = Date.now();
 if (recipe.image && typeof recipe.image === 'string' && recipe.image.startsWith('data:image/')) {
 await migrateRecipeImage(recipe);
+if (!dbWrapper.db) {
+delete recipe.imageId;
+delete recipe.thumbId;
+}
 return;
 }
-if (dbWrapper.db && recipe.imageId) {
+if (!dbWrapper.db) {
+delete recipe.imageId;
+delete recipe.thumbId;
+return;
+}
+if (recipe.imageId) {
 const desiredFullId = `img_${finalId}_full`;
 const desiredThumbId = `img_${finalId}_thumb`;
 const fullRecord = await dbWrapper.get(STORE_IMAGES, recipe.imageId);
@@ -2807,7 +3800,7 @@ if (thumbRecord && thumbRecord.blob) {
 await dbWrapper.put(STORE_IMAGES, { id: desiredThumbId, blob: thumbRecord.blob, recipeId: finalId });
 recipe.thumbId = desiredThumbId;
 } else {
-recipe.thumbId = null;
+delete recipe.thumbId;
 }
 }
 if (!recipe.thumbId) {
@@ -2822,17 +3815,19 @@ recipe.thumbId = desiredThumbId;
 }
 async function processImportedRecipes(importedRecipes, importedCategories) {
 if (importedCategories && Array.isArray(importedCategories)) {
-const newCategories = importedCategories.filter(c => typeof c === 'string' && c.trim() && !categories.includes(c.trim())).map(c => c.trim());
+const newCategories = importedCategories
+.filter(c => typeof c === 'string' && c.trim() && !categories.some(cat => cat.toLowerCase() === c.trim().toLowerCase()))
+.map(c => normalizeCategoryName(c));
 categories = [...categories, ...newCategories];
 }
+const validRecipes = importedRecipes.filter(r => r && typeof r === 'object').map(r => sanitizeImportedRecipe(r)).filter(Boolean);
 const existingKeys = new Set(recipes.map(r => `${(r.title || '').toLowerCase()}|${(r.category || 'uncategorized').toLowerCase()}`));
 const duplicates = [];
 const newRecipes = [];
-importedRecipes.forEach(recipe => {
+validRecipes.forEach(recipe => {
 const key = `${(recipe.title || '').toLowerCase()}|${(recipe.category || 'uncategorized').toLowerCase()}`;
-if (existingKeys.has(key)) {
-duplicates.push(recipe);
-} else {
+if (existingKeys.has(key)) duplicates.push(recipe);
+else {
 newRecipes.push(recipe);
 existingKeys.add(key);
 }
@@ -2849,8 +3844,10 @@ if (newRecipes.length > 0) {
 if (dbWrapper.db) await dbWrapper.putBulk(STORE_RECIPES, newRecipes);
 else await saveAllToLocalStorage();
 }
+await normalizeAllRecipeCategories();
 await saveCategoriesToDB();
 if (duplicates.length === 0) {
+await cleanupUnreferencedImages();
 populateCategoryDropdowns();
 renderCategories();
 renderRecipes();
@@ -2889,7 +3886,10 @@ return;
 }
 if (action === 'replace') {
 importStats.replaced++;
-const existingIdx = recipes.findIndex(r => (r.title || '').toLowerCase() === (recipe.title || '').toLowerCase() && (r.category || 'uncategorized').toLowerCase() === (recipe.category || 'uncategorized').toLowerCase());
+const existingIdx = recipes.findIndex(r =>
+(r.title || '').toLowerCase() === (recipe.title || '').toLowerCase() &&
+(r.category || 'uncategorized').toLowerCase() === (recipe.category || 'uncategorized').toLowerCase()
+);
 if (existingIdx >= 0) {
 const existing = recipes[existingIdx];
 recipe.bookmarked = recipe.bookmarked || existing.bookmarked || false;
@@ -2907,7 +3907,14 @@ if (action === 'rename') {
 const baseName = recipe.title || 'Untitled';
 let newName = baseName;
 let counter = 2;
-while (recipes.some(r => r.title === newName)) { newName = `${baseName} (${counter})`; counter++; }
+const titleExists = (name) => recipes.some(r =>
+(r.title || '').toLowerCase() === name.toLowerCase() &&
+(r.category || 'uncategorized').toLowerCase() === (recipe.category || 'uncategorized').toLowerCase()
+);
+while (titleExists(newName)) {
+newName = `${baseName} (${counter})`;
+counter++;
+}
 recipe.title = newName;
 const newId = generateId();
 await prepareImportedRecipeForStorage(recipe, newId);
@@ -2917,63 +3924,87 @@ importStats.new++;
 showToast(`Renamed to "${newName}"`, 'info', 2000);
 }
 }
-duplicateItemsContainer.addEventListener('click', async function(e) {
-const btn = e.target.closest('button[data-action]');
-if (!btn) return;
-const index = parseInt(btn.dataset.index, 10);
-const action = btn.dataset.action;
-const recipe = pendingImportData?.duplicates?.[index];
-if (!recipe) return;
-duplicateResolutions[index] = action;
-await resolveImportDuplicate(recipe, action);
-updateDuplicateStats();
-btn.closest('.duplicate-item')?.remove();
-const remaining = duplicateItemsContainer.querySelectorAll('.duplicate-item').length;
-finishImportBtn.disabled = remaining !== 0;
-});
 async function applyGlobalResolution(action) {
 if (!pendingImportData?.duplicates) return;
+setDuplicateGlobalButtonsDisabled(true);
+try {
 for (const [index, recipe] of pendingImportData.duplicates.entries()) {
 if (duplicateResolutions[index]) continue;
 duplicateResolutions[index] = action;
+try {
 await resolveImportDuplicate(recipe, action);
+} catch (e) {
+console.warn('Failed to resolve duplicate', e);
+showToast('Failed to resolve one or more duplicates', 'error');
+}
 }
 updateDuplicateStats();
 clearContainer(duplicateItemsContainer);
 finishImportBtn.disabled = false;
 showToast(`Applied "${action}" to all remaining duplicates`, 'info', 2000);
+} finally {
+setDuplicateGlobalButtonsDisabled(false);
+}
 }
 async function finalizeImport() {
+setDuplicateGlobalButtonsDisabled(true);
+try {
 await saveCategoriesToDB();
+await cleanupUnreferencedImages();
 populateCategoryDropdowns();
 renderCategories();
 renderRecipes();
-closeDuplicateModal();
 const totalAdded = importStats.new;
 const totalSkipped = importStats.skipped;
 const totalReplaced = importStats.replaced;
-let message = `Import complete: ${totalAdded} new, ${totalReplaced} replaced, ${totalSkipped} skipped`;
-showToast(message, 'success', 5000);
+const message = `Import complete: ${totalAdded} new, ${totalReplaced} replaced, ${totalSkipped} skipped`;
 pendingImportData = null;
 duplicateResolutions = {};
+finishImportBtn.disabled = true;
+closeDuplicateModal(true);
+showToast(message, 'success', 5000);
+} finally {
+setDuplicateGlobalButtonsDisabled(false);
 }
-function closeDuplicateModal() {
+}
+function closeDuplicateModal(skipRender = false) {
+const hadPending = !!pendingImportData;
+if (hadPending && !skipRender) {
+const unresolvedCount = duplicateItemsContainer.querySelectorAll('.duplicate-item').length;
+if (unresolvedCount > 0 && !confirm(`You have ${unresolvedCount} unresolved duplicate(s). Discard import?`)) {
+return;
+}
+}
+moveFocusSafely();
 duplicateModal.classList.remove('active');
 duplicateModal.setAttribute('aria-hidden', 'true');
 pendingImportData = null;
 duplicateResolutions = {};
 finishImportBtn.disabled = true;
-if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') lastFocusedElement.focus();
+clearContainer(duplicateItemsContainer);
+if (hadPending && !skipRender) {
+cleanupUnreferencedImages()
+.catch(e => console.warn('Cleanup after import failed', e))
+.finally(() => {
+populateCategoryDropdowns();
+renderCategories();
+renderRecipes();
+});
+}
 }
 function initAudioContext() {
 if (!audioContext) {
 try { audioContext = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { console.warn('AudioContext not supported', e); }
 }
 }
-function playChime() {
+async function playChime() {
 try {
 initAudioContext();
-if (!audioContext || audioContext.state === 'suspended') return;
+if (!audioContext) return;
+if (audioContext.state === 'suspended') {
+try { await audioContext.resume(); } catch (e) {}
+}
+if (audioContext.state === 'suspended') return;
 const oscillator = audioContext.createOscillator();
 const gainNode = audioContext.createGain();
 oscillator.connect(gainNode);
@@ -2998,39 +4029,61 @@ osc2.stop(audioContext.currentTime + 0.5);
 }, 600);
 } catch (e) { console.warn('Audio not supported', e); }
 }
-function startTimerAlert() {
-timerAlertActive = true;
-timerAlertStartTime = Date.now();
-timerStartBtn.classList.add('alerting');
-timerStartBtn.classList.add('active');
+function setTimerInputsDisabled(disabled) {
+[timerHours, timerMinutes, timerSeconds].forEach(input => {
+if (input) input.disabled = disabled;
+});
+timerPresets.forEach(preset => {
+preset.disabled = disabled;
+});
+}
+function syncTimerControls() {
+if (timerAlertActive) {
 timerStartBtn.innerHTML = '<i class="fas fa-stop"></i>';
+timerStartBtn.classList.add('active', 'alerting');
 timerStartBtn.title = 'Stop Alert';
+} else if (timerRunning) {
+timerStartBtn.innerHTML = '<i class="fas fa-stop"></i>';
+timerStartBtn.classList.add('active');
+timerStartBtn.classList.remove('alerting');
+timerStartBtn.title = 'Stop';
+} else {
+timerStartBtn.innerHTML = '<i class="fas fa-play"></i>';
+timerStartBtn.classList.remove('active', 'alerting');
+timerStartBtn.title = 'Start';
+}
+setTimerInputsDisabled(timerRunning || timerAlertActive);
+}
+function startTimerAlert(startTime = Date.now()) {
+timerAlertActive = true;
+timerAlertStartTime = startTime;
 timerAlertInfo.style.display = 'block';
+syncTimerControls();
 playChime();
 updateTimerToast();
+requestWakeLock();
 timerAlertInterval = setInterval(() => {
 const elapsed = Date.now() - timerAlertStartTime;
 if (elapsed >= timerAlertDuration) {
 stopTimerAlert();
-timerStartBtn.innerHTML = '<i class="fas fa-play"></i>';
-timerStartBtn.classList.remove('active');
-timerStartBtn.title = 'Start';
-updateTimerToast();
-} else { playChime(); }
+} else {
+playChime();
+}
 saveTimerState();
 }, 5000);
 saveTimerState();
 }
 function stopTimerAlert() {
 timerAlertActive = false;
-timerStartBtn.classList.remove('alerting');
-timerStartBtn.classList.remove('active');
-timerStartBtn.innerHTML = '<i class="fas fa-play"></i>';
-timerStartBtn.title = 'Start';
 timerAlertInfo.style.display = 'none';
 if (timerAlertInterval) { clearInterval(timerAlertInterval); timerAlertInterval = null; }
+syncTimerControls();
 updateTimerToast();
 saveTimerState();
+if (!timerRunning && wakeLock) {
+wakeLock.release().catch(() => {});
+wakeLock = null;
+}
 }
 function toggleTimer() {
 if (timerAlertActive) { stopTimerAlert(); return; }
@@ -3076,23 +4129,19 @@ if (timerBackgroundInterval) { clearInterval(timerBackgroundInterval); timerBack
 function startTimer() {
 if (timerSecondsTotal <= 0) { showToast('Set a time first', 'warning'); return; }
 timerRunning = true;
-timerStartBtn.innerHTML = '<i class="fas fa-stop"></i>';
-timerStartBtn.classList.add('active');
-timerStartBtn.title = 'Stop';
 initAudioContext();
 document.dispatchEvent(new CustomEvent('timerStateChanged'));
 startTimerLoop();
 updateTimerToast();
+syncTimerControls();
 saveTimerState();
 }
 function pauseTimer() {
 timerRunning = false;
-timerStartBtn.innerHTML = '<i class="fas fa-play"></i>';
-timerStartBtn.classList.remove('active');
-timerStartBtn.title = 'Start';
 stopTimerLoop();
 document.dispatchEvent(new CustomEvent('timerStateChanged'));
 updateTimerToast();
+syncTimerControls();
 saveTimerState();
 }
 function resetTimer() {
@@ -3102,6 +4151,7 @@ timerSecondsTotal = timerInitialSeconds;
 lastDisplayedSecond = timerSecondsTotal;
 updateTimerSegments();
 updateTimerToast();
+syncTimerControls();
 saveTimerState();
 }
 function onPointerDown(e) {
@@ -3160,6 +4210,8 @@ el.style.left = '';
 el.style.width = '';
 el.style.zIndex = '';
 el.classList.remove('dragging');
+if (container === addIngredientsContainer) markAddDirty();
+else if (container === editIngredientsContainer) markEditDirty();
 }
 stopPointerAutoScroll();
 pointerDrag.active = false;
@@ -3195,7 +4247,7 @@ if (offset < 0 && offset > closest.offset) return { offset: offset, element: chi
 else return closest;
 }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
-applyViewMode();
+initApp().catch(e => console.error('Failed to initialize app', e));
 })();
 </script>
 </body>
