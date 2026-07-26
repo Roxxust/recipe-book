@@ -173,6 +173,8 @@ flex-shrink:0;
 @keyframes slideOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(100%)}}
 .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.8);z-index:1000;opacity:0;visibility:hidden;transition:all .18s}
 .modal.active{opacity:1;visibility:visible}
+.modal-shell{position:relative;width:95%;max-width:900px;max-height:90vh}
+.modal-shell .modal-content{width:100%;max-width:none}
 .modal-content{
 background:var(--card-bg);
 width:95%;
@@ -384,7 +386,7 @@ color: var(--text-secondary);
 }
 @media print {
 body { background: white; color: black; padding: 0; }
-.controls, .form-container, .edit-ui, .toast-container, .recipe-bookmark, .scaling-controls, .timer-section, .modal-header-actions, #recipeModal > div > div:last-child, .scroll-to-top { display: none !important; }
+.controls, .form-container, .edit-ui, .toast-container, .recipe-bookmark, .scaling-controls, .timer-section, .modal-header-actions, #recipeModal .modal-content > div:last-child, .scroll-to-top { display: none !important; }
 .modal { position: static; background: none; opacity: 1; visibility: visible; }
 .modal-content { max-height: none; border: none; box-shadow: none; background: white; color: black; }
 .recipe-image { height: auto; max-height: 300px; }
@@ -427,7 +429,7 @@ body { background: white; color: black; padding: 0; }
 </div>
 <div id="recipesContainer" class="recipes-container">
 <div id="emptyState" class="empty-state"><i class="fas fa-book-open" style="font-size:2rem;margin-bottom:8px;display:block"></i><h3>No recipes yet</h3><p>Tap Add Recipe to start.</p></div>
-<div id="recipesGrid" class="recipes-grid" aria-live="polite"></div>
+<div id="recipesGrid" class="recipes-grid"></div>
 </div>
 <div id="addRecipeForm" class="form-container" style="display:none;">
 <div class="form-header"><h2 class="form-title"><i class="fas fa-receipt"></i> Add Recipe</h2><button class="btn" id="closeAddFormBtn" aria-label="Close add recipe form">&times;</button></div>
@@ -489,6 +491,7 @@ body { background: white; color: black; padding: 0; }
 </form>
 </div>
 <div id="recipeModal" class="modal" aria-hidden="true">
+<div class="modal-shell">
 <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalRecipeTitle">
 <div class="modal-header">
 <h2 class="modal-title" id="modalRecipeTitle">Recipe</h2>
@@ -564,6 +567,7 @@ body { background: white; color: black; padding: 0; }
 <button class="btn" id="editRecipeBtnModal"><i class="fas fa-edit"></i> Edit</button>
 <button class="btn btn-danger" id="deleteRecipeBtn"><i class="fas fa-trash"></i> Delete</button>
 </div>
+</div>
 <button id="modalScrollToTopBtn" class="scroll-to-top modal-scroll-to-top" aria-label="Scroll modal to top"><i class="fas fa-arrow-up"></i></button>
 </div>
 </div>
@@ -611,7 +615,7 @@ body { background: white; color: black; padding: 0; }
 </div>
 <div class="modal-body">
 <ul class="instructions-list">
-<li><strong>Ctrl/Cmd + N:</strong> Add new recipe</li>
+<li><strong>N</strong> or <strong>Alt + N:</strong> Add new recipe (Ctrl/Cmd + N also works where the browser allows it)</li>
 <li><strong>Ctrl/Cmd + F:</strong> Focus search bar</li>
 <li><strong>Esc:</strong> Close modals or forms</li>
 <li><strong>?:</strong> Toggle this help menu</li>
@@ -641,8 +645,8 @@ return '%%CODE' + (codeBlocks.length - 1) + '%%';
 });
 result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 result = result.replace(/__(.+?)__/g, '<strong>$1</strong>');
-result = result.replace(/(?<!\w)\*(.+?)\*(?!\w)/g, '<em>$1</em>');
-result = result.replace(/(?<!\w)_(.+?)_(?!\w)/g, '<em>$1</em>');
+result = result.replace(/(^|[^\w*])\*([^*]+?)\*(?!\w)/g, '$1<em>$2</em>');
+result = result.replace(/(^|[^\w_])_([^_]+?)_(?!\w)/g, '$1<em>$2</em>');
 result = result.replace(/%%CODE(\d+)%%/g, function(m, idx) {
 const i = Number(idx);
 return i < codeBlocks.length ? '<code>' + codeBlocks[i] + '</code>' : m;
@@ -879,6 +883,7 @@ let lastFocusedElement = null;
 let descriptionVisibilityObserver = null;
 let broadcastChannel = null;
 let pendingDeletedRecipe = null;
+let pendingPurgeTimeout = null;
 const SCROLL_CONFIG = {
 scrollSpeed: 28,
 resetSpeed: 180,
@@ -959,6 +964,16 @@ await dbWrapper.delete(STORE_IMAGES, img.id);
 }
 } catch (e) {
 console.warn('Failed to cleanup unreferenced images', e);
+}
+}
+async function purgePendingDeletedRecipe() {
+if (pendingPurgeTimeout) { clearTimeout(pendingPurgeTimeout); pendingPurgeTimeout = null; }
+const recipe = pendingDeletedRecipe;
+if (!recipe) return;
+pendingDeletedRecipe = null;
+if (dbWrapper.db) {
+await deleteImageIfUnreferenced(recipe.imageId, recipe.id);
+await deleteImageIfUnreferenced(recipe.thumbId, recipe.id);
 }
 }
 function createSearchDocs() {
@@ -1719,6 +1734,7 @@ function cleanupOnUnload() {
 stopTimerLoop();
 if (timerAlertInterval) { clearInterval(timerAlertInterval); timerAlertInterval = null; }
 saveTimerState();
+purgePendingDeletedRecipe();
 revokeAllObjectURLs();
 if (descriptionVisibilityObserver) {
 descriptionVisibilityObserver.disconnect();
@@ -2025,11 +2041,11 @@ if (e.key === 'Escape') {
 if (imageZoomModal.classList.contains('active')) { closeImageZoom(); return; }
 if (recipeModal.classList.contains('active')) { closeRecipeModal(); return; }
 if (duplicateModal.classList.contains('active')) { closeDuplicateModal(false); return; }
-if (shortcutsModal.classList.contains('active')) { 
+if (shortcutsModal.classList.contains('active')) {
 moveFocusSafely();
-shortcutsModal.classList.remove('active'); 
-shortcutsModal.setAttribute('aria-hidden', 'true'); 
-return; 
+shortcutsModal.classList.remove('active');
+shortcutsModal.setAttribute('aria-hidden', 'true');
+return;
 }
 if (addRecipeForm.style.display === 'block') { hideAddRecipeForm(false); return; }
 if (editRecipeUI.style.display === 'block') { hideEditUI(false); return; }
@@ -2043,6 +2059,10 @@ return;
 const tagName = (e.target.tagName || '').toUpperCase();
 if (tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') return;
 if (addRecipeForm.style.display === 'block' || editRecipeUI.style.display === 'block') return;
+const modalOpen = recipeModal.classList.contains('active') || duplicateModal.classList.contains('active') || shortcutsModal.classList.contains('active') || imageZoomModal.classList.contains('active');
+if (modalOpen) return;
+if (e.altKey && (e.key === 'n' || e.key === 'N')) { e.preventDefault(); showAddRecipeForm(); return; }
+if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'n' || e.key === 'N')) { showAddRecipeForm(); return; }
 if (e.ctrlKey || e.metaKey) {
 if (e.key === 'n') { e.preventDefault(); showAddRecipeForm(); }
 if (e.key === 'f') { e.preventDefault(); searchInput.focus(); }
@@ -2406,11 +2426,14 @@ const imperialToMetric = {
 };
 const metricVolumeUnits = ['ml', 'milliliter', 'milliliters', 'l', 'liter', 'liters'];
 const metricWeightUnits = ['g', 'gram', 'grams', 'kg', 'kilogram', 'kilograms'];
+function normalizeUnitKey(unit) {
+return (unit || '').toString().toLowerCase().replace(/\(s\)/g, '').trim();
+}
 function convertMetricToImperial(amount, unit) {
 if (!amount || !unit) return '';
 const numAmount = parseFloat(amount);
 if (isNaN(numAmount) || numAmount <= 0) return '';
-const lowerUnit = unit.toLowerCase();
+const lowerUnit = normalizeUnitKey(unit);
 if (metricVolumeUnits.includes(lowerUnit)) {
 const isLiter = ['l', 'liter', 'liters'].includes(lowerUnit);
 const mlAmount = isLiter ? numAmount * 1000 : numAmount;
@@ -2433,7 +2456,7 @@ function convertImperialToMetric(amount, unit) {
 if (!amount || !unit) return '';
 const numAmount = parseFloat(amount);
 if (isNaN(numAmount)) return '';
-const conversion = imperialToMetric[unit.toLowerCase()];
+const conversion = imperialToMetric[normalizeUnitKey(unit)];
 if (!conversion) return '';
 const converted = numAmount * conversion.factor;
 let displayConverted = converted;
@@ -2451,9 +2474,9 @@ return num.toFixed(3);
 }
 function getConversion(amount, unit) {
 if (!amount || !unit) return '';
-const lowerUnit = unit.toLowerCase();
-if (imperialToMetric[lowerUnit]) return convertImperialToMetric(amount, unit);
-if (metricVolumeUnits.includes(lowerUnit) || metricWeightUnits.includes(lowerUnit)) return convertMetricToImperial(amount, unit);
+const key = normalizeUnitKey(unit);
+if (imperialToMetric[key]) return convertImperialToMetric(amount, unit);
+if (metricVolumeUnits.includes(key) || metricWeightUnits.includes(key)) return convertMetricToImperial(amount, unit);
 return '';
 }
 function parseTemperature(temp) {
@@ -2633,32 +2656,29 @@ break;
 state.descEl.style.transform = `translateY(-${state.position}px)`;
 state.animationFrameId = requestAnimationFrame((t) => animateScroll(cardId, t));
 }
+function cardSignature(r) {
+return `${r.id}:${r.updatedAt || 0}`;
+}
 async function renderRecipes() {
 const renderId = ++currentRenderRequestId;
 const searchTerm = searchInput.value.toLowerCase().trim();
 const filtered = await filterRecipesAsync(searchTerm, currentFilterCategory, showFavoritesOnly);
 if (renderId !== currentRenderRequestId) return;
-
-const newIds = filtered.map(r => r.id);
-const currentIds = filteredRecipes.map(r => r.id);
-const isSame = newIds.length === currentIds.length && newIds.every((id, i) => id === currentIds[i]);
+const newSigs = filtered.map(cardSignature);
+const currentSigs = filteredRecipes.map(cardSignature);
+const isSame = newSigs.length === currentSigs.length && newSigs.every((sig, i) => sig === currentSigs[i]);
 if (isSame) return;
-
 filteredRecipes = filtered;
-
 if (infiniteScrollObserver) { infiniteScrollObserver.disconnect(); infiniteScrollObserver = null; }
 if (descriptionVisibilityObserver) descriptionVisibilityObserver.disconnect();
-
 const limit = Math.min(BATCH_SIZE, filteredRecipes.length);
 const targetIds = new Set(filteredRecipes.slice(0, limit).map(r => r.id));
-
 const existingCards = new Map();
 for (const card of Array.from(recipesGrid.children)) {
 if (card.classList && card.classList.contains('recipe-card')) {
 existingCards.set(card.dataset.id, card);
 }
 }
-
 for (const [id, card] of existingCards) {
 if (!targetIds.has(id)) {
 stopDescriptionScroll(id);
@@ -2666,18 +2686,23 @@ card.remove();
 existingCards.delete(id);
 }
 }
-
 let prevNode = null;
 const firstCard = recipesGrid.querySelector('.recipe-card');
 for (let i = 0; i < limit; i++) {
 const recipe = filteredRecipes[i];
+const sig = cardSignature(recipe);
 let card = existingCards.get(recipe.id);
-
+if (card && card.dataset.sig !== sig) {
+stopDescriptionScroll(recipe.id);
+revokeCardBlob(recipe.id + '_card');
+card.remove();
+existingCards.delete(recipe.id);
+card = null;
+}
 if (!card) {
 card = createRecipeCard(recipe);
 existingCards.set(recipe.id, card);
 }
-
 const expectedNextSibling = prevNode ? prevNode.nextSibling : firstCard;
 if (card !== expectedNextSibling) {
 if (prevNode) {
@@ -2686,12 +2711,9 @@ prevNode.after(card);
 recipesGrid.prepend(card);
 }
 }
-
 prevNode = card;
 }
-
 updateEmptyState();
-
 if (filteredRecipes.length > BATCH_SIZE) setupInfiniteScroll();
 if (descriptionVisibilityObserver && filteredRecipes.length > 0) {
 Array.from(recipesGrid.children).forEach(card => {
@@ -2731,6 +2753,7 @@ function createRecipeCard(r) {
 const card = document.createElement('div');
 card.className = 'recipe-card';
 card.dataset.id = r.id;
+card.dataset.sig = cardSignature(r);
 card.tabIndex = 0;
 card.setAttribute('role', 'button');
 card.setAttribute('aria-label', `Open recipe: ${r.title || 'Untitled'}`);
@@ -2755,46 +2778,45 @@ imageDiv.className = 'recipe-image';
 const targetImageId = r.thumbId || r.imageId;
 const cardImageUrlKey = r.id + '_card';
 const cachedUrl = recipeBlobUrls.get(cardImageUrlKey);
-
 if (cachedUrl) {
-    const img = document.createElement('img');
-    img.src = cachedUrl;
-    img.alt = (r.title || 'recipe image');
-    img.loading = 'lazy';
-    imageDiv.appendChild(img);
+const img = document.createElement('img');
+img.src = cachedUrl;
+img.alt = (r.title || 'recipe image');
+img.loading = 'lazy';
+imageDiv.appendChild(img);
 } else if (targetImageId && dbWrapper.db) {
-    const icon = document.createElement('i');
-    icon.className = 'fas fa-utensils';
-    imageDiv.appendChild(icon);
-    dbWrapper.get(STORE_IMAGES, targetImageId).then(imageData => {
-        if (!card.isConnected) return;
-        if (imageData && imageData.blob) {
-            const img = document.createElement('img');
-            const url = createObjectURL(imageData.blob, cardImageUrlKey);
-            img.src = url;
-            img.alt = (r.title || 'recipe image');
-            img.loading = 'lazy';
-            imageDiv.innerHTML = '';
-            imageDiv.appendChild(img);
-        } else if (r.image && isSafeImageSrc(r.image)) {
-            const img = document.createElement('img');
-            img.src = r.image;
-            img.alt = (r.title || 'recipe image');
-            img.loading = 'lazy';
-            imageDiv.innerHTML = '';
-            imageDiv.appendChild(img);
-        }
-    }).catch(() => {});
+const icon = document.createElement('i');
+icon.className = 'fas fa-utensils';
+imageDiv.appendChild(icon);
+dbWrapper.get(STORE_IMAGES, targetImageId).then(imageData => {
+if (!card.isConnected) return;
+if (imageData && imageData.blob) {
+const img = document.createElement('img');
+const url = createObjectURL(imageData.blob, cardImageUrlKey);
+img.src = url;
+img.alt = (r.title || 'recipe image');
+img.loading = 'lazy';
+imageDiv.innerHTML = '';
+imageDiv.appendChild(img);
 } else if (r.image && isSafeImageSrc(r.image)) {
-    const img = document.createElement('img');
-    img.src = r.image;
-    img.alt = (r.title || 'recipe image');
-    img.loading = 'lazy';
-    imageDiv.appendChild(img);
+const img = document.createElement('img');
+img.src = r.image;
+img.alt = (r.title || 'recipe image');
+img.loading = 'lazy';
+imageDiv.innerHTML = '';
+imageDiv.appendChild(img);
+}
+}).catch(() => {});
+} else if (r.image && isSafeImageSrc(r.image)) {
+const img = document.createElement('img');
+img.src = r.image;
+img.alt = (r.title || 'recipe image');
+img.loading = 'lazy';
+imageDiv.appendChild(img);
 } else {
-    const icon = document.createElement('i');
-    icon.className = 'fas fa-utensils';
-    imageDiv.appendChild(icon);
+const icon = document.createElement('i');
+icon.className = 'fas fa-utensils';
+imageDiv.appendChild(icon);
 }
 const contentDiv = document.createElement('div');
 contentDiv.className = 'recipe-content';
@@ -3432,10 +3454,7 @@ if (!confirm('Delete this recipe?')) return;
 const recipeIndex = recipes.findIndex(r => r.id === id);
 if (recipeIndex === -1) return;
 const recipe = recipes[recipeIndex];
-if (recipe && dbWrapper.db) {
-await deleteImageIfUnreferenced(recipe.imageId, id);
-await deleteImageIfUnreferenced(recipe.thumbId, id);
-}
+await purgePendingDeletedRecipe();
 recipes.splice(recipeIndex, 1);
 await deleteRecipeFromDB(id);
 const card = document.querySelector(`.recipe-card[data-id="${id}"]`);
@@ -3449,7 +3468,10 @@ updateEmptyState();
 renderCategories();
 closeRecipeModal();
 hideEditUI(true);
-pendingDeletedRecipe = recipe;
+const deletedRecipe = recipe;
+pendingDeletedRecipe = deletedRecipe;
+if (pendingPurgeTimeout) clearTimeout(pendingPurgeTimeout);
+pendingPurgeTimeout = setTimeout(() => { purgePendingDeletedRecipe(); }, 6500);
 const toast = showToast('Recipe deleted', 'info', 6000);
 const undoBtn = document.createElement('button');
 undoBtn.className = 'btn btn-warning';
@@ -3458,15 +3480,15 @@ undoBtn.style.padding = '4px 10px';
 undoBtn.style.fontSize = '0.85rem';
 undoBtn.textContent = 'Undo';
 undoBtn.onclick = async () => {
-if (pendingDeletedRecipe) {
-recipes.push(pendingDeletedRecipe);
-await saveRecipeToDB(pendingDeletedRecipe);
+if (pendingDeletedRecipe !== deletedRecipe) return;
+if (pendingPurgeTimeout) { clearTimeout(pendingPurgeTimeout); pendingPurgeTimeout = null; }
+pendingDeletedRecipe = null;
+recipes.push(deletedRecipe);
+await saveRecipeToDB(deletedRecipe);
 renderCategories();
 renderRecipes();
 showToast('Recipe restored', 'success');
-pendingDeletedRecipe = null;
 removeToast(toast);
-}
 };
 toast.querySelector('.toast-message').appendChild(undoBtn);
 }
@@ -3547,10 +3569,7 @@ showToast('Export Complete', 'success');
 };
 const metadata = {
 categories,
-recipes: recipes.map(r => {
-const { imageId, thumbId, ...rest } = r;
-return { ...rest, imageId, thumbId };
-}),
+recipes: recipes.map(r => ({ ...r })),
 exportedAt: new Date().toISOString(),
 schemaVersion: SCHEMA_VERSION
 };
