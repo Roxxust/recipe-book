@@ -56,10 +56,10 @@ header h1{font-size:2rem;color:var(--accent);display:inline-flex;gap:8px;align-i
 .remove-ingredient:active,.recipe-bookmark:active{transform:scale(.94)}
 .category-filter{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--card-bg);padding:8px;border-radius:10px;border:1px solid var(--border);width:100%}
 .categories-container{display:flex;gap:8px;flex-wrap:wrap}
-.category-tag{background:#212121;padding:0;border-radius:18px;border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;color:var(--text);font-size:.9rem;transition:all var(--dur-fast) ease;overflow:visible;position:relative;--cat-a:var(--accent);--cat-b:#4361ee;--cat-angle:45deg;--cat-intensity:100%;--cat-active-text:#fff;--cat-active-shadow:none}
+.category-tag{background:#212121;padding:0;border-radius:18px;border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;color:var(--text);font-size:.9rem;transition:all var(--dur-fast) ease;overflow:hidden;position:relative;--cat-a:var(--accent);--cat-b:#4361ee;--cat-angle:45deg;--cat-intensity:100%;--cat-active-text:#fff;--cat-active-shadow:none}
 .category-tag:hover{border-color:var(--cat-a);background:color-mix(in srgb, var(--cat-a) 16%, #212121);color:var(--text)}
-.category-tag.active{background:linear-gradient(var(--cat-angle,45deg),var(--cat-a),var(--cat-b) var(--cat-intensity,100%));border-color:transparent;color:var(--cat-active-text,#fff);text-shadow:var(--cat-active-shadow,none);animation:pillPop var(--dur-med) var(--ease-spring)}
-.category-tag.active:hover{background:linear-gradient(var(--cat-angle,45deg),var(--cat-a),var(--cat-b) var(--cat-intensity,100%));color:var(--cat-active-text,#fff)}
+.category-tag.active{background:linear-gradient(var(--cat-angle,45deg),var(--cat-a),var(--cat-b) var(--cat-intensity,100%)) padding-box;border-color:transparent;color:var(--cat-active-text,#fff);text-shadow:var(--cat-active-shadow,none);animation:pillPop var(--dur-med) var(--ease-spring)}
+.category-tag.active:hover{background:linear-gradient(var(--cat-angle,45deg),var(--cat-a),var(--cat-b) var(--cat-intensity,100%)) padding-box;color:var(--cat-active-text,#fff)}
 .category-tag-btn{background:none;border:none;color:inherit;font:inherit;cursor:pointer;padding:6px 12px;display:inline-flex;align-items:center;justify-content:center;flex:1;transition:color var(--dur-fast) ease}
 .category-tag-btn:not(:only-child){padding-right:34px}
 .category-tag.active .category-tag-btn{color:inherit}
@@ -144,11 +144,15 @@ contain-intrinsic-size: 240px 380px;
 .recipe-image > .ic{width:2.5rem;height:2.5rem;opacity:.55}
 .recipe-image.loading::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.06) 50%,transparent 70%);background-size:200% 100%;animation:shimmer 1.4s linear infinite}
 .recipe-content{padding:4px;display:flex;flex-direction:column;flex:1;min-height:0}
-.recipe-title{font-size:1.05rem;margin-bottom:6px}
-.recipe-category{display:inline-block;padding:4px 10px;border-radius:18px;font-size:.85rem;margin-bottom:6px}
+.recipe-title{font-size:1.05rem;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.recipe-category{display:inline-block;padding:4px 10px;border-radius:18px;font-size:.85rem;margin-bottom:6px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .recipe-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
-.recipe-tag{background:#2a2a2a;padding:2px 8px;border-radius:12px;font-size:.75rem;color:var(--text-secondary)}
+.recipe-tag{background:#2a2a2a;padding:2px 8px;border-radius:12px;font-size:.75rem;line-height:1.2;color:var(--text-secondary)}
 .recipe-tag::before{content:'#';color:var(--accent);margin-right:2px}
+.recipe-card .recipe-tags{max-height:calc(2 * (0.75rem * 1.2 + 4px) + 4px);overflow:hidden;min-width:0}
+.recipe-card .recipe-tag{white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.recipe-tag-more{flex-shrink:0;background:transparent;box-shadow:inset 0 0 0 1px rgba(154,163,173,.35)}
+.recipe-tag-more::before{content:none}
 .recipe-description-container{
 margin-bottom:0;
 height:4.5em;
@@ -220,6 +224,8 @@ flex-shrink:0;
 }
 .ingredient-row.placeholder{background:rgba(111,184,255,0.06);border:2px dashed var(--accent);min-height:44px;display:flex;align-items:center;padding:0 10px;animation:placeholderPulse 1.2s ease-in-out infinite}
 .ingredient-row.dragging{box-shadow:0 10px 30px rgba(0,0,0,0.65);opacity:0.98;transform:rotate(1.2deg) scale(1.02)}
+.ingredient-row.section-row{background:rgba(111,184,255,.07);border:1px solid rgba(111,184,255,.28)}
+.ingredient-row.section-row .ingredient-name{font-weight:700;color:var(--accent)}
 .toast-container{position:fixed;bottom:100px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:10px;pointer-events:none}
 .toast{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;min-width:280px;max-width:400px;box-shadow:0 8px 30px rgba(0,0,0,0.5);display:flex;align-items:center;gap:12px;pointer-events:auto;animation:slideIn var(--dur-med) ease;opacity:0;transform:translateX(100%);position:relative;overflow:hidden}
 .toast.show{opacity:1;transform:translateX(0)}
@@ -303,13 +309,18 @@ min-height: 1px;
 .instructions-list li.instruction-separator::before {
 content: none;
 }
+.instruction-section-title{margin:18px 0 10px;padding-left:10px;border-left:3px solid var(--accent);font-size:1.08rem;font-weight:700;color:var(--text);line-height:1.4;animation:stepIn var(--dur-med) var(--ease-out) backwards}
+.instructions-container .instructions-list:first-child{margin-top:0}
 .ingredients-list li{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--border);transition:all .12s;cursor:pointer;flex-wrap:wrap;animation:stepIn var(--dur-fast) ease backwards}
 .ingredients-list li:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ingredients-list li.state-added{background:rgba(47,224,198,.06);border-left:4px solid var(--success)}
-.ingredient-name-text{position:relative;transition:color var(--dur-fast) ease}
-.ingredient-name-text::after{content:'';position:absolute;left:-2px;right:-2px;top:50%;height:1.5px;border-radius:2px;background:var(--success);transform:scaleX(0);transform-origin:left center;transition:transform var(--dur-med) var(--ease-out)}
-.ingredients-list li.state-added .ingredient-name-text{color:var(--text-secondary)}
-.ingredients-list li.state-added .ingredient-name-text::after{transform:scaleX(1)}
+.ingredients-list li.ingredient-section{cursor:default;border-bottom:none;padding:16px 0 6px;justify-content:flex-start}
+.ingredient-section-title{font-weight:700;font-size:1.02rem;color:var(--text);border-left:3px solid var(--accent);padding-left:10px}
+.ingredient-name-text,.ingredient-amount-text{position:relative;transition:color var(--dur-fast) ease}
+.ingredient-name-text::after,.ingredient-amount-text::after{content:'';position:absolute;left:-2px;right:-2px;top:50%;height:1.5px;border-radius:2px;background:var(--success);transform:scaleX(0);transform-origin:left center;transition:transform var(--dur-med) var(--ease-out)}
+.ingredients-list li.state-added .ingredient-name-text,.ingredients-list li.state-added .ingredient-amount-text{color:var(--text-secondary)}
+.ingredients-list li.state-added .ingredient-name-text::after,.ingredients-list li.state-added .ingredient-amount-text::after{transform:scaleX(1)}
+.ingredients-list li.state-added .converted-amount{background:transparent}
 .ingredients-list li .converted-amount{color:var(--text-secondary);font-size:.85rem;margin-left:8px;padding:2px 6px;background:#1a1a1a;border-radius:4px}
 .scaling-controls{display:flex;align-items:center;gap:8px;margin:12px 0;padding:12px;background:#202020;border-radius:10px;flex-wrap:wrap}
 .scaling-controls label{color:var(--text-secondary);font-size:.9rem}
@@ -360,7 +371,7 @@ textarea{min-height:90px;resize:vertical}
 .unit-dropdown-btn:hover,.unit-dropdown-btn:focus-visible{border-color:var(--accent)}
 .unit-dropdown-btn .ic{width:.8rem;height:.8rem;color:var(--text-secondary);transition:transform var(--dur-fast) ease}
 .unit-dropdown.open .unit-dropdown-btn .ic{transform:rotate(180deg)}
-.unit-options{position:absolute;top:calc(100% + 4px);left:0;right:0;max-height:220px;overflow-y:auto;background:#151515;border:1px solid var(--border);border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,.55);z-index:60;display:none;padding:4px}
+.unit-options{position:absolute;top:calc(100% + 4px);left:0;right:0;max-height:220px;overflow-y:auto;overscroll-behavior:contain;background:#151515;border:1px solid var(--border);border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,.55);z-index:60;display:none;padding:4px}
 .unit-dropdown.open .unit-options{display:block;animation:rowIn var(--dur-med) var(--ease-out)}
 .unit-option{display:block;width:100%;text-align:left;padding:8px 10px;border:none;background:none;color:var(--text);font-size:14px;border-radius:6px;cursor:pointer;transition:background var(--dur-fast) ease}
 .unit-option:hover,.unit-option:focus-visible{background:#232323}
@@ -471,7 +482,7 @@ textarea{min-height:90px;resize:vertical}
 .context-menu-item .ic{width:1rem;height:1rem;color:var(--accent);transition:color var(--dur-fast) ease}
 .context-menu-item:hover .ic,.context-menu-item:focus-visible .ic{color:#000}
 .context-submenu-wrap{position:relative}
-.context-submenu{position:absolute;left:calc(100% + 4px);top:-6px;min-width:176px;max-width:240px;max-height:264px;overflow-y:auto;background:#1d1d1d;border:1px solid var(--border);border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.6);padding:5px;display:none;z-index:2}
+.context-submenu{position:absolute;left:calc(100% + 4px);top:-6px;min-width:176px;max-width:240px;max-height:264px;overflow-y:auto;overscroll-behavior:contain;background:#1d1d1d;border:1px solid var(--border);border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.6);padding:5px;display:none;z-index:2}
 .context-submenu-wrap.open .context-submenu{display:block;animation:popIn var(--dur-fast) var(--ease-out)}
 .context-menu.flip .context-submenu{left:auto;right:calc(100% + 4px)}
 .context-menu-item .submenu-arrow{margin-left:auto;width:.7rem;height:.7rem;color:var(--text-secondary);transition:color var(--dur-fast) ease}
@@ -616,6 +627,7 @@ body { background: white; color: black; padding: 0; }
 .section-title { color: black; }
 .recipe-category { background: #ddd !important; color: black; }
 .recipe-tag { background: #eee; color: #333; }
+.instruction-section-title, .ingredient-section-title { color: black; border-left-color: #888; }
 }
 </style>
 </head>
@@ -736,8 +748,8 @@ body { background: white; color: black; padding: 0; }
 </div>
 <div class="label-hint"><svg class="ic" aria-hidden="true"><use href="#ic-info-circle"/></svg> Separate tags with commas</div>
 </div>
-<div class="form-group"><label>Ingredients</label><div id="addIngredientsContainer"></div><button type="button" class="add-ingredient-btn" id="addAddIngredientBtn"><svg class="ic" aria-hidden="true"><use href="#ic-plus"/></svg> Add Ingredient</button></div>
-<div class="form-group"><label for="addRecipeInstructions">Instructions</label><textarea id="addRecipeInstructions" placeholder="One step per line. Supports **bold**, *italic*, `code`"></textarea></div>
+<div class="form-group"><label>Ingredients</label><div id="addIngredientsContainer"></div><button type="button" class="add-ingredient-btn" id="addAddIngredientBtn"><svg class="ic" aria-hidden="true"><use href="#ic-plus"/></svg> Add Ingredient</button><div class="label-hint"><svg class="ic" aria-hidden="true"><use href="#ic-info-circle"/></svg> Start an ingredient name with ! to create a section header (e.g. !Filling)</div></div>
+<div class="form-group"><label for="addRecipeInstructions">Instructions</label><textarea id="addRecipeInstructions" placeholder="One step per line. Start a line with ! for a section header (e.g. !Filling) - numbering restarts below it. Empty line adds a spacer. Supports **bold**, *italic*, `code`"></textarea></div>
 <div style="display:flex;gap:10px"><div style="flex:1"><label for="addRecipeTemp">Temperature</label><input id="addRecipeTemp" placeholder="e.g., 350F"></div><div style="flex:1"><label for="addRecipeTime">Cook time</label><input id="addRecipeTime" placeholder="e.g., 25"></div></div>
 <div style="display:flex;gap:10px;margin-top:10px"><div style="flex:1"><label for="addRecipeDetailType">Detail type</label><select id="addRecipeDetailType"><option value="">None</option><option value="servings">Servings</option><option value="makes">Makes</option><option value="pans">Pans</option></select></div><div style="flex:1"><label for="addRecipeDetailValue">Value</label><input id="addRecipeDetailValue"></div></div>
 <div class="form-actions"><button type="button" class="btn" id="cancelAddRecipeBtn">Cancel</button><button type="submit" class="btn btn-accent">Save</button></div>
@@ -766,8 +778,8 @@ body { background: white; color: black; padding: 0; }
 </div>
 <div class="label-hint"><svg class="ic" aria-hidden="true"><use href="#ic-info-circle"/></svg> Separate tags with commas</div>
 </div>
-<div class="form-group"><label>Ingredients</label><div id="editIngredientsContainer"></div><button type="button" class="add-ingredient-btn" id="addEditIngredientBtn"><svg class="ic" aria-hidden="true"><use href="#ic-plus"/></svg> Add Ingredient</button></div>
-<div class="form-group"><label for="editRecipeInstructions">Instructions</label><textarea id="editRecipeInstructions" placeholder="One step per line. Supports **bold**, *italic*, `code`"></textarea></div>
+<div class="form-group"><label>Ingredients</label><div id="editIngredientsContainer"></div><button type="button" class="add-ingredient-btn" id="addEditIngredientBtn"><svg class="ic" aria-hidden="true"><use href="#ic-plus"/></svg> Add Ingredient</button><div class="label-hint"><svg class="ic" aria-hidden="true"><use href="#ic-info-circle"/></svg> Start an ingredient name with ! to create a section header (e.g. !Filling)</div></div>
+<div class="form-group"><label for="editRecipeInstructions">Instructions</label><textarea id="editRecipeInstructions" placeholder="One step per line. Start a line with ! for a section header (e.g. !Filling) - numbering restarts below it. Empty line adds a spacer. Supports **bold**, *italic*, `code`"></textarea></div>
 <div style="display:flex;gap:10px"><div style="flex:1"><label for="editRecipeTemp">Temperature</label><input id="editRecipeTemp" placeholder="e.g., 350F"></div><div style="flex:1"><label for="editRecipeTime">Cook time</label><input id="editRecipeTime" placeholder="e.g., 25"></div></div>
 <div style="display:flex;gap:10px;margin-top:10px"><div style="flex:1"><label for="editRecipeDetailType">Detail type</label><select id="editRecipeDetailType"><option value="">None</option><option value="servings">Servings</option><option value="makes">Makes</option><option value="pans">Pans</option></select></div><div style="flex:1"><label for="editRecipeDetailValue">Value</label><input id="editRecipeDetailValue"></div></div>
 <div class="form-actions"><button type="button" class="btn" id="cancelEditBtn">Cancel</button><button type="submit" class="btn btn-accent">Save</button></div>
@@ -787,7 +799,7 @@ body { background: white; color: black; padding: 0; }
 <div class="modal-body" id="modalBody">
 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
 <span class="recipe-category" id="modalRecipeCategory" style="background:linear-gradient(45deg,#3a0ca3,#4361ee)">Category</span>
-<div class="recipe-tags" id="modalRecipeTags"></div>
+<div class="recipe-tags" id="modalRecipeTags" style="flex-wrap:wrap;overflow:visible"></div>
 </div>
 <div class="recipe-image" id="modalRecipeImage" style="cursor:pointer" role="button" tabindex="-1" aria-label="Zoom recipe image">
 <img id="modalRecipeImageElement" style="display:none" alt="recipe image" decoding="async">
@@ -805,9 +817,9 @@ body { background: white; color: black; padding: 0; }
 <h3 class="section-title"><svg class="ic" aria-hidden="true"><use href="#ic-basket"/></svg> Ingredients</h3>
 <ul id="modalIngredientsList" class="ingredients-list"></ul>
 <h3 class="section-title"><svg class="ic" aria-hidden="true"><use href="#ic-steps"/></svg> Instructions</h3>
-<ol id="modalInstructionsList" class="instructions-list markdown-content"></ol>
+<div id="modalInstructionsContainer" class="instructions-container markdown-content"></div>
 <div class="timer-section">
-<h3 class="section-title"><svg class="ic" aria-hidden="true"><use href="#ic-stopwatch"/></svg> Timer</h3>
+<h3 class="section-title"><svg class="ic" aria-hidden="true"><use href="#ic-stopwatch"/></svg> Cook Timer</h3>
 <div class="timer-display">
 <div class="timer-input-group">
 <div class="timer-segment">
@@ -991,6 +1003,7 @@ const DRAFT_ADD_KEY = 'recipeBookDraftAdd';
 const DRAFT_EDIT_KEY = 'recipeBookDraftEdit';
 const CODE_SENTINEL = '\u0000';
 const LINE_BREAK_RE = /\r\n|\r|\n/;
+const SECTION_HEADER_RE = /^!\s*(.+)$/;
 const LS_KEYS = {
 viewMode: 'recipeBookViewMode',
 timerState: 'recipeBookTimerState',
@@ -1204,7 +1217,7 @@ const modalRecipeImage = document.getElementById('modalRecipeImage');
 const modalRecipeImageElement = document.getElementById('modalRecipeImageElement');
 const modalRecipeImageIcon = document.getElementById('modalRecipeImageIcon');
 const modalIngredientsList = document.getElementById('modalIngredientsList');
-const modalInstructionsList = document.getElementById('modalInstructionsList');
+const modalInstructionsContainer = document.getElementById('modalInstructionsContainer');
 const closeModalBtn = document.getElementById('closeModalBtn');
 const modalBookmarkBtn = document.getElementById('modalBookmarkBtn');
 const editRecipeBtnModal = document.getElementById('editRecipeBtnModal');
@@ -1622,22 +1635,34 @@ if (searchWorker) {
 try { searchWorker.postMessage({ type: 'remove', id: id }); } catch (e) {}
 }
 }
-function localSearchIds(docs, searchTerm, category, showFavorites) {
-let filtered = docs;
-if (category !== 'all') filtered = filtered.filter(r => r.category === category);
-if (showFavorites) filtered = filtered.filter(r => r.bookmarked);
+/**
+* Single source of truth for search filtering. Self-contained (no outer-scope
+* references) so the exact same function body is injected into the search
+* Web Worker via toString(), keeping worker and main-thread logic in sync.
+*/
+function runSearchQuery(docs, searchTerm, category, showFavorites) {
+var filtered = docs;
+if (category !== 'all') {
+filtered = filtered.filter(function(r) { return r.category === category; });
+}
+if (showFavorites) {
+filtered = filtered.filter(function(r) { return r.bookmarked; });
+}
 if (searchTerm) {
-const term = searchTerm.toLowerCase();
-filtered = filtered.filter(r => {
+var term = searchTerm.toLowerCase();
+filtered = filtered.filter(function(r) {
 return (r.title && r.title.toLowerCase().includes(term)) ||
 (r.description && r.description.toLowerCase().includes(term)) ||
-(r.tags && r.tags.some(t => t.toLowerCase().includes(term))) ||
-(r.ingredients && r.ingredients.some(i => i.name && i.name.toLowerCase().includes(term))) ||
+(r.tags && r.tags.some(function(t) { return t.toLowerCase().includes(term); })) ||
+(r.ingredients && r.ingredients.some(function(i) { return i.name && i.name.toLowerCase().includes(term); })) ||
 (r.instructions && r.instructions.toLowerCase().includes(term));
 });
 }
-filtered = filtered.slice().sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-return filtered.map(r => r.id);
+filtered = filtered.slice().sort(function(a, b) { return (a.title || '').localeCompare(b.title || ''); });
+return filtered.map(function(r) { return r.id; });
+}
+function localSearchIds(docs, searchTerm, category, showFavorites) {
+return runSearchQuery(docs, searchTerm, category, showFavorites);
 }
 function idsToRecipes(ids) {
 return ids.map(id => recipesById.get(id)).filter(Boolean);
@@ -1656,48 +1681,26 @@ workerUrlRevoked = true;
 try { URL.revokeObjectURL(workerUrl); } catch (e) {}
 }
 function initSearchWorker() {
-const workerCode = `
-let docs = [];
-function runQuery(data) {
-const searchTerm = data.searchTerm || '';
-const category = data.category || 'all';
-const showFavorites = !!data.showFavorites;
-let filtered = docs;
-if (category !== 'all') {
-filtered = filtered.filter(function(r) { return r.category === category; });
-}
-if (showFavorites) {
-filtered = filtered.filter(function(r) { return r.bookmarked; });
-}
-if (searchTerm) {
-const term = searchTerm.toLowerCase();
-filtered = filtered.filter(function(r) {
-return (r.title && r.title.toLowerCase().includes(term)) ||
-(r.description && r.description.toLowerCase().includes(term)) ||
-(r.tags && r.tags.some(function(t) { return t.toLowerCase().includes(term); })) ||
-(r.ingredients && r.ingredients.some(function(i) { return i.name && i.name.toLowerCase().includes(term); })) ||
-(r.instructions && r.instructions.toLowerCase().includes(term));
-});
-}
-filtered = filtered.slice().sort(function(a, b) { return (a.title || '').localeCompare(b.title || ''); });
-return filtered.map(function(r) { return r.id; });
-}
-self.onmessage = function(e) {
-const data = e.data || {};
-if (data.type === 'sync') { docs = data.docs || []; return; }
-if (data.type === 'upsert') {
-const idx = docs.findIndex(function(d) { return d.id === data.doc.id; });
-if (idx >= 0) docs[idx] = data.doc; else docs.push(data.doc);
-return; }
-if (data.type === 'remove') {
-docs = docs.filter(function(d) { return d.id !== data.id; });
-return;
-}
-if (data.type === 'query') {
-self.postMessage({ requestId: data.requestId, ids: runQuery(data) });
-}
-};
-`;
+const workerCode = [
+'let docs = [];',
+'const runSearchQuery = ' + runSearchQuery.toString() + ';',
+'self.onmessage = function(e) {',
+'  const data = e.data || {};',
+'  if (data.type === "sync") { docs = data.docs || []; return; }',
+'  if (data.type === "upsert") {',
+'    const idx = docs.findIndex(function(d) { return d.id === data.doc.id; });',
+'    if (idx >= 0) docs[idx] = data.doc; else docs.push(data.doc);',
+'    return;',
+'  }',
+'  if (data.type === "remove") {',
+'    docs = docs.filter(function(d) { return d.id !== data.id; });',
+'    return;',
+'  }',
+'  if (data.type === "query") {',
+'    self.postMessage({ requestId: data.requestId, ids: runSearchQuery(docs, data.searchTerm || "", data.category || "all", !!data.showFavorites) });',
+'  }',
+'};'
+].join('\n');
 try {
 const blob = new Blob([workerCode], { type: 'application/javascript' });
 const workerUrl = URL.createObjectURL(blob);
@@ -2934,7 +2937,11 @@ window.addEventListener(eventName, (e) => { e.preventDefault(); }, false);
 });
 window.addEventListener('resize', closeAllContextMenus);
 window.addEventListener('resize', resizeBeeCanvas);
-window.addEventListener('scroll', closeAllContextMenus, true);
+window.addEventListener('scroll', (e) => {
+const target = e.target;
+if (target && target.nodeType === 1 && target.closest && target.closest('.context-menu')) return;
+closeAllContextMenus();
+}, true);
 scrollToTopBtn.addEventListener('click', () => {
 window.scrollTo({ top: 0, behavior: 'smooth' });
 });
@@ -3023,12 +3030,14 @@ rcRemoveTagBtn.addEventListener('click', () => {
 if (rcRemoveTagBtn.classList.contains('disabled')) return;
 closeSubmenus();
 rcRemoveTagWrap.classList.add('open');
+positionSubmenu(rcRemoveTagWrap);
 const first = rcRemoveTagSubmenu.querySelector('.context-menu-item');
 if (first) first.focus();
 });
 rcChangeCategoryBtn.addEventListener('click', () => {
 closeSubmenus();
 rcChangeCategoryWrap.classList.add('open');
+positionSubmenu(rcChangeCategoryWrap);
 const first = rcChangeCategorySubmenu.querySelector('.context-menu-item');
 if (first) first.focus();
 });
@@ -3047,6 +3056,7 @@ wrap.addEventListener('pointerenter', () => {
 if (btn.classList.contains('disabled')) return;
 closeSubmenus();
 wrap.classList.add('open');
+positionSubmenu(wrap);
 });
 });
 recipeContextMenu.addEventListener('pointerleave', closeSubmenus);
@@ -3080,6 +3090,7 @@ if (wrap && !document.activeElement.classList.contains('disabled')) {
 e.preventDefault();
 closeSubmenus();
 wrap.classList.add('open');
+positionSubmenu(wrap);
 const first = wrap.querySelector('.context-submenu .context-menu-item');
 if (first) first.focus();
 }
@@ -3420,7 +3431,11 @@ else if (wakeLock) { await wakeLock.release().catch(() => {}); wakeLock = null; 
 });
 }
 function closeSubmenus() {
-recipeContextMenu.querySelectorAll('.context-submenu-wrap.open').forEach(w => w.classList.remove('open'));
+recipeContextMenu.querySelectorAll('.context-submenu-wrap.open').forEach(w => {
+w.classList.remove('open');
+const sub = w.querySelector('.context-submenu');
+if (sub) { sub.style.top = ''; sub.style.maxHeight = ''; }
+});
 }
 function closeRecipeContextMenu() {
 if (!recipeContextMenu.classList.contains('visible')) return;
@@ -3432,6 +3447,27 @@ contextMenuRecipeId = null;
 function closeAllContextMenus() {
 closeCategoryContextMenu();
 closeRecipeContextMenu();
+}
+/**
+* Clamps an opened context submenu to the viewport: shrinks it to the
+* available height if needed and shifts it up so it never spills off-screen.
+*/
+function positionSubmenu(wrap) {
+const sub = wrap.querySelector('.context-submenu');
+if (!sub) return;
+sub.style.top = '';
+sub.style.maxHeight = '';
+const margin = 8;
+const vh = window.innerHeight || document.documentElement.clientHeight;
+const maxAllowed = vh - margin * 2;
+const natural = sub.getBoundingClientRect();
+if (natural.height > maxAllowed) sub.style.maxHeight = maxAllowed + 'px';
+const rect = sub.getBoundingClientRect();
+let top = rect.top;
+if (top + rect.height > vh - margin) top = Math.max(margin, vh - margin - rect.height);
+if (top < margin) top = margin;
+const delta = top - rect.top;
+if (Math.abs(delta) > 0.5) sub.style.top = 'calc(-6px + ' + delta + 'px)';
 }
 function openRecipeContextMenu(x, y, recipeId) {
 const recipe = getRecipeById(recipeId);
@@ -3446,11 +3482,13 @@ populateChangeCategorySubmenu(recipe);
 recipeContextMenu.classList.add('visible');
 recipeContextMenu.setAttribute('aria-hidden', 'false');
 const rect = recipeContextMenu.getBoundingClientRect();
-const left = Math.max(8, Math.min(x, window.innerWidth - rect.width - 8));
-const top = Math.max(8, Math.min(y, window.innerHeight - rect.height - 8));
+const vw = window.innerWidth;
+const vh = window.innerHeight;
+const left = Math.max(8, Math.min(x, vw - rect.width - 8));
+const top = rect.height > vh - 16 ? 8 : Math.max(8, Math.min(y, vh - rect.height - 8));
 recipeContextMenu.style.left = left + 'px';
 recipeContextMenu.style.top = top + 'px';
-recipeContextMenu.classList.toggle('flip', left + rect.width + 190 > window.innerWidth);
+recipeContextMenu.classList.toggle('flip', left + rect.width + 190 > vw);
 rcAddTagBtn.focus();
 }
 function populateRemoveTagSubmenu(recipe) {
@@ -3928,8 +3966,10 @@ contextMenuCategory = category;
 categoryContextMenu.classList.add('visible');
 categoryContextMenu.setAttribute('aria-hidden', 'false');
 const rect = categoryContextMenu.getBoundingClientRect();
-const left = Math.max(8, Math.min(x, window.innerWidth - rect.width - 8));
-const top = Math.max(8, Math.min(y, window.innerHeight - rect.height - 8));
+const vw = window.innerWidth;
+const vh = window.innerHeight;
+const left = Math.max(8, Math.min(x, vw - rect.width - 8));
+const top = rect.height > vh - 16 ? 8 : Math.max(8, Math.min(y, vh - rect.height - 8));
 categoryContextMenu.style.left = left + 'px';
 categoryContextMenu.style.top = top + 'px';
 contextEditCategoryBtn.focus();
@@ -4790,12 +4830,20 @@ topDiv.appendChild(categorySpan);
 if (r.tags && r.tags.length > 0) {
 const tagsDiv = document.createElement('div');
 tagsDiv.className = 'recipe-tags';
-r.tags.slice(0, 10).forEach(tag => {
+const maxCardTags = 8;
+r.tags.slice(0, maxCardTags).forEach(tag => {
 const tagSpan = document.createElement('span');
 tagSpan.className = 'recipe-tag';
 tagSpan.textContent = tag;
 tagsDiv.appendChild(tagSpan);
 });
+if (r.tags.length > maxCardTags) {
+const moreSpan = document.createElement('span');
+moreSpan.className = 'recipe-tag recipe-tag-more';
+moreSpan.textContent = '+' + (r.tags.length - maxCardTags);
+moreSpan.title = r.tags.slice(maxCardTags).join(', ');
+tagsDiv.appendChild(moreSpan);
+}
 topDiv.appendChild(tagsDiv);
 }
 const descContainer = document.createElement('div');
@@ -5044,7 +5092,7 @@ dragBtn.innerHTML = icon('grip');
 const nameInput = document.createElement('input');
 nameInput.type = 'text';
 nameInput.className = 'ingredient-name';
-nameInput.placeholder = 'Ingredient name';
+nameInput.placeholder = 'Ingredient name (or !Section header)';
 nameInput.setAttribute('aria-label', 'Ingredient name');
 const amountInput = document.createElement('input');
 amountInput.type = 'text';
@@ -5073,6 +5121,10 @@ row.appendChild(amountInput);
 row.appendChild(unitSelect);
 row.appendChild(removeBtn);
 container.appendChild(row);
+const syncSectionRowStyle = () => {
+row.classList.toggle('section-row', nameInput.value.trim().startsWith('!'));
+};
+nameInput.addEventListener('input', syncSectionRowStyle);
 if (ing) {
 nameInput.value = ing.name || '';
 amountInput.value = ing.amount || '';
@@ -5080,6 +5132,7 @@ ensureUnitOption(unitSelect, ing.unit || '');
 } else {
 unitSelect.value = '';
 }
+syncSectionRowStyle();
 initUnitDropdown(row, unitSelect);
 removeBtn.addEventListener('click', function() {
 if (mode === 'add') markAddDirty();
@@ -5090,6 +5143,7 @@ nameInput.value = '';
 amountInput.value = '';
 unitSelect.value = '';
 if (typeof unitSelect._syncDropdown === 'function') unitSelect._syncDropdown();
+syncSectionRowStyle();
 }
 });
 dragBtn.addEventListener('keydown', (e) => {
@@ -5355,20 +5409,7 @@ modalRecipeImage.tabIndex = 0;
 }
 modalRecipeDescription.innerHTML = textToHtml(recipe.description);
 updateScaledIngredients();
-clearContainer(modalInstructionsList);
-const instructionLines = getInstructionLines(recipe);
-if (instructionLines.length > 0) {
-instructionLines.forEach((step, idx) => {
-const li = document.createElement('li');
-if (step && step.trim() !== '') {
-li.innerHTML = parseInlineMarkdown(step);
-} else {
-li.className = 'instruction-separator';
-}
-li.style.animationDelay = Math.min(idx * 28, 280) + 'ms';
-modalInstructionsList.appendChild(li);
-});
-}
+renderInstructionSections(recipe);
 clearContainer(modalMeta);
 if (recipe.time) {
 const metaItem = document.createElement('span');
@@ -5394,6 +5435,46 @@ modalMeta.appendChild(metaItem);
 }
 updateTimerToast();
 }
+/**
+* Renders instructions grouped by "!Section" headers. Each section gets its
+* own <ol> so CSS counters restart at 1 below every header; blank lines still
+* render as spacers inside the current section.
+*/
+function renderInstructionSections(recipe) {
+clearContainer(modalInstructionsContainer);
+const instructionLines = getInstructionLines(recipe);
+if (instructionLines.length === 0) return;
+let currentList = null;
+let stepIndex = 0;
+instructionLines.forEach((step) => {
+const trimmed = (step || '').trim();
+const sectionMatch = trimmed.match(SECTION_HEADER_RE);
+if (sectionMatch) {
+currentList = null;
+const header = document.createElement('h4');
+header.className = 'instruction-section-title';
+header.innerHTML = parseInlineMarkdown(sectionMatch[1]);
+header.style.animationDelay = Math.min(stepIndex * 28, 280) + 'ms';
+modalInstructionsContainer.appendChild(header);
+stepIndex++;
+return;
+}
+if (!currentList) {
+currentList = document.createElement('ol');
+currentList.className = 'instructions-list';
+modalInstructionsContainer.appendChild(currentList);
+}
+const li = document.createElement('li');
+if (trimmed !== '') {
+li.innerHTML = parseInlineMarkdown(step);
+} else {
+li.className = 'instruction-separator';
+}
+li.style.animationDelay = Math.min(stepIndex * 28, 280) + 'ms';
+stepIndex++;
+currentList.appendChild(li);
+});
+}
 function updateScaleButtons() {
 scaleOptions.forEach(opt => {
 const isActive = currentScale === opt.value;
@@ -5410,6 +5491,18 @@ currentViewRecipe.ingredientStates.push('');
 }
 if (currentViewRecipe.ingredients && currentViewRecipe.ingredients.length > 0) {
 currentViewRecipe.ingredients.forEach((ing, idx) => {
+const sectionMatch = (ing.name || '').trim().match(SECTION_HEADER_RE);
+if (sectionMatch) {
+const li = document.createElement('li');
+li.className = 'ingredient-section';
+li.style.animationDelay = Math.min(idx * 18, 180) + 'ms';
+const titleSpan = document.createElement('span');
+titleSpan.className = 'ingredient-section-title';
+titleSpan.innerHTML = parseInlineMarkdown(sectionMatch[1]);
+li.appendChild(titleSpan);
+modalIngredientsList.appendChild(li);
+return;
+}
 const li = document.createElement('li');
 li.dataset.index = idx;
 li.tabIndex = 0;
@@ -5422,6 +5515,7 @@ const left = document.createElement('span');
 left.className = 'ingredient-name-text';
 left.textContent = ing.name || '';
 const right = document.createElement('span');
+right.className = 'ingredient-amount-text';
 const displayAmount = formatScaledAmount(ing.amount || '', currentScale);
 const unitText = ing.unit || '';
 const baseText = displayAmount ? `${displayAmount}${unitText ? ' ' + unitText : ''}` : unitText;
