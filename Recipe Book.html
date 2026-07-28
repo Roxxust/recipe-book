@@ -74,9 +74,45 @@ header h1{font-size:2rem;color:var(--accent);display:inline-flex;gap:8px;align-i
 .view-mode-btn{margin-left:6px;width:34px;height:34px;border-radius:6px;background:#232323;border:none;color:var(--text);cursor:pointer;transition:all var(--dur-fast) ease;display:inline-flex;align-items:center;justify-content:center}
 .view-mode-btn:hover{background:#333}
 .view-mode-btn.active{background:var(--accent);color:#000;animation:pillPop var(--dur-med) var(--ease-spring)}
-.view-mode-btn.favorites-btn{width:38px;background:#e08aa0;color:#000}
+.view-mode-btn.favorites-btn{width:38px;background:#e08aa0;color:#000;position:relative;overflow:visible}
 .view-mode-btn.favorites-btn:hover{background:#d07a90}
 .view-mode-btn.favorites-btn.active{background:#e08aa0;color:#000;animation:pillPop var(--dur-med) var(--ease-spring)}
+/* Favorites button: dual-face heart / honeycomb morph */
+.fav-face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transition:opacity .5s cubic-bezier(.2,1.1,.3,1),transform .55s cubic-bezier(.2,1.25,.3,1)}
+.fav-heart .ic{width:1.15em;height:1.15em}
+.fav-heart-f{display:none}
+.view-mode-btn.favorites-btn.active .fav-heart-o{display:none}
+.view-mode-btn.favorites-btn.active .fav-heart-f{display:block}
+.view-mode-btn.favorites-btn.bee-mode .fav-heart{opacity:0;transform:scale(.5) rotate(-20deg);pointer-events:none}
+.fav-comb{opacity:0;transform:scale(.5) rotate(20deg);pointer-events:none}
+.view-mode-btn.favorites-btn.bee-mode .fav-comb{opacity:1;transform:scale(1) rotate(0)}
+.view-mode-btn.favorites-btn.bee-mode{background:transparent;width:46px;height:46px}
+.view-mode-btn.favorites-btn.bee-mode:hover{background:rgba(247,168,0,.08)}
+.view-mode-btn.favorites-btn.bee-mode.active{background:transparent}
+.comb-hex{position:absolute;inset:0;overflow:hidden;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);filter:drop-shadow(0 4px 8px rgba(120,74,0,.45))}
+.comb-wax{position:absolute;inset:0;background:radial-gradient(120% 100% at 50% 18%,#fff8e0,#fff4d2 60%,#f3e0a6)}
+.comb-honey{position:absolute;left:0;right:0;bottom:0;height:100%;transform:translateY(102%);transition:transform .66s cubic-bezier(.34,1.32,.5,1)}
+.view-mode-btn.favorites-btn.active .comb-honey{transform:translateY(6%)}
+.view-mode-btn.favorites-btn:not(.active) .comb-honey{transition-timing-function:cubic-bezier(.6,0,.72,.3);transition-duration:.5s}
+.comb-honey-body{position:absolute;left:0;right:0;top:8px;bottom:0;overflow:hidden;background:linear-gradient(180deg,#ffd766,#f7a800 42%,#c47d00)}
+.comb-honey-body::before{content:"";position:absolute;left:14%;top:6%;width:46%;height:40%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.55),transparent 70%);filter:blur(1px)}
+.comb-wave{position:absolute;left:0;top:-7px;width:200%;height:14px}
+.comb-wave--b{opacity:.85;animation:combWave 3.4s linear infinite}
+.comb-wave--b path{fill:#c47d00}
+.comb-wave--f{animation:combWave 2.2s linear infinite reverse}
+.comb-wave--f path{fill:#f7a800}
+@keyframes combWave{from{transform:translateX(0)}to{transform:translateX(-25%)}}
+.comb-bubble{position:absolute;bottom:-10px;left:18%;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5);animation:combBub 2.6s ease-in infinite;animation-play-state:paused}
+.comb-bubble:nth-child(2){left:48%;width:4px;animation-duration:3.2s;animation-delay:.6s}
+.comb-bubble:nth-child(3){left:72%;width:6px;animation-duration:2.2s;animation-delay:1.1s}
+.view-mode-btn.favorites-btn.active .comb-bubble{animation-play-state:running}
+@keyframes combBub{0%{transform:translateY(0) scale(.6);opacity:0}20%{opacity:.8}100%{transform:translateY(-38px) scale(1);opacity:0}}
+.comb-walls{position:absolute;inset:0;width:100%;height:100%}
+.comb-walls polygon{fill:none;stroke:#e3b24a;stroke-width:3;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.comb-walls .comb-walls-in{stroke:rgba(255,255,255,.5);stroke-width:2}
+.view-mode-btn.favorites-btn.active .comb-walls .comb-walls-in{stroke:rgba(255,236,170,.55)}
+.comb-drip{position:absolute;top:90%;left:50%;width:7px;height:16px;transform:translateX(-50%) scaleY(0);transform-origin:top center;border-radius:42% 42% 50% 50%;background:linear-gradient(180deg,#f7a800,#c47d00);transition:transform .5s cubic-bezier(.34,1.3,.5,1);box-shadow:0 3px 6px rgba(120,74,0,.4)}
+.view-mode-btn.favorites-btn.active .comb-drip{transform:translateX(-50%) scaleY(1)}
 .recipes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
 .recipe-card{
 background:var(--card-bg);
@@ -454,7 +490,10 @@ textarea{min-height:90px;resize:vertical}
 #trail-canvas{position:fixed;inset:0;z-index:3999;pointer-events:none}
 #bee-layer{position:fixed;inset:0;z-index:4000;pointer-events:none;overflow:hidden}
 .bee-svg{display:block;overflow:visible}
-.bee{position:fixed;left:0;top:0;pointer-events:none;will-change:transform;filter:drop-shadow(0 3px 3px rgba(20,18,10,.28));animation:beeIn .35s ease both}
+.bee{position:fixed;left:0;top:0;pointer-events:none;will-change:transform;filter:drop-shadow(0 3px 3px rgba(20,18,10,.28))}
+.bee-scale{width:100%;height:100%;transition:transform .42s cubic-bezier(.2,1.5,.4,1),opacity .32s}
+.bee-scale.launching{transform:scale(.1);opacity:0}
+.bee-scale.returning{transform:scale(.1);opacity:0;transition:transform .36s cubic-bezier(.5,0,.7,1),opacity .3s}
 .bee-rot{width:100%;height:100%;will-change:transform}
 .bee-rot .bee-svg{width:100%;height:100%;animation:beeBuzz .08s ease-in-out infinite alternate}
 @keyframes beeIn{from{opacity:0}to{opacity:1}}
@@ -651,7 +690,21 @@ body { background: white; color: black; padding: 0; }
 <div class="category-filter">
 <div class="categories-container" id="categoriesContainer"></div>
 <div class="view-mode-toggle" role="toolbar" aria-label="View mode">
-<button class="view-mode-btn favorites-btn" id="favoritesFilterBtn" title="Favorites" aria-label="Toggle favorites filter" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#ic-heart-o"/></svg></button>
+<button class="view-mode-btn favorites-btn" id="favoritesFilterBtn" title="Favorites" aria-label="Toggle favorites filter" aria-pressed="false">
+<span class="fav-face fav-heart" aria-hidden="true"><svg class="ic fav-heart-o" aria-hidden="true"><use href="#ic-heart-o"/></svg><svg class="ic fav-heart-f" aria-hidden="true"><use href="#ic-heart"/></svg></span>
+<span class="fav-face fav-comb" aria-hidden="true">
+<span class="comb-hex">
+<span class="comb-wax"></span>
+<span class="comb-honey">
+<svg class="comb-wave comb-wave--b" viewBox="0 0 200 20" preserveAspectRatio="none"><path d="M0 10 Q25 1 50 10 T100 10 T150 10 T200 10 V20 H0 Z"/></svg>
+<svg class="comb-wave comb-wave--f" viewBox="0 0 200 20" preserveAspectRatio="none"><path d="M0 11 Q25 3 50 11 T100 11 T150 11 T200 11 V20 H0 Z"/></svg>
+<span class="comb-honey-body"><span class="comb-bubble"></span><span class="comb-bubble"></span><span class="comb-bubble"></span></span>
+</span>
+<svg class="comb-walls" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="50,4 95,27 95,73 50,96 5,73 5,27"/><polygon class="comb-walls-in" points="50,10 89,30 89,70 50,90 11,70 11,30"/></svg>
+</span>
+<span class="comb-drip"></span>
+</span>
+</button>
 <span style="font-size:.9rem;color:var(--text-secondary);margin-left:4px">View:</span>
 <button class="view-mode-btn grid-mode active" id="gridModeBtn" title="Grid" aria-label="Grid view"><svg class="ic" aria-hidden="true"><use href="#ic-grid"/></svg></button>
 <button class="view-mode-btn list-mode" id="listModeBtn" title="List" aria-label="List view"><svg class="ic" aria-hidden="true"><use href="#ic-list"/></svg></button>
@@ -938,9 +991,7 @@ const ALLOWED_DETAIL_TYPES = ['', 'servings', 'makes', 'pans'];
 const DRAFT_ADD_KEY = 'recipeBookDraftAdd';
 const DRAFT_EDIT_KEY = 'recipeBookDraftEdit';
 const CODE_SENTINEL = '\u0000';
-// Only ever used with split(), which ignores regex flags — no /g needed.
 const LINE_BREAK_RE = /\r\n|\r|\n/;
-// Central registry of localStorage keys and well-known timing/size constants.
 const LS_KEYS = {
 viewMode: 'recipeBookViewMode',
 timerState: 'recipeBookTimerState',
@@ -963,15 +1014,12 @@ if (typeof str !== 'string') return '';
 return str.length > max ? str.slice(0, max) : str;
 }
 function parseInlineMarkdown(text) {
-// Strip NUL chars first so user text can never collide with CODE_SENTINEL placeholders
 const escaped = escapeHtml(String(text).replace(/\u0000/g, ''));
 const codeBlocks = [];
 let result = escaped.replace(/`(.+?)`/g, function(m, code) {
 codeBlocks.push(code);
 return CODE_SENTINEL + 'CODE' + (codeBlocks.length - 1) + CODE_SENTINEL;
 });
-// Handle ***bold italic*** / ___bold italic___ before the two-marker passes so
-// the outer markers are consumed as a unit instead of leaving a dangling *.
 result = result.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
 result = result.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>');
 result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
@@ -986,7 +1034,6 @@ return result;
 }
 function textToHtml(text) {
 if (!text) return '';
-// split/join replaces EVERY line break regardless of regex flags
 return escapeHtml(text).split(LINE_BREAK_RE).join('<br>');
 }
 const DB_NAME = 'RecipeBookDB';
@@ -1020,7 +1067,6 @@ if (oldVersion < 2) {
 if (!db.objectStoreNames.contains(STORE_IMAGES)) db.createObjectStore(STORE_IMAGES, { keyPath: 'id' });
 }
 if (oldVersion < 3) {
-// Index on hash so image dedupe lookups are O(1) instead of a full cursor scan
 const imageStore = upgradeTx.objectStore(STORE_IMAGES);
 if (!imageStore.indexNames.contains('hash')) imageStore.createIndex('hash', 'hash', { unique: false });
 }
@@ -1077,11 +1123,6 @@ request.onerror = () => reject(request.error);
 request.onsuccess = () => resolve(true);
 });
 }
-/**
-* Streams every record through onRecord(value, cursor) without materialising
-* the store. The handler must be synchronous; use cursor.delete() to remove
-* the current record while iterating in 'readwrite' mode.
-*/
 iterate(storeName, onRecord, mode = 'readonly') {
 if (!this.db) return Promise.resolve();
 return new Promise((resolve, reject) => {
@@ -1274,17 +1315,14 @@ let editFormDirty = false;
 let editLoadedAt = 0;
 let contextMenuCategory = null;
 let contextMenuRecipeId = null;
-// name -> { a, b, angle, intensity } custom gradient per category
 let categoryColorMap = {};
 let colorPickerResolver = null;
 let colorPickerState = { a: '#3a0ca3', b: '#4361ee', angle: 45, intensity: 100 };
 let dialDragging = false;
-// Bee easter egg: at most one, session-only, spawned by a 10s hold on the
-// favorites button. The rAF loop only runs while the bee is aloft.
 const BEE_CONFIG = {
 SIZE_MIN: 34,
 SIZE_MAX: 46,
-SPEED_MIN: 90,
+SPEED_MIN: 50,
 SPEED_MAX: 150,
 TURN_RATE: 12.2,
 EDGE_MARGIN: 60,
@@ -1294,6 +1332,7 @@ TRAIL_COLOR: '#f7c019'
 };
 const beeReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let activeBee = null;
+let beeMode = false;
 let beeSeq = 0;
 let beeRafId = null;
 let beeLast = 0;
@@ -1306,7 +1345,6 @@ const BATCH_SIZE = 50;
 let cardStagger = 0;
 let pendingViewAnimation = false;
 const recipeBlobUrls = new Map();
-// Persistent id -> card element registry so renders never re-scan the whole DOM.
 const cardRegistry = new Map();
 const imageHashCache = new Map();
 let pendingImportData = null;
@@ -1336,7 +1374,6 @@ const pendingSearchPayloads = new Map();
 let lastFocusedElement = null;
 let descriptionVisibilityObserver = null;
 let broadcastChannel = null;
-// id -> { recipe, timeout } so every deleted recipe keeps its own undo window
 const pendingDeletedRecipes = new Map();
 let confirmResolver = null;
 let confirmIsPrompt = false;
@@ -1413,7 +1450,6 @@ recipes.forEach(r => {
 if (r.imageId) referenced.add(r.imageId);
 if (r.thumbId) referenced.add(r.thumbId);
 });
-// Cursor + in-transaction delete keeps memory flat regardless of library size
 await dbWrapper.iterate(STORE_IMAGES, (img, cursor) => {
 if (!referenced.has(img.id)) cursor.delete();
 }, 'readwrite');
@@ -1424,7 +1460,6 @@ console.warn('Failed to cleanup unreferenced images', e);
 async function purgePendingDeletedRecipe(id) {
 const entry = pendingDeletedRecipes.get(id);
 if (!entry) return;
-// timeout can be null while the undo toast is hover-paused
 if (entry.timeout) clearTimeout(entry.timeout);
 pendingDeletedRecipes.delete(id);
 if (dbWrapper.db) {
@@ -1444,8 +1479,6 @@ const digest = await window.crypto.subtle.digest('SHA-1', buf);
 return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 const bytes = new Uint8Array(buf);
-// 128-bit multi-lane fallback for contexts without crypto.subtle; the byte
-// length is mixed in so same-prefix blobs cannot collide trivially
 let h1 = 0x811c9dc5, h2 = 0x9dc5811c, h3 = 0xc9dc5811, h4 = 0xdc5811c9;
 for (let i = 0; i < bytes.length; i++) {
 const b = bytes[i];
@@ -1472,7 +1505,6 @@ try {
 const tx = dbWrapper.db.transaction(STORE_IMAGES, 'readonly');
 const store = tx.objectStore(STORE_IMAGES);
 if (store.indexNames.contains('hash')) {
-// Indexed lookup: O(1) instead of scanning the whole store
 const req = store.index('hash').get(hash);
 req.onsuccess = () => {
 const rec = req.result;
@@ -1486,7 +1518,6 @@ resolve(null);
 req.onerror = () => resolve(null);
 return;
 }
-// Fallback for databases where the hash index could not be created
 const cursorReq = store.openCursor();
 cursorReq.onsuccess = () => {
 const cursor = cursorReq.result;
@@ -1705,7 +1736,6 @@ resolve(idsToRecipes(localSearchIds(getSearchDocsArray(), searchTerm, category, 
 return;
 }
 let settled = false;
-// Guard against a hung worker: fall back to main-thread search so rendering never stalls
 const timeoutId = setTimeout(() => {
 if (settled) return;
 settled = true;
@@ -1758,9 +1788,6 @@ toastContainer.appendChild(toast);
 requestAnimationFrame(() => { toast.classList.add('show', 'bar-run'); });
 const closeBtn = toast.querySelector('.toast-close');
 closeBtn.addEventListener('click', () => removeToast(toast));
-// Hover pauses both the JS timeout and the CSS progress bar (via
-// :hover animation-play-state); on leave we resume with the *remaining*
-// time instead of restarting the full duration.
 let remaining = duration;
 let segmentStart = performance.now();
 let timeout = setTimeout(() => { removeToast(toast); }, duration);
@@ -1798,8 +1825,6 @@ const typeClass = timerAlertActive ? 'toast-warning' : 'toast-timer';
 if (!timerToastElement) {
 timerToastElement = document.createElement('div');
 timerToastElement.className = `toast ${typeClass}`;
-// The countdown updates every second; keep it out of the live region to avoid
-// screen-reader spam. Completion is announced by its own toast + audio chime.
 timerToastElement.setAttribute('aria-live', 'off');
 timerToastElement.innerHTML = `<div class="toast-icon">${icon(iconName)}</div><span class="toast-message">${escapeHtml(statusText)}</span><button class="toast-close" aria-label="Dismiss timer notification">${icon('x')}</button>`;
 toastContainer.appendChild(timerToastElement);
@@ -2119,7 +2144,6 @@ return [];
 }
 function sanitizeImportedRecipe(recipe) {
 if (!recipe || typeof recipe !== 'object') return null;
-// Clamp every free-text field so a hostile import cannot store unbounded strings.
 const sanitized = {
 id: recipe.id || generateId(),
 title: clampString(typeof recipe.title === 'string' ? recipe.title.trim() : '', MAX_TITLE_LEN),
@@ -2181,7 +2205,6 @@ categories = [];
 ensureCategoryExists('Cookies');
 await saveCategoriesToDB();
 }
-// Assign a unique palette pair to any category that predates custom colors
 if (backfillCategoryColors()) await saveCategoriesToDB();
 descriptionVisibilityObserver = new IntersectionObserver(handleDescriptionVisibility, { rootMargin: '100px', threshold: 0 });
 descriptionScrollObserver = new MutationObserver((mutations) => {
@@ -2191,8 +2214,6 @@ mutation.removedNodes.forEach(node => {
 if (node.nodeType === 1 && node.classList && node.classList.contains('recipe-card')) {
 const cardId = node.dataset.id;
 if (!cardId) return;
-// Only drop the registry entry if it still points at the removed node;
-// a same-id replacement may already have been registered by a render.
 if (cardRegistry.get(cardId) === node) cardRegistry.delete(cardId);
 removedCardIds.add(cardId);
 }
@@ -2664,6 +2685,7 @@ revokeCardBlob(cardId + '_card');
 descriptionScrollObserver.observe(recipesGrid, { childList: true });
 }
 if (!broadcastChannel) initBroadcastChannel();
+if (activeBee && activeBee.absorbing) finalizeBeeReturn();
 filteredRecipes = [];
 lastRenderedSigs = [];
 renderRecipes(true);
@@ -2715,8 +2737,6 @@ wakeLock.addEventListener('release', () => { wakeLock = null; });
 } catch (err) { console.warn('Wake Lock not available:', err); }
 }
 function refreshOpenRecipeModal() {
-// Cross-tab sync: if the detail modal is open, re-point it at the freshly
-// loaded recipe object (or close it if the recipe was deleted elsewhere)
 if (!currentViewRecipe || !recipeModal.classList.contains('active')) return;
 const fresh = recipesById.get(currentViewRecipe.id);
 if (!fresh) { closeRecipeModal(); return; }
@@ -2739,8 +2759,6 @@ rebuildSearchDocs();
 renderCategories();
 populateCategoryDropdowns();
 renderRecipes();
-// Recolors in another tab don't change recipe signatures, so the reused
-// card nodes need their chips repainted explicitly.
 repaintCategoryChips();
 if (currentViewRecipe && currentViewRecipe.category && recipeModal.classList.contains('active')) {
 const chipText = readableTextOnGradient(...getCategoryColors(currentViewRecipe.category));
@@ -2767,8 +2785,6 @@ console.warn('Failed to broadcast update', e);
 }
 }
 function moveFocusSafely() {
-// offsetParent check skips elements that have since been hidden or removed
-// (e.g. a context-menu button that was closed before focus is restored)
 if (lastFocusedElement && typeof lastFocusedElement.focus === 'function' && document.contains(lastFocusedElement) && lastFocusedElement.offsetParent !== null) {
 lastFocusedElement.focus();
 } else {
@@ -2792,8 +2808,6 @@ if (b) b.setAttribute('aria-expanded', 'false');
 });
 }
 function initUnitDropdown(row, unitSelect) {
-// The native select is hidden visually but its value stays the source of truth;
-// the custom UI exposes proper listbox semantics for assistive technology.
 unitSelect.style.display = 'none';
 unitSelect.setAttribute('aria-hidden', 'true');
 unitSelect.tabIndex = -1;
@@ -2892,9 +2906,6 @@ renderOptions();
 sync();
 }
 function remeasureDescriptionScrolls() {
-// View-mode changes alter card widths, which changes how descriptions wrap.
-// Drop every scroll state and re-observe the cards so the IntersectionObserver
-// re-fires its initial callbacks and each marquee re-measures maxScroll.
 for (const cardId of Array.from(descriptionScrollStates.keys())) stopDescriptionScroll(cardId);
 if (!descriptionVisibilityObserver) return;
 descriptionVisibilityObserver.disconnect();
@@ -2919,7 +2930,6 @@ window.addEventListener('scroll', () => {
 if (window.scrollY > 300) scrollToTopBtn.classList.add('visible');
 else scrollToTopBtn.classList.remove('visible');
 });
-// Stop the browser from navigating away when a dragged file misses a drop zone
 ['dragover', 'drop'].forEach(eventName => {
 window.addEventListener(eventName, (e) => { e.preventDefault(); }, false);
 });
@@ -2950,8 +2960,6 @@ document.addEventListener('click', (e) => {
 if (!e.target.closest('.context-menu')) closeAllContextMenus();
 });
 document.addEventListener('contextmenu', (e) => {
-// Right-clicking outside category capsules and recipe cards dismisses the
-// menus; the container-level handlers re-open them for valid targets.
 if (e.target.closest('.category-tag') || e.target.closest('.recipe-card')) return;
 closeAllContextMenus();
 });
@@ -3249,18 +3257,15 @@ e.preventDefault();
 li.click();
 });
 modalBookmarkBtn.addEventListener('click', toggleCurrentRecipeBookmark);
-// Hold the favorites button for 10 seconds to release the bee (max one per
-// session). The hold flag swallows the click that follows release so the
-// favorites filter doesn't toggle as a side effect.
 favoritesFilterBtn.addEventListener('pointerdown', () => {
-if (activeBee) return;
+if (activeBee && activeBee.returning) return;
 beeHoldFired = false;
 if (beeHoldTimer) clearTimeout(beeHoldTimer);
 beeHoldTimer = setTimeout(() => {
 beeHoldTimer = null;
 beeHoldFired = true;
-const rect = favoritesFilterBtn.getBoundingClientRect();
-spawnBee(rect.left + rect.width / 2, rect.top + rect.height / 2);
+if (beeMode) startBeeReturn();
+else enterBeeMode();
 }, BEE_HOLD_MS);
 });
 ['pointerup', 'pointerleave', 'pointercancel'].forEach(eventName => {
@@ -3273,7 +3278,6 @@ if (beeHoldFired) { beeHoldFired = false; return; }
 showFavoritesOnly = !showFavoritesOnly;
 favoritesFilterBtn.classList.toggle('active', showFavoritesOnly);
 favoritesFilterBtn.setAttribute('aria-pressed', showFavoritesOnly ? 'true' : 'false');
-favoritesFilterBtn.innerHTML = showFavoritesOnly ? icon('heart') : icon('heart-o');
 animateBookmark(favoritesFilterBtn, showFavoritesOnly);
 pendingViewAnimation = true;
 renderRecipes();
@@ -3335,7 +3339,6 @@ if (shortcutsModal.classList.contains('active')) { trapFocusInModal(shortcutsMod
 }
 if (e.key === 'Escape') {
 if (recipeContextMenu.classList.contains('visible')) {
-// Escape backs out of an open flyout first, then closes the whole menu
 if (recipeContextMenu.querySelector('.context-submenu-wrap.open')) closeSubmenus();
 else closeAllContextMenus();
 return;
@@ -3448,7 +3451,6 @@ const left = Math.max(8, Math.min(x, window.innerWidth - rect.width - 8));
 const top = Math.max(8, Math.min(y, window.innerHeight - rect.height - 8));
 recipeContextMenu.style.left = left + 'px';
 recipeContextMenu.style.top = top + 'px';
-// Flip flyouts to the left side when there's no room on the right
 recipeContextMenu.classList.toggle('flip', left + rect.width + 190 > window.innerWidth);
 rcAddTagBtn.focus();
 }
@@ -3475,7 +3477,6 @@ btn.className = 'context-menu-item' + (isCurrent ? ' current' : '');
 btn.setAttribute('role', 'menuitem');
 btn.innerHTML = '<span class="check-slot">' + (isCurrent ? icon('check') : '') + '</span><span>' + escapeHtml(cat) + '</span>';
 if (isCurrent) {
-// Current category is shown checked + greyed; clicking it just dismisses
 btn.setAttribute('aria-current', 'true');
 btn.addEventListener('click', () => closeAllContextMenus());
 } else {
@@ -3542,7 +3543,6 @@ populateRecipeDetail(recipe);
 }
 showToast(`Moved to "${recipe.category}"`, 'success');
 }
-/* ---------- bee easter egg: canvas trail + SVG sprite ---------- */
 function resizeBeeCanvas() {
 beeW = window.innerWidth;
 beeH = window.innerHeight;
@@ -3553,7 +3553,6 @@ trailCanvas.style.width = beeW + 'px';
 trailCanvas.style.height = beeH + 'px';
 trailCtx.setTransform(beeDpr, 0, 0, beeDpr, 0, 0);
 }
-// Top-down bee artwork; clipPath id is namespaced per instance.
 function beeInnerSvg(id) {
 return (
 '<defs><clipPath id="bc_' + id + '"><ellipse cx="100" cy="100" rx="30" ry="42"/></clipPath></defs>' +
@@ -3572,6 +3571,26 @@ return (
 '<path class="bee-ant" d="M108 62 C 114 48 122 48 124 38 C 126 30 116 28 114 36 C 113 40 118 42 120 38"/>'
 );
 }
+function enterBeeMode() {
+beeMode = true;
+favoritesFilterBtn.classList.add('bee-mode');
+const rect = favoritesFilterBtn.getBoundingClientRect();
+spawnBee(rect.left + rect.width / 2, rect.top + rect.height / 2);
+showToast('Bee Boss has arrived', 'info');
+}
+function startBeeReturn() {
+if (!activeBee || activeBee.returning) return;
+activeBee.returning = true;
+activeBee.speed *= 1.35;
+}
+function finalizeBeeReturn() {
+if (beeRafId !== null) { cancelAnimationFrame(beeRafId); beeRafId = null; }
+if (activeBee) { activeBee.el.remove(); activeBee = null; }
+trailCtx.clearRect(0, 0, beeW, beeH);
+beeMode = false;
+favoritesFilterBtn.classList.remove('bee-mode');
+showToast('Bee Boss has returned to the hive', 'info');
+}
 function spawnBee(x, y) {
 if (activeBee) return;
 resizeBeeCanvas();
@@ -3581,26 +3600,33 @@ const el = document.createElement('div');
 el.className = 'bee';
 el.style.width = size + 'px';
 el.style.height = size + 'px';
+const scaleEl = document.createElement('div');
+scaleEl.className = 'bee-scale launching';
 const rot = document.createElement('div');
 rot.className = 'bee-rot';
 rot.innerHTML = '<svg class="bee-svg" viewBox="0 0 200 200" aria-hidden="true">' + beeInnerSvg('b' + (++beeSeq)) + '</svg>';
-el.appendChild(rot);
+scaleEl.appendChild(rot);
+el.appendChild(scaleEl);
 beeLayer.appendChild(el);
+requestAnimationFrame(() => { scaleEl.classList.remove('launching'); });
 activeBee = {
-el, rot, size, speed,
+el, scaleEl, rot, size, speed,
 h: Math.random() * Math.PI * 2,
 x, y,
 trail: [{ x, y, len: 0 }],
 lw: Math.max(2, size * 0.05),
 dash: [size * 0.18, size * 0.14],
-maxTrail: BEE_CONFIG.TRAIL_MAX
+maxTrail: BEE_CONFIG.TRAIL_MAX,
+returning: false,
+absorbing: false,
+absorbStart: 0,
+freezeUntil: performance.now() + 240
 };
 el.style.transform = 'translate(' + (x - size / 2) + 'px,' + (y - size / 2) + 'px)';
 if (beeRafId === null) {
 beeLast = performance.now();
 beeRafId = requestAnimationFrame(beeFrame);
 }
-showToast('Bee Boss has arrived', 'info');
 }
 function wrapBeeAngle(a) {
 while (a > Math.PI) a -= Math.PI * 2;
@@ -3613,38 +3639,51 @@ const dt = Math.min(0.05, (now - beeLast) / 1000) || 0;
 beeLast = now;
 const b = activeBee;
 trailCtx.clearRect(0, 0, beeW, beeH);
-// Marching-ants offset makes the dashes flow along the trail
 const march = (now * 0.05) % 30;
-if (!beeReducedMotion) {
-// Smooth gaussian-ish wander: summed randoms turn the heading gradually,
-// so the path curves instead of zig-zagging.
+const frozen = now < b.freezeUntil;
+if (!frozen && !b.absorbing) {
+if (b.returning) {
+const rect = favoritesFilterBtn.getBoundingClientRect();
+const cx = rect.left + rect.width / 2;
+const cy = rect.top + rect.height / 2;
+const want = Math.atan2(cy - b.y, cx - b.x);
+b.h += wrapBeeAngle(want - b.h) * Math.min(1, 8 * dt);
+b.x += Math.cos(b.h) * b.speed * dt;
+b.y += Math.sin(b.h) * b.speed * dt;
+if (Math.hypot(cx - b.x, cy - b.y) < 18) {
+b.absorbing = true;
+b.absorbStart = now;
+b.scaleEl.classList.add('returning');
+}
+} else {
 b.h += (Math.random() + Math.random() + Math.random() - 1.5) * BEE_CONFIG.TURN_RATE * dt;
-// Steer away from the edges
 let ex = 0, ey = 0;
 if (b.x < BEE_CONFIG.EDGE_MARGIN) ex = 1;
 else if (b.x > beeW - BEE_CONFIG.EDGE_MARGIN) ex = -1;
 if (b.y < BEE_CONFIG.EDGE_MARGIN) ey = 1;
 else if (b.y > beeH - BEE_CONFIG.EDGE_MARGIN) ey = -1;
 if (ex || ey) {
-const want = Math.atan2(ey, ex);
-b.h += wrapBeeAngle(want - b.h) * Math.min(1, BEE_CONFIG.EDGE_STEER * dt);
+const w = Math.atan2(ey, ex);
+b.h += wrapBeeAngle(w - b.h) * Math.min(1, BEE_CONFIG.EDGE_STEER * dt);
 }
 b.x += Math.cos(b.h) * b.speed * dt;
 b.y += Math.sin(b.h) * b.speed * dt;
-// Hard safety bounce so the bee can never get stuck off-screen
 if (b.x < 0) { b.x = 0; b.h = Math.PI - b.h; }
 else if (b.x > beeW) { b.x = beeW; b.h = Math.PI - b.h; }
 if (b.y < 0) { b.y = 0; b.h = -b.h; }
 else if (b.y > beeH) { b.y = beeH; b.h = -b.h; }
 }
-// Record trail point with cumulative length for seamless dashes
+}
+if (b.absorbing && now - b.absorbStart >= 380) {
+finalizeBeeReturn();
+return;
+}
 const prev = b.trail[b.trail.length - 1];
 const d = Math.hypot(b.x - prev.x, b.y - prev.y);
 if (d > 0.5) {
 b.trail.push({ x: b.x, y: b.y, len: prev.len + d });
 if (b.trail.length > b.maxTrail) b.trail.shift();
 }
-// Fading dashed trail
 const n = b.trail.length;
 if (n > 1) {
 trailCtx.strokeStyle = BEE_CONFIG.TRAIL_COLOR;
@@ -3663,8 +3702,6 @@ trailCtx.stroke();
 }
 trailCtx.globalAlpha = 1;
 trailCtx.setLineDash([]);
-// Translate the shell, rotate the inner wrapper to face the heading
-// (+90deg because the artwork is drawn head-up)
 const deg = b.h * 180 / Math.PI + 90;
 b.el.style.transform = 'translate(' + (b.x - b.size / 2) + 'px,' + (b.y - b.size / 2) + 'px)';
 b.rot.style.transform = 'rotate(' + deg + 'deg)';
@@ -3678,8 +3715,6 @@ btn.classList.add(isOn ? 'burst' : 'unburst');
 }
 function removeCardAnimated(card) {
 if (!card || !card.parentNode) return;
-// Unregister immediately so a concurrent render never reuses a card that is
-// already animating out; the node itself is removed when the animation ends.
 if (card.dataset && card.dataset.id) cardRegistry.delete(card.dataset.id);
 card.classList.add('card-exit');
 const done = () => { if (card.parentNode) card.remove(); };
@@ -3711,12 +3746,9 @@ animateBookmark(bookmarkBtn, isBookmarked);
 }
 });
 }
-// Shared pipeline for the file picker and drag-and-drop so both paths apply
-// the same downscaling, blob-URL lifecycle and dirty-form bookkeeping.
 function processImageFile(file, mode) {
 if (!file) return;
 const fileInput = mode === 'add' ? addImageUpload : editImageUpload;
-// Clear any stale picker value so re-selecting the same file still fires change
 if (fileInput) fileInput.value = '';
 if (!file.type.startsWith('image/')) { showToast('Please select an image file', 'error'); return; }
 const key = mode === 'add' ? 'temp_add' : 'temp_edit';
@@ -3741,8 +3773,6 @@ showToast('Failed to load image', 'error');
 });
 return;
 }
-// Small files: wrap the File directly in a blob URL so both the small- and
-// large-file paths produce the same blob: scheme and share one lifecycle.
 assignImage(mode, createObjectURL(file, key));
 }
 function handleImageUpload(e, mode) {
@@ -3759,8 +3789,6 @@ area.classList.add('drag-over');
 });
 });
 area.addEventListener('dragleave', (e) => {
-// Only clear the highlight when actually leaving the zone, not when
-// crossing over its preview/remove-button children
 if (e.relatedTarget && area.contains(e.relatedTarget)) return;
 area.classList.remove('drag-over');
 });
@@ -3851,7 +3879,6 @@ for (const r of recipes) { if (r.category) categoryCounts[r.category] = (categor
 const sortedCategories = [...categories].sort((a, b) => (categoryCounts[b] || 0) - (categoryCounts[a] || 0));
 const allTag = document.createElement('span');
 allTag.className = 'category-tag' + (currentFilterCategory === 'all' ? ' active' : '');
-// Same auto-contrast treatment as named categories (uses the default pair)
 const allText = readableTextOnGradient('#6fb8ff', '#4361ee');
 allTag.style.setProperty('--cat-active-text', allText.color);
 allTag.style.setProperty('--cat-active-shadow', allText.shadow);
@@ -3871,8 +3898,6 @@ const [catA, catB] = getCategoryColors(category);
 const entry = categoryColorMap[category];
 const angle = entry && Number.isFinite(entry.angle) ? entry.angle : 45;
 const intensity = entry && Number.isFinite(entry.intensity) ? entry.intensity : 100;
-// Active-state text auto-picks black or white for contrast with the gradient;
-// hover keeps the normal text color and only highlights border + background.
 const textStyles = readableTextOnGradient(catA, catB);
 tag.style.setProperty('--cat-a', catA);
 tag.style.setProperty('--cat-b', catB);
@@ -3903,7 +3928,6 @@ closeAllContextMenus();
 contextMenuCategory = category;
 categoryContextMenu.classList.add('visible');
 categoryContextMenu.setAttribute('aria-hidden', 'false');
-// Measure once visible, then clamp so the menu never spills off-screen
 const rect = categoryContextMenu.getBoundingClientRect();
 const left = Math.max(8, Math.min(x, window.innerWidth - rect.width - 8));
 const top = Math.max(8, Math.min(y, window.innerHeight - rect.height - 8));
@@ -3930,8 +3954,6 @@ cancelText: 'Cancel'
 if (newNameRaw === null) return;
 const newName = normalizeCategoryName(newNameRaw);
 if (newName === oldName) return;
-// Case-insensitive collision check that still allows case-only renames
-// (e.g. "cookies" -> "Cookies") by excluding the category being renamed.
 const collision = categories.find(c => c.toLowerCase() === newName.toLowerCase() && c !== oldName);
 if (collision) {
 showToast(`A category named "${collision}" already exists`, 'warning');
@@ -3940,7 +3962,6 @@ return;
 const idx = categories.indexOf(oldName);
 if (idx === -1) return;
 categories[idx] = newName;
-// Keep the custom color attached across the rename
 if (categoryColorMap[oldName]) {
 categoryColorMap[newName] = categoryColorMap[oldName];
 delete categoryColorMap[oldName];
@@ -3973,8 +3994,6 @@ if (!chosen) return;
 categoryColorMap[categoryName] = chosen;
 await saveCategoriesToDB();
 renderCategories();
-// Recipe data (and therefore card signatures) is unchanged by a recolor, so
-// repaint the chips on live cards directly instead of a full re-render.
 repaintCategoryChips(categoryName);
 if (currentViewRecipe && currentViewRecipe.category === categoryName && recipeModal.classList.contains('active')) {
 const chipText = readableTextOnGradient(...getCategoryColors(categoryName));
@@ -4061,7 +4080,6 @@ const cx = rect.left + rect.width / 2;
 const cy = rect.top + rect.height / 2;
 const dx = clientX - cx;
 const dy = clientY - cy;
-// Dot at the top reads as 0deg to match CSS gradient angles (0deg = to top)
 let angle = Math.round(Math.atan2(dy, dx) * 180 / Math.PI) + 90;
 angle = ((angle % 360) + 360) % 360;
 const maxR = Math.max(1, rect.width / 2 - 12);
@@ -4167,7 +4185,6 @@ showToast('Failed to update recipes', 'error');
 }
 }
 categories = categories.filter(c => c !== categoryName);
-// Free the palette slot so a future category can reuse this pair
 delete categoryColorMap[categoryName];
 if (currentFilterCategory === categoryName) currentFilterCategory = 'all';
 await saveCategoriesToDB();
@@ -4378,18 +4395,12 @@ const mix = (x, y) => Math.round(x * w + y * (1 - w));
 const to = (v) => v.toString(16).padStart(2, '0');
 return '#' + to(mix(a.r, b.r)) + to(mix(a.g, b.g)) + to(mix(a.b, b.b));
 }
-// Text sits on the blended gradient; approximate with the midpoint color and
-// pick whichever of black/white wins on contrast (0.179 is the crossover
-// luminance where both score equally). The matched text-shadow keeps either
-// choice crisp on mid-tone gradients.
 function readableTextOnGradient(hexA, hexB) {
 const midLum = relativeLuminance(mixHex(hexA, hexB, 0.5));
 return midLum <= 0.179
 ? { color: '#ffffff', shadow: '0 1px 2px rgba(0,0,0,.35)' }
 : { color: '#101010', shadow: '0 1px 1px rgba(255,255,255,.3)' };
 }
-// New categories get the first palette pair no other category is using, so
-// random assignments stay unique until the 20-pair palette is exhausted.
 function assignCategoryColor(name) {
 if (categoryColorMap[name]) return categoryColorMap[name];
 const usedPairs = new Set(Object.values(categoryColorMap).map(c => c.a + '|' + c.b));
@@ -4499,8 +4510,6 @@ marqueeRafId = requestAnimationFrame(marqueeTicker);
 }
 }
 function marqueeTicker(now) {
-// Self-suspend when every scroll state is paused or hover-held so the rAF
-// loop costs nothing while idle; ensureMarqueeTicker() restarts it on demand.
 let needsTick = false;
 descriptionScrollStates.forEach((state) => {
 if (state.paused || state.hovered) return;
@@ -4568,8 +4577,6 @@ state.position = 0;
 break;
 }
 }
-// Skip the style write while the position is unchanged (pause phases) so
-// idle marquees cost nothing per frame
 if (state.position !== previousPosition) {
 state.descEl.style.transform = `translateY(-${state.position}px)`;
 }
@@ -4602,8 +4609,6 @@ if (infiniteScrollObserver) { infiniteScrollObserver.disconnect(); infiniteScrol
 if (descriptionVisibilityObserver) descriptionVisibilityObserver.disconnect();
 const limit = Math.min(BATCH_SIZE, filteredRecipes.length);
 const targetIds = new Set(filteredRecipes.slice(0, limit).map(r => r.id));
-// Reuse the persistent card registry instead of re-scanning the DOM; drop any
-// entries whose nodes were detached out-of-band so the map self-heals.
 const existingCards = new Map();
 cardRegistry.forEach((card, id) => {
 if (card.isConnected) existingCards.set(id, card);
@@ -5528,9 +5533,6 @@ const deletedRecipe = recipe;
 const purgeTimeout = setTimeout(() => { purgePendingDeletedRecipe(deletedRecipe.id); }, UNDO_WINDOW_MS);
 pendingDeletedRecipes.set(deletedRecipe.id, { recipe: deletedRecipe, timeout: purgeTimeout });
 const toast = showToast('Recipe deleted', 'info', 6000);
-// Keep the undo window and the image purge in lockstep: hovering the toast
-// pauses both, so Undo can never restore a recipe whose images were already
-// purged while the user was still reading the toast.
 toast.addEventListener('mouseenter', () => {
 const pending = pendingDeletedRecipes.get(deletedRecipe.id);
 if (pending && pending.timeout) {
@@ -5668,9 +5670,6 @@ recipes.forEach(r => {
 if (r.imageId) referenced.add(r.imageId);
 if (r.thumbId) referenced.add(r.thumbId);
 });
-// Collect only IDs during the cursor pass, then stream each blob straight
-// into its own deflate entry — memory stays flat no matter how large the
-// image library is.
 const referencedImageIds = [];
 await dbWrapper.iterate(STORE_IMAGES, (img) => {
 if (img && img.id && referenced.has(img.id) && img.blob) referencedImageIds.push(img.id);
@@ -5756,7 +5755,6 @@ let metadata = null;
 const imageBlobs = {};
 try {
 const buffer = await file.arrayBuffer();
-// Async unzip decompresses off the main thread instead of blocking the UI
 const unzipped = await new Promise((resolve, reject) => {
 unzip(new Uint8Array(buffer), (err, data) => {
 if (err) reject(err);
@@ -5796,9 +5794,6 @@ let finalId = id;
 try {
 const existing = await dbWrapper.get(STORE_IMAGES, id);
 if (existing && existing.hash && hash && existing.hash !== hash) {
-// Same id but different bytes: never clobber a record that existing
-// recipes may reference — store under a fresh id and remap the
-// incoming metadata to point at it.
 finalId = `${id}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 metadata.recipes.forEach(r => {
 if (!r) return;
@@ -5982,8 +5977,6 @@ const newCategories = importedCategories
 .map(c => normalizeCategoryName(c));
 categories = [...categories, ...newCategories];
 }
-// Imported custom colors win over fresh random assignment, but never
-// overwrite a color the user already chose locally for that category name.
 if (importedCategoryColors && typeof importedCategoryColors === 'object') {
 for (const [name, entry] of Object.entries(importedCategoryColors)) {
 const clean = sanitizeColorEntry(entry);
@@ -6018,7 +6011,6 @@ backfillCategoryColors();
 rebuildSearchDocs();
 await saveCategoriesToDB();
 if (duplicates.length === 0) {
-// Image GC is independent of recipe rendering; run it off the critical path.
 cleanupUnreferencedImages().catch(e => console.warn('Image cleanup failed', e));
 populateCategoryDropdowns();
 renderCategories();
@@ -6283,8 +6275,6 @@ if (timerRunning) pauseTimer(); else startTimer();
 function timerTick() {
 if (!timerRunning) return;
 const now = Date.now();
-// +0.01 guards against floating-point truncation so a timer at exactly N
-// seconds doesn't briefly display N-1 before the completion check fires.
 const remaining = Math.max(0, Math.floor((timerEndTime - now) / 1000 + 0.01));
 if (remaining !== lastDisplayedSecond) {
 timerSecondsTotal = remaining;
@@ -6359,8 +6349,6 @@ pointerDrag.element = row;
 pointerDrag.container = row.parentElement;
 pointerDrag.pointerId = e.pointerId;
 pointerDrag.handle = handle;
-// Capture keeps pointermove/pointerup flowing even when the pointer leaves
-// the window mid-drag, so fast drags can no longer stall.
 try { handle.setPointerCapture(e.pointerId); } catch (err) { /* capture is best-effort */ }
 const rect = row.getBoundingClientRect();
 pointerDrag.offsetY = (e.clientY || 0) - rect.top;
@@ -6456,7 +6444,6 @@ if (offset < 0 && offset > closest.offset) return { offset: offset, element: chi
 else return closest;
 }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
-// Surface unexpected runtime failures instead of swallowing them silently
 window.addEventListener('error', (event) => {
 console.error('[Recipe Book] runtime error:', event.error || event.message);
 });
