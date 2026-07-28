@@ -56,15 +56,15 @@ header h1{font-size:2rem;color:var(--accent);display:inline-flex;gap:8px;align-i
 .remove-ingredient:active,.recipe-bookmark:active{transform:scale(.94)}
 .category-filter{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--card-bg);padding:8px;border-radius:10px;border:1px solid var(--border);width:100%}
 .categories-container{display:flex;gap:8px;flex-wrap:wrap}
-.category-tag{background:#212121;padding:0;border-radius:18px;border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;color:var(--text);font-size:.9rem;transition:all var(--dur-fast) ease;overflow:visible;position:relative;--cat-a:var(--accent);--cat-b:#4361ee}
-.category-tag:hover{border-color:var(--cat-a);background:color-mix(in srgb, var(--cat-a) 16%, #212121);color:var(--cat-a)}
-.category-tag.active{background:linear-gradient(45deg,var(--cat-a),var(--cat-b));border-color:transparent;color:#000;animation:pillPop var(--dur-med) var(--ease-spring)}
-.category-tag.active:hover{background:linear-gradient(45deg,var(--cat-a),var(--cat-b));color:#000}
+.category-tag{background:#212121;padding:0;border-radius:18px;border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;color:var(--text);font-size:.9rem;transition:all var(--dur-fast) ease;overflow:visible;position:relative;--cat-a:var(--accent);--cat-b:#4361ee;--cat-angle:45deg;--cat-intensity:100%;--cat-active-text:#fff;--cat-active-shadow:none}
+.category-tag:hover{border-color:var(--cat-a);background:color-mix(in srgb, var(--cat-a) 16%, #212121);color:var(--text)}
+.category-tag.active{background:linear-gradient(var(--cat-angle,45deg),var(--cat-a),var(--cat-b) var(--cat-intensity,100%));border-color:transparent;color:var(--cat-active-text,#fff);text-shadow:var(--cat-active-shadow,none);animation:pillPop var(--dur-med) var(--ease-spring)}
+.category-tag.active:hover{background:linear-gradient(var(--cat-angle,45deg),var(--cat-a),var(--cat-b) var(--cat-intensity,100%));color:var(--cat-active-text,#fff)}
 .category-tag-btn{background:none;border:none;color:inherit;font:inherit;cursor:pointer;padding:6px 12px;display:inline-flex;align-items:center;justify-content:center;flex:1;transition:color var(--dur-fast) ease}
 .category-tag-btn:not(:only-child){padding-right:34px}
-.category-tag.active .category-tag-btn{color:#000}
+.category-tag.active .category-tag-btn{color:inherit}
 .category-tag-btn:focus-visible{outline:2px solid var(--accent);outline-offset:-3px;border-radius:16px}
-.category-tag.active .remove-category{color:#000}
+.category-tag.active .remove-category{color:inherit}
 .remove-category{position:absolute;right:3px;top:50%;transform:translateY(-50%);margin:0;display:inline-flex;width:26px;height:26px;align-items:center;justify-content:center;border-radius:50%;border:none;background:transparent;color:inherit;cursor:pointer;transition:all var(--dur-fast) ease}
 .remove-category:hover{background:var(--danger);color:#000}
 .remove-category:active{transform:translateY(-50%) scale(.94)}
@@ -407,6 +407,27 @@ textarea{min-height:90px;resize:vertical}
 #confirmModalInput{margin-bottom:4px;text-align:center}
 .confirm-actions{display:flex;gap:10px;margin-top:16px}
 .confirm-actions .btn{flex:1;justify-content:center;padding:11px 14px}
+.color-picker-card{max-width:440px}
+.color-picker-preview{display:flex;justify-content:center;margin:2px 0 14px}
+.color-preview-tag{pointer-events:none;cursor:default;animation:none}
+.color-dial-block{position:relative;display:flex;justify-content:center;padding:26px 0 8px}
+.dial-readout{position:absolute;top:0;display:flex;flex-direction:column;gap:2px}
+.dial-readout-left{left:2px;align-items:flex-start}
+.dial-readout-right{right:2px;align-items:flex-end}
+.dial-readout-label{font-size:.66rem;text-transform:uppercase;letter-spacing:.7px;color:var(--text-secondary)}
+.dial-readout-value{font-size:.95rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)}
+.color-dial{position:relative;width:132px;height:132px;flex:0 0 132px;border-radius:50%;border:1px solid var(--border);cursor:crosshair;touch-action:none;background:linear-gradient(var(--dial-angle,45deg),color-mix(in srgb,var(--dial-a,#3a0ca3) 24%,#151515),color-mix(in srgb,var(--dial-b,#4361ee) 24%,#151515))}
+.color-dial-ring{position:absolute;inset:12px;border-radius:50%;border:1px dashed rgba(255,255,255,.16);pointer-events:none}
+.color-dial-dot{position:absolute;width:22px;height:22px;border-radius:50%;background:var(--accent);border:3px solid #0f0f0f;box-shadow:0 0 0 2px var(--accent),0 4px 12px rgba(0,0,0,.5);transform:translate(-50%,-50%);pointer-events:none;left:50%;top:50%;transition:box-shadow var(--dur-fast) ease}
+.color-dial.dragging .color-dial-dot{box-shadow:0 0 0 3px var(--accent),0 0 18px rgba(111,184,255,.55)}
+.color-dial-hint{justify-content:center;text-align:center;margin:2px 0 14px}
+.color-picker-row{display:flex;gap:12px;align-items:flex-end;margin-bottom:6px}
+.color-field{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+.color-field > span{font-size:.8rem;color:var(--text-secondary)}
+.color-field input[type="color"]{width:100%;height:44px;padding:4px;border-radius:8px;background:#222;border:1px solid var(--border);cursor:pointer;transition:border-color var(--dur-fast) ease}
+.color-field input[type="color"]:hover{border-color:var(--accent)}
+.color-shuffle-btn{flex:0 0 auto}
+@media (max-width:420px){.color-picker-row{flex-wrap:wrap}.color-shuffle-btn{width:100%;justify-content:center}}
 .context-menu{position:fixed;z-index:2600;min-width:172px;background:#1d1d1d;border:1px solid var(--border);border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.6);padding:5px;display:none}
 .context-menu.visible{display:block;animation:popIn var(--dur-fast) var(--ease-out)}
 .context-menu-item{display:flex;align-items:center;gap:9px;width:100%;padding:9px 12px;background:none;border:none;border-radius:7px;color:var(--text);font-size:.9rem;cursor:pointer;text-align:left;transition:background var(--dur-fast) ease,color var(--dur-fast) ease}
@@ -570,6 +591,7 @@ body { background: white; color: black; padding: 0; }
 <symbol id="ic-thermometer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13.7V4a2 2 0 1 1 4 0v9.7a4.5 4.5 0 1 1-4 0z"/><path d="M12 9.5v8"/></symbol>
 <symbol id="ic-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
 <symbol id="ic-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></symbol>
+<symbol id="ic-palette" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 9-9c0 2.5-1.5 3.5-3 3.5h-1.8c-1.4 0-2.2 1.7-1.2 2.7.9.9.3 2.8-3 2.8z"/><circle cx="7.5" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="10.5" cy="7.5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="8.5" r="1" fill="currentColor" stroke="none"/></symbol>
 </svg>
 <div class="container">
 <header><h1><svg class="ic" aria-hidden="true"><use href="#ic-utensils"/></svg> Recipe Book</h1></header>
@@ -794,7 +816,7 @@ body { background: white; color: black; padding: 0; }
 <ul class="instructions-list">
 <li><strong>N</strong> or <strong>Alt + N:</strong> Add new recipe (Ctrl/Cmd + N also works where the browser allows it)</li>
 <li><strong>Ctrl/Cmd + F:</strong> Focus search bar</li>
-<li><strong>Right-click a category:</strong> Rename it via the context menu</li>
+<li><strong>Right-click a category:</strong> Rename or recolor it via the context menu</li>
 <li><strong>Esc:</strong> Close modals or forms</li>
 <li><strong>?:</strong> Toggle this help menu</li>
 </ul>
@@ -817,8 +839,36 @@ body { background: white; color: black; padding: 0; }
 </div>
 </div>
 </div>
+<div id="categoryColorModal" class="modal confirm-modal" aria-hidden="true">
+<div class="confirm-card color-picker-card" role="dialog" aria-modal="true" aria-labelledby="colorPickerTitle">
+<div class="confirm-icon" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#ic-palette"/></svg></div>
+<h2 class="confirm-title" id="colorPickerTitle">Category Color</h2>
+<div class="color-picker-preview">
+<span class="category-tag active color-preview-tag" id="colorPreviewTag"><span class="category-tag-btn" id="colorPreviewLabel">Preview</span></span>
+</div>
+<div class="color-dial-block">
+<div class="dial-readout dial-readout-left"><span class="dial-readout-label">Angle</span><span class="dial-readout-value" id="colorAngleReadout">45°</span></div>
+<div class="dial-readout dial-readout-right"><span class="dial-readout-label">Blend</span><span class="dial-readout-value" id="colorBlendReadout">100%</span></div>
+<div class="color-dial" id="colorDial" role="slider" tabindex="0" aria-label="Gradient angle and blend" aria-valuemin="0" aria-valuemax="360" aria-valuenow="45">
+<div class="color-dial-ring" aria-hidden="true"></div>
+<div class="color-dial-dot" id="colorDialDot" aria-hidden="true"></div>
+</div>
+</div>
+<div class="label-hint color-dial-hint"><svg class="ic" aria-hidden="true"><use href="#ic-info-circle"/></svg> Drag the dot to adjust angle & blend.</div>
+<div class="color-picker-row">
+<label class="color-field"><span>Color 1</span><input type="color" id="colorPickerA" value="#3a0ca3" aria-label="Gradient color 1"></label>
+<label class="color-field"><span>Color 2</span><input type="color" id="colorPickerB" value="#4361ee" aria-label="Gradient color 2"></label>
+<button type="button" class="btn color-shuffle-btn" id="colorShuffleBtn" title="Shuffle to a fresh color pair"><svg class="ic" aria-hidden="true"><use href="#ic-sync"/></svg> Shuffle</button>
+</div>
+<div class="confirm-actions">
+<button class="btn" id="colorPickerCancel">Cancel</button>
+<button class="btn btn-accent" id="colorPickerSave">Save</button>
+</div>
+</div>
+</div>
 <div id="categoryContextMenu" class="context-menu" role="menu" aria-hidden="true">
 <button type="button" class="context-menu-item" id="contextEditCategoryBtn" role="menuitem"><svg class="ic" aria-hidden="true"><use href="#ic-edit"/></svg> Edit name</button>
+<button type="button" class="context-menu-item" id="contextChangeColorBtn" role="menuitem"><svg class="ic" aria-hidden="true"><use href="#ic-palette"/></svg> Change color</button>
 </div>
 <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="false"></div>
 <input type="file" id="importFileInput" accept=".json,.zip" style="display:none">
@@ -840,7 +890,8 @@ const LS_KEYS = {
 viewMode: 'recipeBookViewMode',
 timerState: 'recipeBookTimerState',
 recipes: 'recipeBookRecipes',
-categories: 'recipeBookCategories'
+categories: 'recipeBookCategories',
+categoryColors: 'recipeBookCategoryColors'
 };
 const UNDO_WINDOW_MS = 6500;
 const MAX_TITLE_LEN = 300;
@@ -1119,8 +1170,21 @@ const confirmModalMessage = document.getElementById('confirmModalMessage');
 const confirmModalInput = document.getElementById('confirmModalInput');
 const confirmModalCancel = document.getElementById('confirmModalCancel');
 const confirmModalOk = document.getElementById('confirmModalOk');
+const categoryColorModal = document.getElementById('categoryColorModal');
+const colorPreviewTag = document.getElementById('colorPreviewTag');
+const colorPreviewLabel = document.getElementById('colorPreviewLabel');
+const colorPickerA = document.getElementById('colorPickerA');
+const colorPickerB = document.getElementById('colorPickerB');
+const colorShuffleBtn = document.getElementById('colorShuffleBtn');
+const colorDial = document.getElementById('colorDial');
+const colorDialDot = document.getElementById('colorDialDot');
+const colorAngleReadout = document.getElementById('colorAngleReadout');
+const colorBlendReadout = document.getElementById('colorBlendReadout');
+const colorPickerCancel = document.getElementById('colorPickerCancel');
+const colorPickerSave = document.getElementById('colorPickerSave');
 const categoryContextMenu = document.getElementById('categoryContextMenu');
 const contextEditCategoryBtn = document.getElementById('contextEditCategoryBtn');
+const contextChangeColorBtn = document.getElementById('contextChangeColorBtn');
 let categories = [];
 let recipes = [];
 let recipesById = new Map();
@@ -1140,6 +1204,11 @@ let addFormDirty = false;
 let editFormDirty = false;
 let editLoadedAt = 0;
 let contextMenuCategory = null;
+// name -> { a, b, angle, intensity } custom gradient per category
+let categoryColorMap = {};
+let colorPickerResolver = null;
+let colorPickerState = { a: '#3a0ca3', b: '#4361ee', angle: 45, intensity: 100 };
+let dialDragging = false;
 const BATCH_SIZE = 50;
 let cardStagger = 0;
 let pendingViewAnimation = false;
@@ -1750,6 +1819,7 @@ function ensureCategoryExists(category) {
 const normalized = normalizeCategoryName(category);
 if (!categories.some(c => c.toLowerCase() === normalized.toLowerCase())) {
 categories.push(normalized);
+assignCategoryColor(normalized);
 }
 const existing = categories.find(c => c.toLowerCase() === normalized.toLowerCase());
 return existing || normalized;
@@ -2014,9 +2084,12 @@ rebuildSearchDocs();
 await loadSettings();
 applyViewMode();
 if (!categories || categories.length === 0) {
-categories = ['Cookies'];
+categories = [];
+ensureCategoryExists('Cookies');
 await saveCategoriesToDB();
 }
+// Assign a unique palette pair to any category that predates custom colors
+if (backfillCategoryColors()) await saveCategoriesToDB();
 descriptionVisibilityObserver = new IntersectionObserver(handleDescriptionVisibility, { rootMargin: '100px', threshold: 0 });
 descriptionScrollObserver = new MutationObserver((mutations) => {
 const removedCardIds = new Set();
@@ -2318,12 +2391,50 @@ await dbWrapper.put(STORE_CATEGORIES, { id: 'categories', items: parsedCategorie
 }
 }
 }
+const localCategoryColors = localStorage.getItem(LS_KEYS.categoryColors);
+if (localCategoryColors) {
+try {
+const parsedColors = JSON.parse(localCategoryColors);
+if (parsedColors && typeof parsedColors === 'object') {
+const existingColors = await dbWrapper.get(STORE_CATEGORIES, 'categoryColors');
+if (!existingColors) await dbWrapper.put(STORE_CATEGORIES, { id: 'categoryColors', map: parsedColors });
+}
+} catch (e) { console.warn('Failed to migrate category colors', e); }
+}
 localStorage.setItem(MIGRATION_FLAG, 'true');
 localStorage.removeItem(LS_KEYS.recipes);
 localStorage.removeItem(LS_KEYS.categories);
+localStorage.removeItem(LS_KEYS.categoryColors);
 } catch (e) {
 console.warn('Failed to migrate from localStorage', e);
 }
+}
+function sanitizeColorEntry(entry) {
+if (!entry || typeof entry !== 'object') return null;
+const a = normalizeHexColor(entry.a, null);
+const b = normalizeHexColor(entry.b, null);
+if (!a || !b) return null;
+const angle = Number.isFinite(entry.angle) ? ((Math.round(entry.angle) % 360) + 360) % 360 : 45;
+const rawIntensity = Number.isFinite(entry.intensity) ? Math.round(entry.intensity) : 100;
+const intensity = Math.max(25, Math.min(100, rawIntensity));
+return { a, b, angle, intensity };
+}
+function normalizeHexColor(value, fallback) {
+if (typeof value !== 'string') return fallback;
+let v = value.trim().toLowerCase();
+if (!v.startsWith('#')) v = '#' + v;
+if (/^#[0-9a-f]{3}$/.test(v)) v = '#' + v[1] + v[1] + v[2] + v[2] + v[3] + v[3];
+return /^#[0-9a-f]{6}$/.test(v) ? v : fallback;
+}
+function parseColorMap(raw) {
+const clean = {};
+if (raw && typeof raw === 'object') {
+for (const [name, entry] of Object.entries(raw)) {
+const sanitized = sanitizeColorEntry(entry);
+if (sanitized) clean[name] = sanitized;
+}
+}
+return clean;
 }
 async function loadData() {
 try {
@@ -2331,15 +2442,23 @@ if (dbWrapper.db) {
 const recipesData = await dbWrapper.getAll(STORE_RECIPES);
 const categoriesData = await dbWrapper.getAll(STORE_CATEGORIES);
 recipes = recipesData || [];
-categories = categoriesData?.[0]?.items || [];
+const records = Array.isArray(categoriesData) ? categoriesData : [];
+const catRecord = records.find(d => d && d.id === 'categories');
+const colorRecord = records.find(d => d && d.id === 'categoryColors');
+categories = catRecord?.items || [];
+categoryColorMap = parseColorMap(colorRecord?.map);
 } else {
 recipes = JSON.parse(localStorage.getItem(LS_KEYS.recipes)) || [];
 categories = JSON.parse(localStorage.getItem(LS_KEYS.categories)) || [];
+let rawColors = null;
+try { rawColors = JSON.parse(localStorage.getItem(LS_KEYS.categoryColors)); } catch (e) {}
+categoryColorMap = parseColorMap(rawColors);
 }
 } catch (e) {
 console.warn('Failed to load data', e);
 recipes = [];
 categories = [];
+categoryColorMap = {};
 }
 if (!Array.isArray(recipes)) recipes = [];
 if (!Array.isArray(categories)) categories = [];
@@ -2368,8 +2487,12 @@ showToast('Failed to delete recipe', 'error');
 }
 async function saveCategoriesToDB() {
 try {
-if (dbWrapper.db) await dbWrapper.put(STORE_CATEGORIES, { id: 'categories', items: categories });
-else await saveAllToLocalStorage();
+if (dbWrapper.db) {
+await dbWrapper.put(STORE_CATEGORIES, { id: 'categories', items: categories });
+await dbWrapper.put(STORE_CATEGORIES, { id: 'categoryColors', map: categoryColorMap });
+} else {
+await saveAllToLocalStorage();
+}
 broadcastUpdate('categories');
 } catch (e) {
 console.warn('Failed to save categories', e);
@@ -2380,6 +2503,7 @@ async function saveAllToLocalStorage() {
 try {
 localStorage.setItem(LS_KEYS.recipes, JSON.stringify(recipes));
 localStorage.setItem(LS_KEYS.categories, JSON.stringify(categories));
+localStorage.setItem(LS_KEYS.categoryColors, JSON.stringify(categoryColorMap));
 } catch (e) {
 showStorageBanner('Local storage is full — new changes may not persist. Export a backup and remove unused recipes or images.');
 }
@@ -2521,6 +2645,15 @@ rebuildSearchDocs();
 renderCategories();
 populateCategoryDropdowns();
 renderRecipes();
+// Recolors in another tab don't change recipe signatures, so the reused
+// card nodes need their chips repainted explicitly.
+repaintCategoryChips();
+if (currentViewRecipe && currentViewRecipe.category && recipeModal.classList.contains('active')) {
+const chipText = readableTextOnGradient(...getCategoryColors(currentViewRecipe.category));
+modalRecipeCategory.style.background = getCategoryGradient(currentViewRecipe.category);
+modalRecipeCategory.style.color = chipText.color;
+modalRecipeCategory.style.textShadow = chipText.shadow;
+}
 refreshOpenRecipeModal();
 });
 }
@@ -2738,7 +2871,15 @@ confirmModalInput.addEventListener('keydown', (e) => {
 if (e.key === 'Enter') { e.preventDefault(); settleConfirmDialog(true); }
 });
 categoryContextMenu.addEventListener('keydown', (e) => {
-if (e.key === 'Tab') closeCategoryContextMenu();
+if (e.key === 'Tab') { closeCategoryContextMenu(); return; }
+if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+e.preventDefault();
+const items = Array.from(categoryContextMenu.querySelectorAll('.context-menu-item'));
+if (items.length === 0) return;
+const idx = items.indexOf(document.activeElement);
+const next = e.key === 'ArrowDown' ? (idx + 1) % items.length : (idx - 1 + items.length) % items.length;
+items[next].focus();
+}
 });
 categoryContextMenu.addEventListener('focusout', (e) => {
 if (!categoryContextMenu.contains(e.relatedTarget)) closeCategoryContextMenu();
@@ -2748,6 +2889,11 @@ const target = contextMenuCategory;
 closeCategoryContextMenu();
 if (target) await renameCategory(target);
 });
+contextChangeColorBtn.addEventListener('click', async () => {
+const target = contextMenuCategory;
+closeCategoryContextMenu();
+if (target) await changeCategoryColor(target);
+});
 categoriesContainer.addEventListener('contextmenu', (e) => {
 const tag = e.target.closest('.category-tag');
 if (!tag) return;
@@ -2756,6 +2902,42 @@ const category = tagBtn ? tagBtn.dataset.category : null;
 if (!category || category === 'all') return;
 e.preventDefault();
 openCategoryContextMenu(e.clientX, e.clientY, category);
+});
+colorPickerCancel.addEventListener('click', () => settleColorPicker(false));
+colorPickerSave.addEventListener('click', () => settleColorPicker(true));
+categoryColorModal.addEventListener('click', (e) => { if (e.target === categoryColorModal) settleColorPicker(false); });
+colorPickerA.addEventListener('input', () => { colorPickerState.a = colorPickerA.value; syncColorPickerUI(); });
+colorPickerB.addEventListener('input', () => { colorPickerState.b = colorPickerB.value; syncColorPickerUI(); });
+colorShuffleBtn.addEventListener('click', shufflePickerColors);
+colorDial.addEventListener('pointerdown', (e) => {
+e.preventDefault();
+dialDragging = true;
+colorDial.classList.add('dragging');
+try { colorDial.setPointerCapture(e.pointerId); } catch (err) { /* capture is best-effort */ }
+updateDialFromPoint(e.clientX, e.clientY);
+});
+colorDial.addEventListener('pointermove', (e) => {
+if (!dialDragging) return;
+updateDialFromPoint(e.clientX, e.clientY);
+});
+['pointerup', 'pointercancel'].forEach(eventName => {
+colorDial.addEventListener(eventName, (e) => {
+if (!dialDragging) return;
+dialDragging = false;
+colorDial.classList.remove('dragging');
+try {
+if (colorDial.hasPointerCapture(e.pointerId)) colorDial.releasePointerCapture(e.pointerId);
+} catch (err) { /* ignore */ }
+});
+});
+colorDial.addEventListener('keydown', (e) => {
+let handled = true;
+if (e.key === 'ArrowLeft') colorPickerState.angle = (colorPickerState.angle + 355) % 360;
+else if (e.key === 'ArrowRight') colorPickerState.angle = (colorPickerState.angle + 5) % 360;
+else if (e.key === 'ArrowUp') colorPickerState.intensity = Math.min(100, colorPickerState.intensity + 5);
+else if (e.key === 'ArrowDown') colorPickerState.intensity = Math.max(25, colorPickerState.intensity - 5);
+else handled = false;
+if (handled) { e.preventDefault(); syncColorPickerUI(); }
 });
 gridModeBtn.addEventListener('click', () => { if (currentViewMode === 'grid') return; currentViewMode = 'grid'; pendingViewAnimation = true; applyViewMode(); remeasureDescriptionScrolls(); renderRecipes(); });
 listModeBtn.addEventListener('click', () => { if (currentViewMode === 'list') return; currentViewMode = 'list'; pendingViewAnimation = true; applyViewMode(); remeasureDescriptionScrolls(); renderRecipes(); });
@@ -2947,6 +3129,7 @@ preset.addEventListener('click', () => { const seconds = parseInt(preset.dataset
 document.addEventListener('keydown', (e) => {
 if (e.key === 'Tab') {
 if (confirmModal.classList.contains('active')) { trapFocusInModal(confirmModal, e); return; }
+if (categoryColorModal.classList.contains('active')) { trapFocusInModal(categoryColorModal, e); return; }
 if (recipeModal.classList.contains('active')) { trapFocusInModal(recipeModal, e); return; }
 if (duplicateModal.classList.contains('active')) { trapFocusInModal(duplicateModal, e); return; }
 if (imageZoomModal.classList.contains('active')) { trapFocusInModal(imageZoomModal, e); return; }
@@ -2955,6 +3138,7 @@ if (shortcutsModal.classList.contains('active')) { trapFocusInModal(shortcutsMod
 if (e.key === 'Escape') {
 if (categoryContextMenu.classList.contains('visible')) { closeCategoryContextMenu(); return; }
 if (confirmModal.classList.contains('active')) { settleConfirmDialog(false); return; }
+if (categoryColorModal.classList.contains('active')) { settleColorPicker(false); return; }
 if (imageZoomModal.classList.contains('active')) { closeImageZoom(); return; }
 if (recipeModal.classList.contains('active')) { closeRecipeModal(); return; }
 if (duplicateModal.classList.contains('active')) { closeDuplicateModal(false); return; }
@@ -2976,7 +3160,7 @@ return;
 const tagName = (e.target.tagName || '').toUpperCase();
 if (tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') return;
 if (addRecipeForm.style.display === 'block' || editRecipeUI.style.display === 'block') return;
-const modalOpen = recipeModal.classList.contains('active') || duplicateModal.classList.contains('active') || shortcutsModal.classList.contains('active') || imageZoomModal.classList.contains('active') || confirmModal.classList.contains('active');
+const modalOpen = recipeModal.classList.contains('active') || duplicateModal.classList.contains('active') || shortcutsModal.classList.contains('active') || imageZoomModal.classList.contains('active') || confirmModal.classList.contains('active') || categoryColorModal.classList.contains('active');
 if (modalOpen) return;
 if (e.altKey && (e.key === 'n' || e.key === 'N')) { e.preventDefault(); showAddRecipeForm(); return; }
 if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'n' || e.key === 'N')) { showAddRecipeForm(); return; }
@@ -3210,6 +3394,10 @@ for (const r of recipes) { if (r.category) categoryCounts[r.category] = (categor
 const sortedCategories = [...categories].sort((a, b) => (categoryCounts[b] || 0) - (categoryCounts[a] || 0));
 const allTag = document.createElement('span');
 allTag.className = 'category-tag' + (currentFilterCategory === 'all' ? ' active' : '');
+// Same auto-contrast treatment as named categories (uses the default pair)
+const allText = readableTextOnGradient('#6fb8ff', '#4361ee');
+allTag.style.setProperty('--cat-active-text', allText.color);
+allTag.style.setProperty('--cat-active-shadow', allText.shadow);
 const allBtn = document.createElement('button');
 allBtn.type = 'button';
 allBtn.className = 'category-tag-btn';
@@ -3223,8 +3411,18 @@ const recipeCount = categoryCounts[category] || 0;
 const tag = document.createElement('span');
 tag.className = 'category-tag' + (currentFilterCategory === category ? ' active' : '');
 const [catA, catB] = getCategoryColors(category);
+const entry = categoryColorMap[category];
+const angle = entry && Number.isFinite(entry.angle) ? entry.angle : 45;
+const intensity = entry && Number.isFinite(entry.intensity) ? entry.intensity : 100;
+// Active-state text auto-picks black or white for contrast with the gradient;
+// hover keeps the normal text color and only highlights border + background.
+const textStyles = readableTextOnGradient(catA, catB);
 tag.style.setProperty('--cat-a', catA);
 tag.style.setProperty('--cat-b', catB);
+tag.style.setProperty('--cat-angle', angle + 'deg');
+tag.style.setProperty('--cat-intensity', intensity + '%');
+tag.style.setProperty('--cat-active-text', textStyles.color);
+tag.style.setProperty('--cat-active-shadow', textStyles.shadow);
 const selectBtn = document.createElement('button');
 selectBtn.type = 'button';
 selectBtn.className = 'category-tag-btn';
@@ -3284,6 +3482,11 @@ return;
 const idx = categories.indexOf(oldName);
 if (idx === -1) return;
 categories[idx] = newName;
+// Keep the custom color attached across the rename
+if (categoryColorMap[oldName]) {
+categoryColorMap[newName] = categoryColorMap[oldName];
+delete categoryColorMap[oldName];
+}
 const affected = recipes.filter(r => r.category === oldName);
 affected.forEach(r => {
 r.category = newName;
@@ -3305,6 +3508,123 @@ populateCategoryDropdowns();
 renderCategories();
 renderRecipes();
 showToast(`Category renamed to "${newName}"`, 'success');
+}
+async function changeCategoryColor(categoryName) {
+const chosen = await pickCategoryColor(categoryName, categoryColorMap[categoryName] || null);
+if (!chosen) return;
+categoryColorMap[categoryName] = chosen;
+await saveCategoriesToDB();
+renderCategories();
+// Recipe data (and therefore card signatures) is unchanged by a recolor, so
+// repaint the chips on live cards directly instead of a full re-render.
+repaintCategoryChips(categoryName);
+if (currentViewRecipe && currentViewRecipe.category === categoryName && recipeModal.classList.contains('active')) {
+const chipText = readableTextOnGradient(...getCategoryColors(categoryName));
+modalRecipeCategory.style.background = getCategoryGradient(categoryName);
+modalRecipeCategory.style.color = chipText.color;
+modalRecipeCategory.style.textShadow = chipText.shadow;
+}
+showToast(`Color updated for "${categoryName}"`, 'success');
+}
+function repaintCategoryChips(categoryName = null) {
+cardRegistry.forEach((card) => {
+if (!card.isConnected) return;
+const recipe = recipesById.get(card.dataset.id);
+if (!recipe || !recipe.category) return;
+if (categoryName !== null && recipe.category !== categoryName) return;
+const chip = card.querySelector('.recipe-category');
+if (!chip) return;
+const chipText = readableTextOnGradient(...getCategoryColors(recipe.category));
+chip.style.background = getCategoryGradient(recipe.category);
+chip.style.color = chipText.color;
+chip.style.textShadow = chipText.shadow;
+});
+}
+function pickCategoryColor(categoryName, existing) {
+return new Promise((resolve) => {
+if (colorPickerResolver) colorPickerResolver(null);
+colorPickerResolver = resolve;
+const [defA, defB] = getCategoryColors(categoryName);
+colorPickerState = {
+a: normalizeHexColor(existing && existing.a, defA),
+b: normalizeHexColor(existing && existing.b, defB),
+angle: existing && Number.isFinite(existing.angle) ? ((Math.round(existing.angle) % 360) + 360) % 360 : 45,
+intensity: existing && Number.isFinite(existing.intensity) ? Math.max(25, Math.min(100, Math.round(existing.intensity))) : 100
+};
+colorPreviewLabel.textContent = categoryName;
+lastFocusedElement = document.activeElement;
+categoryColorModal.classList.add('active');
+categoryColorModal.setAttribute('aria-hidden', 'false');
+syncColorPickerUI();
+setTimeout(() => { colorPickerSave.focus(); }, 30);
+});
+}
+function settleColorPicker(saved) {
+if (!colorPickerResolver) return;
+const resolver = colorPickerResolver;
+colorPickerResolver = null;
+const value = saved ? { ...colorPickerState } : null;
+moveFocusSafely();
+categoryColorModal.classList.remove('active');
+categoryColorModal.setAttribute('aria-hidden', 'true');
+resolver(value);
+}
+function syncColorPickerUI() {
+const { a, b, angle, intensity } = colorPickerState;
+colorPickerA.value = a;
+colorPickerB.value = b;
+const previewText = readableTextOnGradient(a, b);
+colorPreviewTag.style.setProperty('--cat-a', a);
+colorPreviewTag.style.setProperty('--cat-b', b);
+colorPreviewTag.style.setProperty('--cat-angle', angle + 'deg');
+colorPreviewTag.style.setProperty('--cat-intensity', intensity + '%');
+colorPreviewTag.style.setProperty('--cat-active-text', previewText.color);
+colorPreviewTag.style.setProperty('--cat-active-shadow', previewText.shadow);
+colorDial.style.setProperty('--dial-a', a);
+colorDial.style.setProperty('--dial-b', b);
+colorDial.style.setProperty('--dial-angle', angle + 'deg');
+colorAngleReadout.textContent = angle + '°';
+colorBlendReadout.textContent = intensity + '%';
+colorDial.setAttribute('aria-valuenow', String(angle));
+colorDial.setAttribute('aria-valuetext', `Angle ${angle} degrees, blend ${intensity} percent`);
+positionDialDot();
+}
+function positionDialDot() {
+const size = colorDial.clientWidth || 132;
+const maxR = size / 2 - 12;
+const r = ((colorPickerState.intensity - 25) / 75) * maxR;
+const rad = (colorPickerState.angle - 90) * Math.PI / 180;
+colorDialDot.style.left = (size / 2 + r * Math.cos(rad)) + 'px';
+colorDialDot.style.top = (size / 2 + r * Math.sin(rad)) + 'px';
+}
+function updateDialFromPoint(clientX, clientY) {
+const rect = colorDial.getBoundingClientRect();
+const cx = rect.left + rect.width / 2;
+const cy = rect.top + rect.height / 2;
+const dx = clientX - cx;
+const dy = clientY - cy;
+// Dot at the top reads as 0deg to match CSS gradient angles (0deg = to top)
+let angle = Math.round(Math.atan2(dy, dx) * 180 / Math.PI) + 90;
+angle = ((angle % 360) + 360) % 360;
+const maxR = Math.max(1, rect.width / 2 - 12);
+const ratio = Math.max(0, Math.min(1, Math.hypot(dx, dy) / maxR));
+colorPickerState.angle = angle;
+colorPickerState.intensity = Math.round(25 + ratio * 75);
+syncColorPickerUI();
+}
+function shufflePickerColors() {
+const currentKey = colorPickerState.a + '|' + colorPickerState.b;
+const usedPairs = new Set(Object.values(categoryColorMap).map(c => c.a + '|' + c.b));
+usedPairs.delete(currentKey);
+let pool = CATEGORY_COLORS.filter(p => {
+const key = p[0] + '|' + p[1];
+return key !== currentKey && !usedPairs.has(key);
+});
+if (pool.length === 0) pool = CATEGORY_COLORS.filter(p => (p[0] + '|' + p[1]) !== currentKey);
+const pick = pool[Math.floor(Math.random() * pool.length)] || CATEGORY_COLORS[0];
+colorPickerState.a = pick[0];
+colorPickerState.b = pick[1];
+syncColorPickerUI();
 }
 function populateCategoryDropdowns() {
 const addCurrent = addRecipeCategory.value;
@@ -3347,6 +3667,7 @@ if (newCategory && newCategory.trim()) {
 const normalized = normalizeCategoryName(newCategory);
 if (!categories.some(c => c.toLowerCase() === normalized.toLowerCase())) {
 categories.push(normalized);
+assignCategoryColor(normalized);
 populateCategoryDropdowns();
 renderCategories();
 select.value = normalized;
@@ -3388,6 +3709,8 @@ showToast('Failed to update recipes', 'error');
 }
 }
 categories = categories.filter(c => c !== categoryName);
+// Free the palette slot so a future category can reuse this pair
+delete categoryColorMap[categoryName];
 if (currentFilterCategory === categoryName) currentFilterCategory = 'all';
 await saveCategoriesToDB();
 broadcastUpdate('recipe');
@@ -3575,6 +3898,61 @@ const c = (parsed.value - 32) * 5 / 9;
 return `(${formatConversionAmount(c)}°C)`;
 }
 return '';
+}
+function hexToRgb(hex) {
+const h = String(hex).replace('#', '');
+const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+const num = parseInt(full, 16);
+return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+}
+function relativeLuminance(hex) {
+const { r, g, b } = hexToRgb(hex);
+const lin = (c) => {
+const s = c / 255;
+return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+};
+return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+function mixHex(hexA, hexB, weightA) {
+const a = hexToRgb(hexA), b = hexToRgb(hexB);
+const w = Math.max(0, Math.min(1, weightA));
+const mix = (x, y) => Math.round(x * w + y * (1 - w));
+const to = (v) => v.toString(16).padStart(2, '0');
+return '#' + to(mix(a.r, b.r)) + to(mix(a.g, b.g)) + to(mix(a.b, b.b));
+}
+// Text sits on the blended gradient; approximate with the midpoint color and
+// pick whichever of black/white wins on contrast (0.179 is the crossover
+// luminance where both score equally). The matched text-shadow keeps either
+// choice crisp on mid-tone gradients.
+function readableTextOnGradient(hexA, hexB) {
+const midLum = relativeLuminance(mixHex(hexA, hexB, 0.5));
+return midLum <= 0.179
+? { color: '#ffffff', shadow: '0 1px 2px rgba(0,0,0,.35)' }
+: { color: '#101010', shadow: '0 1px 1px rgba(255,255,255,.3)' };
+}
+// New categories get the first palette pair no other category is using, so
+// random assignments stay unique until the 20-pair palette is exhausted.
+function assignCategoryColor(name) {
+if (categoryColorMap[name]) return categoryColorMap[name];
+const usedPairs = new Set(Object.values(categoryColorMap).map(c => c.a + '|' + c.b));
+let pair = null;
+for (const candidate of CATEGORY_COLORS) {
+if (!usedPairs.has(candidate[0] + '|' + candidate[1])) { pair = candidate; break; }
+}
+if (!pair) pair = getCategoryColors(name);
+const entry = { a: pair[0], b: pair[1], angle: 45, intensity: 100 };
+categoryColorMap[name] = entry;
+return entry;
+}
+function backfillCategoryColors() {
+let changed = false;
+categories.forEach(c => {
+if (!categoryColorMap[c]) { assignCategoryColor(c); changed = true; }
+});
+for (const name of Object.keys(categoryColorMap)) {
+if (!categories.includes(name)) { delete categoryColorMap[name]; changed = true; }
+}
+return changed;
 }
 function handleDescriptionVisibility(entries) {
 entries.forEach(entry => {
@@ -3936,7 +4314,10 @@ titleH3.textContent = r.title || '';
 const categorySpan = document.createElement('span');
 categorySpan.className = 'recipe-category';
 if (r.category) {
+const chipText = readableTextOnGradient(...getCategoryColors(r.category));
 categorySpan.style.background = getCategoryGradient(r.category);
+categorySpan.style.color = chipText.color;
+categorySpan.style.textShadow = chipText.shadow;
 categorySpan.textContent = r.category;
 } else {
 categorySpan.style.visibility = 'hidden';
@@ -4028,13 +4409,18 @@ const CATEGORY_COLORS = [
 ['#9d0208','#67060c'], ['#1a237e','#311b92']
 ];
 function getCategoryColors(category) {
+const entry = categoryColorMap[category];
+if (entry) return [entry.a, entry.b];
 let hash = 0;
 for (let i = 0; i < category.length; i++) { hash = (hash << 5) - hash + category.charCodeAt(i); hash |= 0; }
 return CATEGORY_COLORS[Math.abs(hash) % CATEGORY_COLORS.length];
 }
 function getCategoryGradient(category) {
 const [a, b] = getCategoryColors(category);
-return `linear-gradient(45deg,${a},${b})`;
+const entry = categoryColorMap[category];
+const angle = entry && Number.isFinite(entry.angle) ? entry.angle : 45;
+const intensity = entry && Number.isFinite(entry.intensity) ? entry.intensity : 100;
+return `linear-gradient(${angle}deg,${a},${b} ${intensity}%)`;
 }
 function formatTimeValue(val) {
 if (!val) return '';
@@ -4460,8 +4846,10 @@ updateScaleButtons();
 modalRecipeTitle.textContent = recipe.title;
 modalRecipeCategory.textContent = recipe.category || 'No category';
 if (recipe.category) {
+const chipText = readableTextOnGradient(...getCategoryColors(recipe.category));
 modalRecipeCategory.style.background = getCategoryGradient(recipe.category);
-modalRecipeCategory.style.color = '';
+modalRecipeCategory.style.color = chipText.color;
+modalRecipeCategory.style.textShadow = chipText.shadow;
 } else {
 modalRecipeCategory.style.background = '#2a2a2a';
 modalRecipeCategory.style.color = 'var(--text-secondary)';
@@ -4743,6 +5131,7 @@ delete exportRecipe.thumbId;
 const data = {
 recipes: [exportRecipe],
 categories: recipe.category ? [recipe.category] : [],
+categoryColors: recipe.category && categoryColorMap[recipe.category] ? { [recipe.category]: categoryColorMap[recipe.category] } : {},
 exportedAt: new Date().toISOString(),
 schemaVersion: SCHEMA_VERSION,
 singleRecipeExport: true
@@ -4807,6 +5196,7 @@ showToast('Export Complete', 'success');
 };
 const metadata = {
 categories,
+categoryColors: categoryColorMap,
 recipes: recipes.map(r => ({ ...r })),
 exportedAt: new Date().toISOString(),
 schemaVersion: SCHEMA_VERSION
@@ -4847,7 +5237,7 @@ setImportExportDisabled(false);
 }
 async function exportDataJSON() {
 const chunks = [];
-chunks.push(`{"categories":${JSON.stringify(categories)},"recipes":[`);
+chunks.push(`{"categories":${JSON.stringify(categories)},"categoryColors":${JSON.stringify(categoryColorMap)},"recipes":[`);
 for (let i = 0; i < recipes.length; i++) {
 const recipe = recipes[i];
 const exportRecipe = { ...recipe };
@@ -4982,7 +5372,7 @@ console.warn('Failed to convert image to dataURL', e);
 }
 }
 }
-await processImportedRecipes(metadata.recipes, metadata.categories, metadata.schemaVersion);
+await processImportedRecipes(metadata.recipes, metadata.categories, metadata.schemaVersion, metadata.categoryColors);
 } catch (err) {
 console.error(err);
 showToast('Failed to process imported recipes', 'error');
@@ -4999,7 +5389,7 @@ showToast('Invalid file format - no recipes found', 'error');
 resolve();
 return;
 }
-await processImportedRecipes(parsed.recipes, parsed.categories, parsed.schemaVersion);
+await processImportedRecipes(parsed.recipes, parsed.categories, parsed.schemaVersion, parsed.categoryColors);
 resolve();
 } catch (err) {
 showToast('Failed to process imported recipes', 'error');
@@ -5124,7 +5514,7 @@ if ((c.updatedAt || 0) > (best.updatedAt || 0)) best = c;
 }
 return best;
 }
-async function processImportedRecipes(importedRecipes, importedCategories, schemaVersion) {
+async function processImportedRecipes(importedRecipes, importedCategories, schemaVersion, importedCategoryColors) {
 if (typeof schemaVersion === 'number' && schemaVersion > SCHEMA_VERSION) {
 showToast(`This file uses a newer schema (v${schemaVersion}). Some newer fields may be ignored.`, 'warning');
 }
@@ -5133,6 +5523,14 @@ const newCategories = importedCategories
 .filter(c => typeof c === 'string' && c.trim() && !categories.some(cat => cat.toLowerCase() === c.trim().toLowerCase()))
 .map(c => normalizeCategoryName(c));
 categories = [...categories, ...newCategories];
+}
+// Imported custom colors win over fresh random assignment, but never
+// overwrite a color the user already chose locally for that category name.
+if (importedCategoryColors && typeof importedCategoryColors === 'object') {
+for (const [name, entry] of Object.entries(importedCategoryColors)) {
+const clean = sanitizeColorEntry(entry);
+if (clean && !categoryColorMap[name]) categoryColorMap[name] = clean;
+}
 }
 const validRecipes = importedRecipes.filter(r => r && typeof r === 'object').map(r => sanitizeImportedRecipe(r)).filter(Boolean);
 const existingKeys = new Set(recipes.map(r => `${(r.title || '').toLowerCase()}|${(r.category || 'uncategorized').toLowerCase()}`));
@@ -5158,6 +5556,7 @@ if (dbWrapper.db) await dbWrapper.putBulk(STORE_RECIPES, newRecipes);
 else await saveAllToLocalStorage();
 }
 await normalizeAllRecipeCategories();
+backfillCategoryColors();
 rebuildSearchDocs();
 await saveCategoriesToDB();
 if (duplicates.length === 0) {
