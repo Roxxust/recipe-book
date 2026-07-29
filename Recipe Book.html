@@ -75,7 +75,6 @@ header h1{font-size:2rem;color:var(--accent);display:inline-flex;gap:8px;align-i
 .view-mode-btn.favorites-btn{width:38px;background:#e08aa0;color:#000;position:relative;overflow:visible}
 .view-mode-btn.favorites-btn:hover{background:#d07a90}
 .view-mode-btn.favorites-btn.active{background:#e08aa0;color:#000;animation:pillPop var(--dur-med) var(--ease-spring)}
-/* Favorites button: dual-face heart / honeycomb morph */
 .fav-face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transition:opacity .5s cubic-bezier(.2,1.1,.3,1),transform .55s cubic-bezier(.2,1.25,.3,1)}
 .fav-heart .ic{width:1.15em;height:1.15em}
 .fav-heart-f{display:none}
@@ -4392,7 +4391,6 @@ colorPickerState.a = pick[0];
 colorPickerState.b = pick[1];
 syncColorPickerUI();
 }
-/* ---- Mobile HSV color picker (replaces native <input type=color> below 640px) ---- */
 function hexToHsv(hex) {
 const { r, g, b } = hexToRgb(hex);
 const rn = r / 255, gn = g / 255, bn = b / 255;
