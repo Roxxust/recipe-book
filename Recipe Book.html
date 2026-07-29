@@ -1676,11 +1676,6 @@ if (data[i] < 250) return true;
 return false;
 } catch (e) { return false; }
 }
-/**
-* Downscale + re-encode an image while preserving transparency. Transparent
-* sources are kept as WebP (or PNG where WebP encoding is unavailable);
-* fully-opaque sources are flattened onto white and saved as JPEG.
-*/
 async function reencodeImage(blob, maxDim, quality) {
 const bmp = await loadImageBitmap(blob);
 const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
@@ -1745,11 +1740,6 @@ searchDocSigs.set(r.id, docSignature(r));
 });
 syncSearchWorkerFull();
 }
-/**
-* Diff-based refresh used after cross-tab broadcasts: only upserts docs whose
-* signature changed and removes stale ones, instead of re-posting the whole
-* docs array to the worker.
-*/
 function syncSearchDocsIncremental() {
 indexRecipes();
 const seen = new Set();
@@ -1786,11 +1776,6 @@ if (searchWorker) {
 try { searchWorker.postMessage({ type: 'remove', id: id }); } catch (e) {}
 }
 }
-/**
-* Single source of truth for search filtering. Self-contained (no outer-scope
-* references) so the exact same function body is injected into the search
-* Web Worker via toString(), keeping worker and main-thread logic in sync.
-*/
 function runSearchQuery(docs, searchTerm, category, showFavorites) {
 var filtered = docs;
 if (category !== 'all') {
@@ -3089,15 +3074,6 @@ Array.from(recipesGrid.children).forEach(card => {
 if (card.classList && card.classList.contains('recipe-card')) descriptionVisibilityObserver.observe(card);
 });
 }
-/**
-* Touch devices (notably iOS) never fire a native `contextmenu`, and a plain
-* long-press selects text instead. After a short hold we dispatch a synthetic
-* contextmenu so the same handlers open the menu; CSS user-select /
-* touch-callout suppression keeps the native selection UI away, and the
-* trailing click that follows the release is swallowed so it can neither
-* close the freshly opened menu nor trigger the underlying card/category
-* action.
-*/
 function attachLongPressMenu(container) {
 let lpTimer = null;
 let lpX = 0;
@@ -3739,10 +3715,6 @@ function closeAllContextMenus() {
 closeCategoryContextMenu();
 closeRecipeContextMenu();
 }
-/**
-* Clamps an opened context submenu to the viewport: shrinks it to the
-* available height if needed and shifts it up so it never spills off-screen.
-*/
 function positionSubmenu(wrap) {
 const sub = wrap.querySelector('.context-submenu');
 if (!sub) return;
@@ -5809,11 +5781,6 @@ modalMeta.appendChild(metaItem);
 }
 updateTimerToast();
 }
-/**
-* Renders instructions grouped by "!Section" headers. Each section gets its
-* own <ol> so CSS counters restart at 1 below every header; blank lines still
-* render as spacers inside the current section.
-*/
 function renderInstructionSections(recipe) {
 clearContainer(modalInstructionsContainer);
 const instructionLines = getInstructionLines(recipe);
@@ -6414,12 +6381,6 @@ delete recipe.thumbId;
 }
 }
 }
-/**
-* Deterministically picks the existing recipe an import duplicates:
-* 1) exact id match (re-import of a previous export),
-* 2) unique title+category match,
-* 3) among several title+category matches, the most recently updated one.
-*/
 function findDuplicateTarget(recipe) {
 if (recipe && recipe.id) {
 const byId = recipesById.get(recipe.id);
@@ -6608,12 +6569,6 @@ showToast(message, 'success');
 setDuplicateGlobalButtonsDisabled(false);
 }
 }
-/**
-* Closes the duplicate-resolution modal.
-* @param {boolean} skipRender - When true (programmatic close from
-*   finalizeImport), skips the unresolved-duplicates confirmation and the
-*   post-close re-render because the caller already persisted and rendered.
-*/
 async function closeDuplicateModal(skipRender = false) {
 const hadPending = !!pendingImportData;
 if (hadPending && !skipRender) {
@@ -6767,12 +6722,6 @@ return;
 }
 if (document.visibilityState === 'visible') scheduleTimerTick();
 }
-/**
-* Background ticking runs inside a dedicated Worker: worker timers are not
-* throttled the way background main-thread timers are, so the completion
-* chime fires on time even when the tab is hidden. A main-thread interval is
-* kept as a fallback when Workers are unavailable.
-*/
 function ensureTimerTickWorker() {
 if (timerTickWorker) return timerTickWorker;
 try {
