@@ -474,6 +474,27 @@ textarea{min-height:90px;resize:vertical}
 .color-field input[type="color"]{width:100%;height:44px;padding:4px;border-radius:8px;background:#222;border:1px solid var(--border);cursor:pointer;transition:border-color var(--dur-fast) ease}
 .color-field input[type="color"]:hover{border-color:var(--accent)}
 .color-shuffle-btn{flex:0 0 auto}
+.mobile-swatch-btn{display:none;width:100%;height:52px;border-radius:10px;border:1px solid var(--border);cursor:pointer;align-items:center;justify-content:space-between;padding:0 12px;color:#fff;font-weight:600;font-size:.9rem;text-shadow:0 1px 2px rgba(0,0,0,.5);box-shadow:inset 0 0 0 2px rgba(255,255,255,.14);transition:transform var(--dur-fast) ease,border-color var(--dur-fast) ease;touch-action:manipulation}
+.mobile-swatch-btn:active{transform:scale(.96)}
+.mobile-swatch-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mobile-swatch-btn .swatch-hex{font-variant-numeric:tabular-nums;letter-spacing:.5px}
+.mobile-swatch-btn .swatch-edit-ic{width:1rem;height:1rem;opacity:.85}
+@media (max-width:640px){
+.color-field input[type="color"]{display:none}
+.mobile-swatch-btn{display:flex}
+}
+.hsl-card{max-width:400px;max-height:90vh;overflow-y:auto}
+.hsl-plane{position:relative;width:100%;max-width:46vh;aspect-ratio:1/1;margin:0 auto;border-radius:10px;cursor:crosshair;touch-action:none;overflow:hidden;border:1px solid var(--border)}
+.hsl-plane-sat{position:absolute;inset:0;background:linear-gradient(90deg,#fff,transparent)}
+.hsl-plane-val{position:absolute;inset:0;background:linear-gradient(0deg,#000,transparent)}
+.hsl-thumb{position:absolute;width:22px;height:22px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.5);transform:translate(-50%,-50%);pointer-events:none;left:100%;top:0}
+.hsl-hue{position:relative;width:100%;height:30px;border-radius:8px;margin-top:14px;cursor:pointer;touch-action:none;background:linear-gradient(90deg,#f00 0%,#ff0 17%,#0f0 33%,#0ff 50%,#00f 67%,#f0f 83%,#f00 100%);border:1px solid var(--border)}
+.hsl-hue-thumb{position:absolute;top:50%;left:0;width:14px;height:38px;border-radius:6px;background:#fff;border:2px solid #0f0f0f;box-shadow:0 0 0 2px rgba(255,255,255,.7),0 2px 8px rgba(0,0,0,.5);transform:translate(-50%,-50%);pointer-events:none}
+.hsl-hex-row{display:flex;gap:10px;align-items:center;margin-top:14px}
+.hsl-hex-row label{flex:0 0 auto;margin:0}
+#hslHexInput{font-variant-numeric:tabular-nums;text-transform:uppercase;letter-spacing:1px}
+#hslHexInput.invalid{border-color:var(--danger)}
+.hsl-preview{height:44px;border-radius:8px;border:1px solid var(--border);margin-top:12px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.08)}
 @media (max-width:420px){.color-picker-row{flex-wrap:wrap}.color-shuffle-btn{width:100%;justify-content:center}}
 .context-menu{position:fixed;z-index:2600;min-width:172px;background:#1d1d1d;border:1px solid var(--border);border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.6);padding:5px;display:none}
 .context-menu.visible{display:block;animation:popIn var(--dur-fast) var(--ease-out)}
@@ -959,13 +980,36 @@ body { background: white; color: black; padding: 0; }
 </div>
 <div class="label-hint color-dial-hint"><svg class="ic" aria-hidden="true"><use href="#ic-info-circle"/></svg> Drag the dot to adjust angle &amp; blend.</div>
 <div class="color-picker-row">
-<label class="color-field"><span>Color 1</span><input type="color" id="colorPickerA" value="#3a0ca3" aria-label="Gradient color 1"></label>
-<label class="color-field"><span>Color 2</span><input type="color" id="colorPickerB" value="#4361ee" aria-label="Gradient color 2"></label>
+<label class="color-field"><span>Color 1</span><input type="color" id="colorPickerA" value="#3a0ca3" aria-label="Gradient color 1"><button type="button" class="mobile-swatch-btn" id="mobileSwatchA" aria-label="Edit gradient color 1"><span class="swatch-hex">#3A0CA3</span><svg class="ic swatch-edit-ic" aria-hidden="true"><use href="#ic-edit"/></svg></button></label>
+<label class="color-field"><span>Color 2</span><input type="color" id="colorPickerB" value="#4361ee" aria-label="Gradient color 2"><button type="button" class="mobile-swatch-btn" id="mobileSwatchB" aria-label="Edit gradient color 2"><span class="swatch-hex">#4361EE</span><svg class="ic swatch-edit-ic" aria-hidden="true"><use href="#ic-edit"/></svg></button></label>
 <button type="button" class="btn color-shuffle-btn" id="colorShuffleBtn" title="Shuffle to a fresh color pair"><svg class="ic" aria-hidden="true"><use href="#ic-sync"/></svg> Shuffle</button>
 </div>
 <div class="confirm-actions">
 <button class="btn" id="colorPickerCancel">Cancel</button>
 <button class="btn btn-accent" id="colorPickerSave">Save</button>
+</div>
+</div>
+</div>
+<div id="mobileHslModal" class="modal confirm-modal" aria-hidden="true">
+<div class="confirm-card hsl-card" role="dialog" aria-modal="true" aria-labelledby="mobileHslTitle">
+<div class="confirm-icon" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#ic-palette"/></svg></div>
+<h2 class="confirm-title" id="mobileHslTitle">Pick Color</h2>
+<div class="hsl-plane" id="hslPlane" role="slider" tabindex="0" aria-label="Saturation and brightness" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+<div class="hsl-plane-sat"></div>
+<div class="hsl-plane-val"></div>
+<div class="hsl-thumb" id="hslPlaneThumb"></div>
+</div>
+<div class="hsl-hue" id="hslHue" role="slider" tabindex="0" aria-label="Hue" aria-valuemin="0" aria-valuemax="360" aria-valuenow="0">
+<div class="hsl-hue-thumb" id="hslHueThumb"></div>
+</div>
+<div class="hsl-hex-row">
+<label for="hslHexInput">Hex</label>
+<input type="text" id="hslHexInput" maxlength="7" spellcheck="false" autocomplete="off" aria-label="Hex color value">
+</div>
+<div class="hsl-preview" id="hslPreview" aria-hidden="true"></div>
+<div class="confirm-actions">
+<button class="btn" id="hslCancel">Cancel</button>
+<button class="btn btn-accent" id="hslApply">Apply</button>
 </div>
 </div>
 </div>
@@ -1291,6 +1335,18 @@ const colorAngleReadout = document.getElementById('colorAngleReadout');
 const colorBlendReadout = document.getElementById('colorBlendReadout');
 const colorPickerCancel = document.getElementById('colorPickerCancel');
 const colorPickerSave = document.getElementById('colorPickerSave');
+const mobileHslModal = document.getElementById('mobileHslModal');
+const mobileSwatchA = document.getElementById('mobileSwatchA');
+const mobileSwatchB = document.getElementById('mobileSwatchB');
+const hslPlane = document.getElementById('hslPlane');
+const hslPlaneThumb = document.getElementById('hslPlaneThumb');
+const hslHue = document.getElementById('hslHue');
+const hslHueThumb = document.getElementById('hslHueThumb');
+const hslHexInput = document.getElementById('hslHexInput');
+const hslPreview = document.getElementById('hslPreview');
+const hslCancel = document.getElementById('hslCancel');
+const hslApply = document.getElementById('hslApply');
+const mobileHslTitle = document.getElementById('mobileHslTitle');
 const categoryContextMenu = document.getElementById('categoryContextMenu');
 const contextEditCategoryBtn = document.getElementById('contextEditCategoryBtn');
 const contextChangeColorBtn = document.getElementById('contextChangeColorBtn');
@@ -1331,6 +1387,9 @@ let categoryColorMap = {};
 let colorPickerResolver = null;
 let colorPickerState = { a: '#3a0ca3', b: '#4361ee', angle: 45, intensity: 100 };
 let dialDragging = false;
+let hslTarget = 'a';
+let hslState = { h: 0, s: 1, v: 1 };
+let hslDragging = null;
 const BEE_CONFIG = {
 SIZE_MIN: 34,
 SIZE_MAX: 46,
@@ -3135,6 +3194,71 @@ else if (e.key === 'ArrowDown') colorPickerState.intensity = Math.max(25, colorP
 else handled = false;
 if (handled) { e.preventDefault(); syncColorPickerUI(); }
 });
+mobileSwatchA.addEventListener('click', () => openMobileHslPicker('a'));
+mobileSwatchB.addEventListener('click', () => openMobileHslPicker('b'));
+hslCancel.addEventListener('click', () => settleMobileHsl(false));
+hslApply.addEventListener('click', () => settleMobileHsl(true));
+mobileHslModal.addEventListener('click', (e) => { if (e.target === mobileHslModal) settleMobileHsl(false); });
+hslPlane.addEventListener('pointerdown', (e) => {
+e.preventDefault();
+hslDragging = 'plane';
+try { hslPlane.setPointerCapture(e.pointerId); } catch (err) { /* capture is best-effort */ }
+updateHslFromPlane(e.clientX, e.clientY);
+});
+hslPlane.addEventListener('pointermove', (e) => {
+if (hslDragging === 'plane') updateHslFromPlane(e.clientX, e.clientY);
+});
+hslHue.addEventListener('pointerdown', (e) => {
+e.preventDefault();
+hslDragging = 'hue';
+try { hslHue.setPointerCapture(e.pointerId); } catch (err) { /* capture is best-effort */ }
+updateHslFromHue(e.clientX);
+});
+hslHue.addEventListener('pointermove', (e) => {
+if (hslDragging === 'hue') updateHslFromHue(e.clientX);
+});
+['pointerup', 'pointercancel'].forEach(eventName => {
+hslPlane.addEventListener(eventName, () => { if (hslDragging === 'plane') hslDragging = null; });
+hslHue.addEventListener(eventName, () => { if (hslDragging === 'hue') hslDragging = null; });
+});
+hslPlane.addEventListener('keydown', (e) => {
+const step = e.shiftKey ? 0.1 : 0.02;
+let handled = true;
+if (e.key === 'ArrowLeft') hslState.s = Math.max(0, hslState.s - step);
+else if (e.key === 'ArrowRight') hslState.s = Math.min(1, hslState.s + step);
+else if (e.key === 'ArrowUp') hslState.v = Math.min(1, hslState.v + step);
+else if (e.key === 'ArrowDown') hslState.v = Math.max(0, hslState.v - step);
+else handled = false;
+if (handled) { e.preventDefault(); syncHslUI(); }
+});
+hslHue.addEventListener('keydown', (e) => {
+const step = e.shiftKey ? 15 : 3;
+let handled = true;
+if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') hslState.h = (hslState.h - step + 360) % 360;
+else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') hslState.h = (hslState.h + step) % 360;
+else handled = false;
+if (handled) { e.preventDefault(); syncHslUI(); }
+});
+hslHexInput.addEventListener('input', () => {
+let v = hslHexInput.value.trim().replace(/^#/, '');
+if (/^[0-9a-fA-F]{3}$/.test(v)) v = v.split('').map(c => c + c).join('');
+if (/^[0-9a-fA-F]{6}$/.test(v)) {
+hslHexInput.classList.remove('invalid');
+const hex = '#' + v.toLowerCase();
+const hsv = hexToHsv(hex);
+hslState.h = hsv.h;
+hslState.s = hsv.s;
+hslState.v = hsv.v;
+hslPlane.style.background = hsvToHex(hslState.h, 1, 1);
+hslPlaneThumb.style.left = (hslState.s * 100) + '%';
+hslPlaneThumb.style.top = ((1 - hslState.v) * 100) + '%';
+hslPlaneThumb.style.background = hex;
+hslHueThumb.style.left = (hslState.h / 360 * 100) + '%';
+hslPreview.style.background = hex;
+} else {
+hslHexInput.classList.add('invalid');
+}
+});
 gridModeBtn.addEventListener('click', () => { if (currentViewMode === 'grid') return; currentViewMode = 'grid'; pendingViewAnimation = true; applyViewMode(); remeasureDescriptionScrolls(); renderRecipes(); });
 listModeBtn.addEventListener('click', () => { if (currentViewMode === 'list') return; currentViewMode = 'list'; pendingViewAnimation = true; applyViewMode(); remeasureDescriptionScrolls(); renderRecipes(); });
 addRecipeBtn.addEventListener('click', showAddRecipeForm);
@@ -3341,6 +3465,7 @@ preset.addEventListener('click', () => { const seconds = parseInt(preset.dataset
 document.addEventListener('keydown', (e) => {
 if (e.key === 'Tab') {
 if (confirmModal.classList.contains('active')) { trapFocusInModal(confirmModal, e); return; }
+if (mobileHslModal.classList.contains('active')) { trapFocusInModal(mobileHslModal, e); return; }
 if (categoryColorModal.classList.contains('active')) { trapFocusInModal(categoryColorModal, e); return; }
 if (recipeModal.classList.contains('active')) { trapFocusInModal(recipeModal, e); return; }
 if (duplicateModal.classList.contains('active')) { trapFocusInModal(duplicateModal, e); return; }
@@ -3355,6 +3480,7 @@ return;
 }
 if (categoryContextMenu.classList.contains('visible')) { closeAllContextMenus(); return; }
 if (confirmModal.classList.contains('active')) { settleConfirmDialog(false); return; }
+if (mobileHslModal.classList.contains('active')) { settleMobileHsl(false); return; }
 if (categoryColorModal.classList.contains('active')) { settleColorPicker(false); return; }
 if (imageZoomModal.classList.contains('active')) { closeImageZoom(); return; }
 if (recipeModal.classList.contains('active')) { closeRecipeModal(); return; }
@@ -3377,7 +3503,7 @@ return;
 const tagName = (e.target.tagName || '').toUpperCase();
 if (tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') return;
 if (addRecipeForm.style.display === 'block' || editRecipeUI.style.display === 'block') return;
-const modalOpen = recipeModal.classList.contains('active') || duplicateModal.classList.contains('active') || shortcutsModal.classList.contains('active') || imageZoomModal.classList.contains('active') || confirmModal.classList.contains('active') || categoryColorModal.classList.contains('active');
+const modalOpen = recipeModal.classList.contains('active') || duplicateModal.classList.contains('active') || shortcutsModal.classList.contains('active') || imageZoomModal.classList.contains('active') || confirmModal.classList.contains('active') || categoryColorModal.classList.contains('active') || mobileHslModal.classList.contains('active');
 if (modalOpen) return;
 if (e.altKey && (e.key === 'n' || e.key === 'N')) { e.preventDefault(); showAddRecipeForm(); return; }
 if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'n' || e.key === 'N')) { showAddRecipeForm(); return; }
@@ -4104,6 +4230,7 @@ colorBlendReadout.textContent = intensity + '%';
 colorDial.setAttribute('aria-valuenow', String(angle));
 colorDial.setAttribute('aria-valuetext', `Angle ${angle} degrees, blend ${intensity} percent`);
 positionDialDot();
+updateMobileSwatches();
 }
 function positionDialDot() {
 const size = colorDial.clientWidth || 132;
@@ -4140,6 +4267,100 @@ const pick = pool[Math.floor(Math.random() * pool.length)] || CATEGORY_COLORS[0]
 colorPickerState.a = pick[0];
 colorPickerState.b = pick[1];
 syncColorPickerUI();
+}
+/* ---- Mobile HSV color picker (replaces native <input type=color> below 640px) ---- */
+function hexToHsv(hex) {
+const { r, g, b } = hexToRgb(hex);
+const rn = r / 255, gn = g / 255, bn = b / 255;
+const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
+const d = max - min;
+let h = 0;
+if (d !== 0) {
+if (max === rn) h = 60 * (((gn - bn) / d) % 6);
+else if (max === gn) h = 60 * ((bn - rn) / d + 2);
+else h = 60 * ((rn - gn) / d + 4);
+}
+if (h < 0) h += 360;
+const s = max === 0 ? 0 : d / max;
+return { h, s, v: max };
+}
+function hsvToHex(h, s, v) {
+const c = v * s;
+const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+const m = v - c;
+let rp = 0, gp = 0, bp = 0;
+if (h < 60) { rp = c; gp = x; }
+else if (h < 120) { rp = x; gp = c; }
+else if (h < 180) { gp = c; bp = x; }
+else if (h < 240) { gp = x; bp = c; }
+else if (h < 300) { rp = x; bp = c; }
+else { rp = c; bp = x; }
+const to = (n) => Math.round((n + m) * 255).toString(16).padStart(2, '0');
+return '#' + to(rp) + to(gp) + to(bp);
+}
+function updateMobileSwatches() {
+if (mobileSwatchA) {
+mobileSwatchA.style.background = colorPickerState.a;
+mobileSwatchA.querySelector('.swatch-hex').textContent = colorPickerState.a.toUpperCase();
+}
+if (mobileSwatchB) {
+mobileSwatchB.style.background = colorPickerState.b;
+mobileSwatchB.querySelector('.swatch-hex').textContent = colorPickerState.b.toUpperCase();
+}
+}
+function syncHslUI() {
+const hueColor = hsvToHex(hslState.h, 1, 1);
+const currentHex = hsvToHex(hslState.h, hslState.s, hslState.v);
+hslPlane.style.background = hueColor;
+hslPlaneThumb.style.left = (hslState.s * 100) + '%';
+hslPlaneThumb.style.top = ((1 - hslState.v) * 100) + '%';
+hslPlaneThumb.style.background = currentHex;
+hslHueThumb.style.left = (hslState.h / 360 * 100) + '%';
+if (document.activeElement !== hslHexInput) {
+hslHexInput.value = currentHex.toUpperCase();
+hslHexInput.classList.remove('invalid');
+}
+hslPreview.style.background = currentHex;
+hslPlane.setAttribute('aria-valuenow', String(Math.round(hslState.v * 100)));
+hslPlane.setAttribute('aria-valuetext', `Hue ${Math.round(hslState.h)} degrees, saturation ${Math.round(hslState.s * 100)} percent, brightness ${Math.round(hslState.v * 100)} percent`);
+hslHue.setAttribute('aria-valuenow', String(Math.round(hslState.h)));
+hslHue.setAttribute('aria-valuetext', `Hue ${Math.round(hslState.h)} degrees`);
+}
+function updateHslFromPlane(clientX, clientY) {
+const rect = hslPlane.getBoundingClientRect();
+hslState.s = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+hslState.v = 1 - Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+syncHslUI();
+}
+function updateHslFromHue(clientX) {
+const rect = hslHue.getBoundingClientRect();
+hslState.h = Math.max(0, Math.min(360, ((clientX - rect.left) / rect.width) * 360));
+syncHslUI();
+}
+function openMobileHslPicker(targetKey) {
+hslTarget = targetKey;
+const current = normalizeHexColor(colorPickerState[targetKey], '#ffffff');
+const hsv = hexToHsv(current);
+hslState = { h: hsv.h, s: hsv.s, v: hsv.v };
+mobileHslTitle.textContent = targetKey === 'a' ? 'Color 1' : 'Color 2';
+lastFocusedElement = document.activeElement;
+mobileHslModal.classList.add('active');
+mobileHslModal.setAttribute('aria-hidden', 'false');
+syncHslUI();
+hslHexInput.value = current.toUpperCase();
+hslHexInput.classList.remove('invalid');
+setTimeout(() => { hslApply.focus(); }, 30);
+}
+function settleMobileHsl(apply) {
+if (!mobileHslModal.classList.contains('active')) return;
+if (apply) {
+colorPickerState[hslTarget] = hsvToHex(hslState.h, hslState.s, hslState.v);
+syncColorPickerUI();
+}
+hslDragging = null;
+moveFocusSafely();
+mobileHslModal.classList.remove('active');
+mobileHslModal.setAttribute('aria-hidden', 'true');
 }
 function populateCategoryDropdowns() {
 const addCurrent = addRecipeCategory.value;
