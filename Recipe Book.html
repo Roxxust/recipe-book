@@ -1,3 +1,4 @@
+<!-- File: recipe-book.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -50,13 +51,12 @@ header h1{font-size:2rem;color:var(--accent);display:inline-flex;gap:8px;align-i
 .btn-danger:hover{background:#e66a7a}
 .btn-warning{background:var(--warning);color:#000;border:none}
 .btn-info{background:var(--info);color:#000;border:none}
-.btn-info.active{background:var(--danger);color:#000}
 .btn:active:not(:disabled),.view-mode-btn:active,.modal-action-btn:active,.scaling-btn:active,
 .timer-btn:active,.timer-preset:active:not(:disabled),.category-tag-btn:active,
 .remove-ingredient:active,.recipe-bookmark:active{transform:scale(.94)}
 .category-filter{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--card-bg);padding:8px;border-radius:10px;border:1px solid var(--border);width:100%}
 .categories-container{display:flex;gap:8px;flex-wrap:wrap}
-.category-tag{background:#212121;padding:0;border-radius:18px;border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;color:var(--text);font-size:.9rem;transition:all var(--dur-fast) ease;overflow:hidden;position:relative;--cat-a:var(--accent);--cat-b:#4361ee;--cat-angle:45deg;--cat-intensity:100%;--cat-active-text:#fff;--cat-active-shadow:none}
+.category-tag{background:#212121;padding:0;border-radius:18px;border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;color:var(--text);font-size:.9rem;transition:all var(--dur-fast) ease;overflow:hidden;position:relative;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;--cat-a:var(--accent);--cat-b:#4361ee;--cat-angle:45deg;--cat-intensity:100%;--cat-active-text:#fff;--cat-active-shadow:none}
 .category-tag:hover{border-color:var(--cat-a);background:color-mix(in srgb, var(--cat-a) 16%, #212121);color:var(--text)}
 .category-tag.active{background:linear-gradient(var(--cat-angle,45deg),var(--cat-a),var(--cat-b) var(--cat-intensity,100%)) padding-box;border-color:transparent;color:var(--cat-active-text,#fff);text-shadow:var(--cat-active-shadow,none);animation:pillPop var(--dur-med) var(--ease-spring)}
 .category-tag.active:hover{background:linear-gradient(var(--cat-angle,45deg),var(--cat-a),var(--cat-b) var(--cat-intensity,100%)) padding-box;color:var(--cat-active-text,#fff)}
@@ -125,11 +125,14 @@ display:flex;
 flex-direction:column;
 content-visibility: auto;
 contain-intrinsic-size: 240px 380px;
+-webkit-user-select:none;
+user-select:none;
+-webkit-touch-callout:none;
 }
 .recipe-card:hover{transform:translateY(-6px);border-color:var(--accent)}
 .recipe-card.card-enter{animation:cardIn var(--dur-slow) var(--ease-out) backwards}
 .recipe-card.card-exit{animation:cardOut var(--dur-fast) ease forwards;pointer-events:none}
-.recipe-card-open{position:absolute;inset:0;background:transparent;border:none;cursor:pointer;z-index:1;padding:0}
+.recipe-card-open{position:absolute;inset:0;background:transparent;border:none;cursor:pointer;z-index:1;padding:0;-webkit-tap-highlight-color:transparent}
 .recipe-card-open:focus-visible{outline:2px solid var(--accent);outline-offset:-3px;border-radius:12px}
 .recipe-bookmark{position:absolute;top:8px;right:8px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;transition:all var(--dur-fast) ease}
 .recipe-bookmark:hover{background:var(--danger)}
@@ -277,7 +280,6 @@ position:relative;
 .modal-action-btn.favorites-btn:hover{background:#d07a90}
 .modal-action-btn.close-btn{background:#2a2a2a;color:var(--text)}
 .modal-action-btn.close-btn:hover{background:#ff4757}
-.close-modal{background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer}
 .modal-body{padding:12px}
 .section-title{color:var(--accent);margin-top:12px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
 .ingredients-list,.instructions-list{list-style:none;padding:0;margin:0}
@@ -439,7 +441,6 @@ textarea{min-height:90px;resize:vertical}
 .duplicate-actions-global{display:flex;gap:8px;margin-top:16px;padding:14px 0 4px;border-top:1px solid var(--border);position:sticky;bottom:0;background:var(--card-bg);box-shadow:0 -8px 16px rgba(0,0,0,.35)}
 @media (max-width:640px){.duplicate-stats{grid-template-columns:repeat(2,1fr)}}
 *:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.view-mode-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .scroll-to-top{position:fixed;bottom:30px;right:30px;width:50px;height:50px;border-radius:50%;background:var(--accent);color:#000;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:100;transition:opacity var(--dur-med) ease, transform var(--dur-med) ease}
 .scroll-to-top.visible{display:flex}
 .scroll-to-top:hover{transform:translateY(-4px)}
@@ -527,7 +528,6 @@ textarea{min-height:90px;resize:vertical}
 .bee-scale.returning{transform:scale(.1);opacity:0;transition:transform .36s cubic-bezier(.5,0,.7,1),opacity .3s}
 .bee-rot{width:100%;height:100%;will-change:transform}
 .bee-rot .bee-svg{width:100%;height:100%;animation:beeBuzz .08s ease-in-out infinite alternate}
-@keyframes beeIn{from{opacity:0}to{opacity:1}}
 @keyframes beeBuzz{from{transform:rotate(-1.6deg) translate(0,.5px)}to{transform:rotate(1.6deg) translate(0,-.5px)}}
 .bee-body{fill:#262014}
 .bee-stinger{fill:#262014}
@@ -567,9 +567,6 @@ textarea{min-height:90px;resize:vertical}
 @media (prefers-reduced-motion: reduce) {
 *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
-@media (min-width:980px){
-.ingredient-name{font-size:15px}
-}
 @media (max-width:979px){
 .view-list .recipe-card{height:auto;display:block}
 .view-list .recipe-image{width:100%;height:160px;min-width:auto}
@@ -577,14 +574,13 @@ textarea{min-height:90px;resize:vertical}
 .ingredient-amount{min-width:48px}
 .ingredient-unit{min-width:60px}
 .unit-dropdown{min-width:60px}
-.ingredient-name{font-size:15px}
 .container{padding:12px}
 .btn{padding:9px 10px}
 .form-container,.edit-ui{padding:12px}
 .modal-action-btn{width:44px;height:44px}
 }
 @media (max-width:420px){
-.ingredient-name{flex-basis:45%;padding:7px;font-size:15px}
+.ingredient-name{flex-basis:45%;padding:7px}
 .ingredient-amount{flex-basis:15%;min-width:40px;padding:7px}
 .ingredient-unit{flex-basis:18%;min-width:60px;padding:7px}
 .unit-dropdown{flex-basis:18%;min-width:60px}
@@ -602,17 +598,9 @@ textarea{min-height:90px;resize:vertical}
 .toast-container { left: 20px; right: 20px; bottom: 80px; }
 .toast { min-width: auto; }
 }
-.markdown-content h1, .markdown-content h2, .markdown-content h3 { margin: 12px 0 8px 0; color: var(--accent); }
-.markdown-content h1 { font-size: 1.5rem; }
-.markdown-content h2 { font-size: 1.3rem; }
-.markdown-content h3 { font-size: 1.1rem; }
-.markdown-content p { margin: 8px 0; }
-.markdown-content ul, .markdown-content ol { margin: 8px 0; padding-left: 24px; }
-.markdown-content li { margin: 4px 0; }
 .markdown-content strong { font-weight: bold; color: var(--text); }
 .markdown-content em { font-style: italic; }
 .markdown-content code { background: #2a2a2a; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
-.markdown-content blockquote { border-left: 3px solid var(--accent); padding-left: 12px; margin: 8px 0; color: var(--text-secondary); }
 #modalRecipeImage {
 width: 100%;
 height: 250px;
@@ -1390,6 +1378,7 @@ let dialDragging = false;
 let hslTarget = 'a';
 let hslState = { h: 0, s: 1, v: 1 };
 let hslDragging = null;
+let suppressClickAfterLongPress = false;
 const BEE_CONFIG = {
 SIZE_MIN: 34,
 SIZE_MAX: 46,
@@ -1445,6 +1434,7 @@ let timerBackgroundInterval = null;
 let timerTickWorker = null;
 let timerInputDirection = 'right';
 let timerFirstInputField = null;
+let timerPersistInterval = null;
 let infiniteScrollObserver = null;
 let currentRenderRequestId = 0;
 let currentSearchRequestId = 0;
@@ -1480,7 +1470,6 @@ function createObjectURL(blob, key) {
 const url = URL.createObjectURL(blob);
 const oldUrl = recipeBlobUrls.get(key);
 if (oldUrl && oldUrl !== url) {
-// Defer revoking the previous URL so any in-flight <img> load using it can finish.
 setTimeout(() => { try { URL.revokeObjectURL(oldUrl); } catch (e) {} }, 1500);
 }
 recipeBlobUrls.set(key, url);
@@ -1628,8 +1617,6 @@ if (!hash) {
 await dbWrapper.put(STORE_IMAGES, { id: preferredId, blob: blob, recipeId: recipeId });
 return preferredId;
 }
-// Serialize the check-then-store per hash so concurrent saves of the same
-// image cannot both miss the lookup and store duplicate blobs (TOCTOU).
 const prev = imageStoreLocks.get(hash) || Promise.resolve();
 const current = prev.then(async () => {
 const existingId = await findImageIdByHash(hash);
@@ -1870,7 +1857,9 @@ try {
 const blob = new Blob([workerCode], { type: 'application/javascript' });
 const workerUrl = URL.createObjectURL(blob);
 searchWorker = new Worker(workerUrl);
+const urlGrace = setTimeout(() => revokeWorkerUrl(workerUrl), 10000);
 searchWorker.onmessage = (e) => {
+clearTimeout(urlGrace);
 revokeWorkerUrl(workerUrl);
 const requestId = e.data && e.data.requestId;
 const ids = (e.data && e.data.ids) || [];
@@ -1882,6 +1871,7 @@ pendingSearchPayloads.delete(requestId);
 }
 };
 searchWorker.onerror = () => {
+clearTimeout(urlGrace);
 console.warn('Search worker failed, falling back to main thread search.');
 fallbackPendingSearches();
 try { searchWorker.terminate(); } catch (e) {}
@@ -2087,7 +2077,7 @@ if (Math.abs(fractionalPart - frac.value) < 0.015) {
 return wholePart === 0 ? frac.display : `${wholePart} ${frac.display}`;
 }
 }
-return scaledValue.toFixed(2).replace(/0$/, '').replace(/\.$/, '');
+return scaledValue.toFixed(2).replace(/0$/, '');
 }
 function updateSearchUI() {
 const hasText = searchInput.value.trim().length > 0;
@@ -2430,7 +2420,6 @@ initBroadcastChannel();
 injectPwaManifest();
 finishImportBtn.disabled = true;
 updateSearchUI();
-// Reclaim any image blobs orphaned by interrupted purges or prior crashes.
 cleanupUnreferencedImages().catch(e => console.warn('Startup image cleanup failed', e));
 showToast('Recipe Book loaded', 'success');
 })();
@@ -2813,6 +2802,12 @@ function cleanupOnUnload() {
 stopTimerLoop();
 if (timerAlertInterval) { clearInterval(timerAlertInterval); timerAlertInterval = null; }
 if (timerTickWorker) { try { timerTickWorker.terminate(); } catch (e) {} timerTickWorker = null; }
+if (timerPersistInterval) { clearInterval(timerPersistInterval); timerPersistInterval = null; }
+if (draftSaveTimer) { clearTimeout(draftSaveTimer); draftSaveTimer = null; }
+if (broadcastReloadTimer) { clearTimeout(broadcastReloadTimer); broadcastReloadTimer = null; }
+if (beeHoldTimer) { clearTimeout(beeHoldTimer); beeHoldTimer = null; }
+stopPointerAutoScroll();
+if (searchWorker) { try { searchWorker.terminate(); } catch (e) {} searchWorker = null; }
 saveTimerState();
 purgeAllPendingDeletedRecipes();
 revokeAllObjectURLs();
@@ -3095,6 +3090,46 @@ Array.from(recipesGrid.children).forEach(card => {
 if (card.classList && card.classList.contains('recipe-card')) descriptionVisibilityObserver.observe(card);
 });
 }
+/**
+* Touch devices (notably iOS) never fire a native `contextmenu`, and a plain
+* long-press selects text instead. After a short hold we dispatch a synthetic
+* contextmenu so the same handlers open the menu; CSS user-select /
+* touch-callout suppression keeps the native selection UI away, and the
+* trailing click that follows the release is swallowed so it can neither
+* close the freshly opened menu nor trigger the underlying card/category
+* action.
+*/
+function attachLongPressMenu(container) {
+let lpTimer = null;
+let lpX = 0;
+let lpY = 0;
+let lpTarget = null;
+const clearLongPress = () => {
+if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; }
+};
+container.addEventListener('pointerdown', (e) => {
+if (e.pointerType !== 'touch') return;
+clearLongPress();
+lpX = e.clientX;
+lpY = e.clientY;
+lpTarget = e.target;
+lpTimer = setTimeout(() => {
+lpTimer = null;
+const target = lpTarget;
+if (!target || !document.contains(target)) return;
+suppressClickAfterLongPress = true;
+target.dispatchEvent(new MouseEvent('contextmenu', {
+bubbles: true, cancelable: true, view: window, clientX: lpX, clientY: lpY
+}));
+}, 550);
+});
+container.addEventListener('pointermove', (e) => {
+if (lpTimer && (Math.abs(e.clientX - lpX) > 10 || Math.abs(e.clientY - lpY) > 10)) clearLongPress();
+});
+container.addEventListener('pointerup', clearLongPress);
+container.addEventListener('pointercancel', clearLongPress);
+container.addEventListener('contextmenu', clearLongPress);
+}
 function setupEventListeners() {
 window.addEventListener('beforeunload', (e) => {
 if (addFormDirty || editFormDirty) {
@@ -3122,6 +3157,16 @@ const target = e.target;
 if (target && target.nodeType === 1 && target.closest && target.closest('.context-menu')) return;
 closeAllContextMenus();
 }, true);
+document.addEventListener('click', (e) => {
+if (suppressClickAfterLongPress) {
+suppressClickAfterLongPress = false;
+e.stopPropagation();
+e.preventDefault();
+}
+}, true);
+document.addEventListener('pointerdown', () => { suppressClickAfterLongPress = false; }, true);
+attachLongPressMenu(categoriesContainer);
+attachLongPressMenu(recipesGrid);
 scrollToTopBtn.addEventListener('click', () => {
 window.scrollTo({ top: 0, behavior: 'smooth' });
 });
@@ -3646,7 +3691,7 @@ setTimeout(() => { target.scrollIntoView({ behavior: 'smooth', block: 'center' }
 }
 });
 }
-setInterval(() => { if (timerRunning || timerAlertActive) saveTimerState(); }, 5000);
+timerPersistInterval = setInterval(() => { if (timerRunning || timerAlertActive) saveTimerState(); }, 5000);
 document.addEventListener('visibilitychange', async () => {
 if (timerRunning || timerAlertActive) saveTimerState();
 if (document.visibilityState === 'visible') {
@@ -4528,8 +4573,7 @@ if (categories.length <= 1) { showToast('You need at least one category', 'warni
 const inCat = recipes.filter(r => r.category === categoryName);
 let message = `Remove the "${categoryName}" category?`;
 if (inCat.length > 0) {
-message = `Remove the "${categoryName}" category?
-${inCat.length} recipe(s) will have their category removed — the recipes are kept, and you can edit each one to assign a new category.`;
+message = `Remove the "${categoryName}" category?\n${inCat.length} recipe(s) will have their category removed — the recipes are kept, and you can edit each one to assign a new category.`;
 }
 const proceed = await confirmDialog({
 title: 'Delete category?',
@@ -5954,6 +5998,8 @@ closeRecipeModal();
 clearDraft('edit');
 hideEditUI(true);
 const deletedRecipe = recipe;
+let undoDeadline = Date.now() + UNDO_WINDOW_MS;
+let undoRemaining = UNDO_WINDOW_MS;
 const purgeTimeout = setTimeout(() => { purgePendingDeletedRecipe(deletedRecipe.id); }, UNDO_WINDOW_MS);
 pendingDeletedRecipes.set(deletedRecipe.id, { recipe: deletedRecipe, timeout: purgeTimeout });
 const toast = showToast('Recipe deleted', 'info', 6000);
@@ -5962,12 +6008,14 @@ const pending = pendingDeletedRecipes.get(deletedRecipe.id);
 if (pending && pending.timeout) {
 clearTimeout(pending.timeout);
 pending.timeout = null;
+undoRemaining = Math.max(1000, undoDeadline - Date.now());
 }
 });
 toast.addEventListener('mouseleave', () => {
 const pending = pendingDeletedRecipes.get(deletedRecipe.id);
 if (pending && !pending.timeout) {
-pending.timeout = setTimeout(() => { purgePendingDeletedRecipe(deletedRecipe.id); }, UNDO_WINDOW_MS);
+undoDeadline = Date.now() + undoRemaining;
+pending.timeout = setTimeout(() => { purgePendingDeletedRecipe(deletedRecipe.id); }, undoRemaining);
 }
 });
 const undoBtn = document.createElement('button');
