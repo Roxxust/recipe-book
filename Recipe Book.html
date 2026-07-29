@@ -668,8 +668,8 @@ body { background: white; color: black; padding: 0; }
 <symbol id="ic-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
 <symbol id="ic-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></symbol>
 <symbol id="ic-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></symbol>
-<symbol id="ic-heart" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></symbol>
-<symbol id="ic-heart-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></symbol>
+<symbol id="ic-heart" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></symbol>
+<symbol id="ic-heart-o" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></symbol>
 <symbol id="ic-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
 <symbol id="ic-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3.5 6h.01"/><path d="M3.5 12h.01"/><path d="M3.5 18h.01"/></symbol>
 <symbol id="ic-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5C5 3 8.5 3 12 5.5c3.5-2.5 7-2.5 10-1v14c-3-1.5-6.5-1.5-10 1-3.5-2.5-7-2.5-10-1z"/><path d="M12 5.5v14"/></symbol>
@@ -1418,6 +1418,13 @@ let pendingViewAnimation = false;
 const recipeBlobUrls = new Map();
 const cardRegistry = new Map();
 const imageHashCache = new Map();
+const IMAGE_HASH_CACHE_MAX = 2000;
+function cacheImageHash(hash, id) {
+if (!hash) return;
+if (imageHashCache.size >= IMAGE_HASH_CACHE_MAX) imageHashCache.clear();
+imageHashCache.set(hash, id);
+}
+const imageStoreLocks = new Map();
 let pendingImportData = null;
 let duplicateResolutions = {};
 let importStats = { new: 0, duplicates: 0, skipped: 0, replaced: 0 };
@@ -1435,6 +1442,7 @@ let audioContext = null;
 let lastDisplayedSecond = -1;
 let timerAnimationFrame = null;
 let timerBackgroundInterval = null;
+let timerTickWorker = null;
 let timerInputDirection = 'right';
 let timerFirstInputField = null;
 let infiniteScrollObserver = null;
@@ -1442,9 +1450,12 @@ let currentRenderRequestId = 0;
 let currentSearchRequestId = 0;
 const pendingSearchResolvers = new Map();
 const pendingSearchPayloads = new Map();
+let searchWorkerTimeoutStrikes = 0;
+const MAX_SEARCH_WORKER_STRIKES = 2;
 let lastFocusedElement = null;
 let descriptionVisibilityObserver = null;
 let broadcastChannel = null;
+let broadcastReloadTimer = null;
 const pendingDeletedRecipes = new Map();
 let confirmResolver = null;
 let confirmIsPrompt = false;
@@ -1463,11 +1474,14 @@ let marqueeRafId = null;
 let searchWorker = null;
 let workerUrlRevoked = false;
 const searchDocsMap = new Map();
+const searchDocSigs = new Map();
+function docSignature(r) { return r.id + ':' + (r.updatedAt || 0); }
 function createObjectURL(blob, key) {
 const url = URL.createObjectURL(blob);
 const oldUrl = recipeBlobUrls.get(key);
-if (oldUrl) {
-try { URL.revokeObjectURL(oldUrl); } catch (e) {}
+if (oldUrl && oldUrl !== url) {
+// Defer revoking the previous URL so any in-flight <img> load using it can finish.
+setTimeout(() => { try { URL.revokeObjectURL(oldUrl); } catch (e) {} }, 1500);
 }
 recipeBlobUrls.set(key, url);
 return url;
@@ -1481,10 +1495,10 @@ recipeBlobUrls.delete(key);
 }
 function revokeTrackedUrl(url) {
 if (!url || typeof url !== 'string' || !url.startsWith('blob:')) return;
-try { URL.revokeObjectURL(url); } catch (e) {}
 for (const [key, value] of Array.from(recipeBlobUrls.entries())) {
 if (value === url) recipeBlobUrls.delete(key);
 }
+setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 1500);
 }
 function revokeAllObjectURLs() {
 for (const url of recipeBlobUrls.values()) {
@@ -1580,7 +1594,7 @@ const req = store.index('hash').get(hash);
 req.onsuccess = () => {
 const rec = req.result;
 if (rec && rec.id) {
-imageHashCache.set(hash, rec.id);
+cacheImageHash(hash, rec.id);
 resolve(rec.id);
 } else {
 resolve(null);
@@ -1595,7 +1609,7 @@ const cursor = cursorReq.result;
 if (cursor) {
 const v = cursor.value;
 if (v && v.hash) {
-imageHashCache.set(v.hash, v.id);
+cacheImageHash(v.hash, v.id);
 if (v.hash === hash) { resolve(v.id); return; }
 }
 cursor.continue();
@@ -1610,13 +1624,27 @@ cursorReq.onerror = () => resolve(null);
 async function storeImageWithDedupe(blob, preferredId, recipeId) {
 if (!dbWrapper.db) return preferredId;
 const hash = await hashBlob(blob);
-if (hash) {
+if (!hash) {
+await dbWrapper.put(STORE_IMAGES, { id: preferredId, blob: blob, recipeId: recipeId });
+return preferredId;
+}
+// Serialize the check-then-store per hash so concurrent saves of the same
+// image cannot both miss the lookup and store duplicate blobs (TOCTOU).
+const prev = imageStoreLocks.get(hash) || Promise.resolve();
+const current = prev.then(async () => {
 const existingId = await findImageIdByHash(hash);
 if (existingId) return existingId;
-}
-await dbWrapper.put(STORE_IMAGES, { id: preferredId, blob: blob, recipeId: recipeId, hash: hash || undefined });
-if (hash) imageHashCache.set(hash, preferredId);
+await dbWrapper.put(STORE_IMAGES, { id: preferredId, blob: blob, recipeId: recipeId, hash: hash });
+cacheImageHash(hash, preferredId);
 return preferredId;
+});
+const tail = current.then(id => id, () => null);
+imageStoreLocks.set(hash, tail);
+try {
+return await current;
+} finally {
+if (imageStoreLocks.get(hash) === tail) imageStoreLocks.delete(hash);
+}
 }
 function loadImageElement(blob) {
 return new Promise((resolve, reject) => {
@@ -1635,22 +1663,68 @@ return createImageBitmap(blob, { imageOrientation: 'from-image' })
 }
 return loadImageElement(blob);
 }
+function toBlobPromise(canvas, type, quality) {
+return new Promise(resolve => { canvas.toBlob(b => resolve(b), type, quality); });
+}
+let webpEncodeSupport = null;
+function isWebpEncodeSupported() {
+if (webpEncodeSupport !== null) return webpEncodeSupport;
+webpEncodeSupport = new Promise(resolve => {
+try {
+const c = document.createElement('canvas');
+c.width = 1;
+c.height = 1;
+c.toBlob(b => resolve(Boolean(b && b.type === 'image/webp')), 'image/webp', 0.5);
+} catch (e) { resolve(false); }
+});
+return webpEncodeSupport;
+}
+function canvasHasTransparency(ctx, w, h) {
+try {
+const data = ctx.getImageData(0, 0, w, h).data;
+const total = w * h;
+const step = Math.max(1, Math.floor(total / 2500)) * 4;
+for (let i = 3; i < data.length; i += step) {
+if (data[i] < 250) return true;
+}
+return false;
+} catch (e) { return false; }
+}
+/**
+* Downscale + re-encode an image while preserving transparency. Transparent
+* sources are kept as WebP (or PNG where WebP encoding is unavailable);
+* fully-opaque sources are flattened onto white and saved as JPEG.
+*/
+async function reencodeImage(blob, maxDim, quality) {
+const bmp = await loadImageBitmap(blob);
+const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
+const w = Math.max(1, Math.round(bmp.width * scale));
+const h = Math.max(1, Math.round(bmp.height * scale));
+const canvas = document.createElement('canvas');
+canvas.width = w;
+canvas.height = h;
+const ctx = canvas.getContext('2d');
+ctx.drawImage(bmp, 0, 0, w, h);
+if (bmp.close) bmp.close();
+const transparent = canvasHasTransparency(ctx, w, h);
+if (transparent) {
+const useWebp = await isWebpEncodeSupported();
+if (useWebp) return (await toBlobPromise(canvas, 'image/webp', quality)) || blob;
+return (await toBlobPromise(canvas, 'image/png')) || blob;
+}
+const flat = document.createElement('canvas');
+flat.width = w;
+flat.height = h;
+const fctx = flat.getContext('2d');
+fctx.fillStyle = '#ffffff';
+fctx.fillRect(0, 0, w, h);
+fctx.drawImage(canvas, 0, 0);
+return (await toBlobPromise(flat, 'image/jpeg', quality)) || blob;
+}
 async function enforceImageBudget(blob, maxDim = 1600, maxSizeBytes = 1500000) {
 if (!blob || blob.size <= maxSizeBytes) return blob;
 try {
-const bmp = await loadImageBitmap(blob);
-const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
-const canvas = document.createElement('canvas');
-canvas.width = Math.max(1, Math.round(bmp.width * scale));
-canvas.height = Math.max(1, Math.round(bmp.height * scale));
-const ctx = canvas.getContext('2d');
-ctx.fillStyle = '#ffffff';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-if (bmp.close) bmp.close();
-return await new Promise((resolve) => {
-canvas.toBlob((b) => resolve(b || blob), 'image/jpeg', 0.82);
-});
+return await reencodeImage(blob, maxDim, 0.82);
 } catch (e) { return blob; }
 }
 function buildSearchDoc(r) {
@@ -1678,18 +1752,50 @@ try { searchWorker.postMessage({ type: 'sync', docs: getSearchDocsArray() }); } 
 function rebuildSearchDocs() {
 indexRecipes();
 searchDocsMap.clear();
-recipes.forEach(r => searchDocsMap.set(r.id, buildSearchDoc(r)));
+searchDocSigs.clear();
+recipes.forEach(r => {
+searchDocsMap.set(r.id, buildSearchDoc(r));
+searchDocSigs.set(r.id, docSignature(r));
+});
 syncSearchWorkerFull();
+}
+/**
+* Diff-based refresh used after cross-tab broadcasts: only upserts docs whose
+* signature changed and removes stale ones, instead of re-posting the whole
+* docs array to the worker.
+*/
+function syncSearchDocsIncremental() {
+indexRecipes();
+const seen = new Set();
+for (const r of recipes) {
+seen.add(r.id);
+const sig = docSignature(r);
+if (searchDocSigs.get(r.id) !== sig) {
+const doc = buildSearchDoc(r);
+searchDocsMap.set(r.id, doc);
+searchDocSigs.set(r.id, sig);
+if (searchWorker) { try { searchWorker.postMessage({ type: 'upsert', doc: doc }); } catch (e) {} }
+}
+}
+for (const id of Array.from(searchDocSigs.keys())) {
+if (!seen.has(id)) {
+searchDocSigs.delete(id);
+searchDocsMap.delete(id);
+if (searchWorker) { try { searchWorker.postMessage({ type: 'remove', id: id }); } catch (e) {} }
+}
+}
 }
 function upsertSearchDoc(recipe) {
 const doc = buildSearchDoc(recipe);
 searchDocsMap.set(recipe.id, doc);
+searchDocSigs.set(recipe.id, docSignature(recipe));
 if (searchWorker) {
 try { searchWorker.postMessage({ type: 'upsert', doc: doc }); } catch (e) {}
 }
 }
 function removeSearchDoc(id) {
 searchDocsMap.delete(id);
+searchDocSigs.delete(id);
 if (searchWorker) {
 try { searchWorker.postMessage({ type: 'remove', id: id }); } catch (e) {}
 }
@@ -1802,7 +1908,13 @@ if (settled) return;
 settled = true;
 pendingSearchResolvers.delete(requestId);
 pendingSearchPayloads.delete(requestId);
+searchWorkerTimeoutStrikes++;
 console.warn('Search worker timed out; falling back to main thread search.');
+if (searchWorkerTimeoutStrikes >= MAX_SEARCH_WORKER_STRIKES && searchWorker) {
+console.warn('Search worker repeatedly slow; disabling it for this session.');
+try { searchWorker.terminate(); } catch (e) {}
+searchWorker = null;
+}
 resolve(idsToRecipes(localSearchIds(getSearchDocsArray(), searchTerm, category, showFavorites)));
 }, SEARCH_WORKER_TIMEOUT_MS);
 pendingSearchResolvers.set(requestId, (ids) => {
@@ -2224,7 +2336,8 @@ detailValue: clampString(recipe.detailValue != null ? String(recipe.detailValue)
 bookmarked: Boolean(recipe.bookmarked),
 ingredientStates: [],
 createdAt: recipe.createdAt || Date.now(),
-updatedAt: recipe.updatedAt || Date.now()
+updatedAt: recipe.updatedAt || Date.now(),
+schemaVersion: SCHEMA_VERSION
 };
 if (Array.isArray(recipe.instructions)) {
 sanitized.instructions = recipe.instructions.filter(s => typeof s === 'string').map(s => clampString(s.trim(), MAX_TEXT_LEN));
@@ -2246,6 +2359,16 @@ sanitized.thumbId = recipe.thumbId;
 }
 return sanitized;
 }
+function stampRecipeSchemaVersions() {
+const needsStamp = recipes.filter(r => r && r.schemaVersion !== SCHEMA_VERSION);
+if (needsStamp.length === 0) return;
+needsStamp.forEach(r => { r.schemaVersion = SCHEMA_VERSION; });
+if (dbWrapper.db) {
+dbWrapper.putBulk(STORE_RECIPES, needsStamp).catch(e => console.warn('Failed to stamp recipe schema versions', e));
+} else {
+saveAllToLocalStorage();
+}
+}
 function initApp() {
 return (async function() {
 try {
@@ -2257,6 +2380,7 @@ console.warn('IndexedDB not available, using localStorage', e);
 }
 await loadData();
 indexRecipes();
+stampRecipeSchemaVersions();
 await normalizeAllRecipeCategories();
 rebuildSearchDocs();
 await loadSettings();
@@ -2306,6 +2430,8 @@ initBroadcastChannel();
 injectPwaManifest();
 finishImportBtn.disabled = true;
 updateSearchUI();
+// Reclaim any image blobs orphaned by interrupted purges or prior crashes.
+cleanupUnreferencedImages().catch(e => console.warn('Startup image cleanup failed', e));
 showToast('Recipe Book loaded', 'success');
 })();
 }
@@ -2330,23 +2456,7 @@ document.head.appendChild(link);
 }
 async function generateThumbnail(blob, maxSize = 400) {
 try {
-const bmp = await loadImageBitmap(blob);
-let width = bmp.width;
-let height = bmp.height;
-if (width > height) {
-if (width > maxSize) { height *= maxSize / width; width = maxSize; }
-} else {
-if (height > maxSize) { width *= maxSize / height; height = maxSize; }
-}
-const canvas = document.createElement('canvas');
-canvas.width = Math.max(1, Math.round(width));
-canvas.height = Math.max(1, Math.round(height));
-const ctx = canvas.getContext('2d');
-ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-if (bmp.close) bmp.close();
-return await new Promise((resolve) => {
-canvas.toBlob((thumbBlob) => resolve(thumbBlob || blob), 'image/webp', 0.8);
-});
+return await reencodeImage(blob, maxSize, 0.8);
 } catch (e) {
 return blob;
 }
@@ -2702,6 +2812,7 @@ try { localStorage.setItem(LS_KEYS.viewMode, currentViewMode); } catch(e) {}
 function cleanupOnUnload() {
 stopTimerLoop();
 if (timerAlertInterval) { clearInterval(timerAlertInterval); timerAlertInterval = null; }
+if (timerTickWorker) { try { timerTickWorker.terminate(); } catch (e) {} timerTickWorker = null; }
 saveTimerState();
 purgeAllPendingDeletedRecipes();
 revokeAllObjectURLs();
@@ -2808,15 +2919,9 @@ populateRecipeDetail(fresh);
 currentViewRecipe = fresh;
 }
 }
-function initBroadcastChannel() {
-if (typeof BroadcastChannel === 'undefined') return;
-try {
-broadcastChannel = new BroadcastChannel('recipe-book-sync');
-broadcastChannel.onmessage = (event) => {
-const { type } = event.data;
-if (type === 'recipe' || type === 'delete' || type === 'categories') {
+function reloadFromStorage() {
 loadData().then(() => {
-rebuildSearchDocs();
+syncSearchDocsIncremental();
 renderCategories();
 populateCategoryDropdowns();
 renderRecipes();
@@ -2828,7 +2933,23 @@ modalRecipeCategory.style.color = chipText.color;
 modalRecipeCategory.style.textShadow = chipText.shadow;
 }
 refreshOpenRecipeModal();
-});
+}).catch(e => console.warn('Broadcast reload failed', e));
+}
+function scheduleBroadcastReload() {
+if (broadcastReloadTimer) clearTimeout(broadcastReloadTimer);
+broadcastReloadTimer = setTimeout(() => {
+broadcastReloadTimer = null;
+reloadFromStorage();
+}, 160);
+}
+function initBroadcastChannel() {
+if (typeof BroadcastChannel === 'undefined') return;
+try {
+broadcastChannel = new BroadcastChannel('recipe-book-sync');
+broadcastChannel.onmessage = (event) => {
+const { type } = event.data || {};
+if (type === 'recipe' || type === 'delete' || type === 'categories') {
+scheduleBroadcastReload();
 }
 };
 } catch (e) {
@@ -3916,21 +4037,8 @@ if (fileInput) fileInput.value = '';
 if (!file.type.startsWith('image/')) { showToast('Please select an image file', 'error'); return; }
 const key = mode === 'add' ? 'temp_add' : 'temp_edit';
 if (file.size >= 900000) {
-loadImageBitmap(file).then((bmp) => {
-const MAX_W = 1000;
-const scale = bmp.width > MAX_W ? MAX_W / bmp.width : 1;
-const canvas = document.createElement('canvas');
-canvas.width = Math.max(1, Math.round(bmp.width * scale));
-canvas.height = Math.max(1, Math.round(bmp.height * scale));
-const ctx = canvas.getContext('2d');
-ctx.fillStyle = '#ffffff';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-if (bmp.close) bmp.close();
-canvas.toBlob((blob) => {
-const source = blob || file;
-assignImage(mode, createObjectURL(source, key));
-}, 'image/jpeg', 0.78);
+reencodeImage(file, 1000, 0.78).then((blob) => {
+assignImage(mode, createObjectURL(blob || file, key));
 }).catch(() => {
 showToast('Failed to load image', 'error');
 });
@@ -5421,7 +5529,8 @@ detailValue,
 ingredientStates: ingredients.map(() => ''),
 bookmarked: false,
 createdAt: Date.now(),
-updatedAt: Date.now()
+updatedAt: Date.now(),
+schemaVersion: SCHEMA_VERSION
 };
 if (addRecipeImageFile) {
 let blob;
@@ -5504,6 +5613,7 @@ recipe.temp = editRecipeTemp.value.trim();
 recipe.detailType = editRecipeDetailType.value;
 recipe.detailValue = editRecipeDetailValue.value.trim();
 recipe.updatedAt = Date.now();
+recipe.schemaVersion = SCHEMA_VERSION;
 const ing = [];
 const rows = editIngredientsContainer.querySelectorAll('.ingredient-row');
 rows.forEach(r => {
@@ -6210,6 +6320,7 @@ recipe.ingredientStates = Array.isArray(recipe.ingredientStates)
 while (recipe.ingredientStates.length < recipe.ingredients.length) recipe.ingredientStates.push('');
 recipe.createdAt = recipe.createdAt || Date.now();
 recipe.updatedAt = Date.now();
+recipe.schemaVersion = SCHEMA_VERSION;
 if (recipe.image && typeof recipe.image === 'string' && recipe.image.startsWith('data:image/')) {
 await migrateRecipeImage(recipe);
 if (!dbWrapper.db) {
@@ -6235,7 +6346,7 @@ if (existing && existing !== desiredFullId) storedFullId = existing;
 }
 if (storedFullId === desiredFullId) {
 await dbWrapper.put(STORE_IMAGES, { id: desiredFullId, blob: fullRecord.blob, recipeId: finalId, hash: fullRecord.hash });
-if (fullRecord.hash) imageHashCache.set(fullRecord.hash, desiredFullId);
+if (fullRecord.hash) cacheImageHash(fullRecord.hash, desiredFullId);
 }
 recipe.imageId = storedFullId;
 if (recipe.thumbId && recipe.thumbId !== recipe.imageId) {
@@ -6607,12 +6718,40 @@ showToast('Timer complete!', 'success');
 startTimerAlert();
 return;
 }
-scheduleTimerTick();
+if (document.visibilityState === 'visible') scheduleTimerTick();
+}
+/**
+* Background ticking runs inside a dedicated Worker: worker timers are not
+* throttled the way background main-thread timers are, so the completion
+* chime fires on time even when the tab is hidden. A main-thread interval is
+* kept as a fallback when Workers are unavailable.
+*/
+function ensureTimerTickWorker() {
+if (timerTickWorker) return timerTickWorker;
+try {
+const code = 'let id=null;self.onmessage=function(e){if(e.data==="start"){if(id===null){id=setInterval(function(){self.postMessage("tick");},250);}}else if(e.data==="stop"){if(id!==null){clearInterval(id);id=null;}}};';
+const blob = new Blob([code], { type: 'application/javascript' });
+const url = URL.createObjectURL(blob);
+timerTickWorker = new Worker(url);
+URL.revokeObjectURL(url);
+timerTickWorker.onmessage = () => { if (timerRunning) timerTick(); };
+} catch (e) {
+timerTickWorker = null;
+}
+return timerTickWorker;
 }
 function scheduleTimerTick() {
 stopTimerLoop();
-if (document.visibilityState === 'visible') timerAnimationFrame = requestAnimationFrame(timerTick);
-else timerBackgroundInterval = setInterval(timerTick, 250);
+if (document.visibilityState === 'visible') {
+timerAnimationFrame = requestAnimationFrame(timerTick);
+} else {
+const w = ensureTimerTickWorker();
+if (w) {
+try { w.postMessage('start'); } catch (e) { timerBackgroundInterval = setInterval(timerTick, 250); }
+} else {
+timerBackgroundInterval = setInterval(timerTick, 250);
+}
+}
 }
 function startTimerLoop() {
 stopTimerLoop();
@@ -6623,6 +6762,7 @@ scheduleTimerTick();
 function stopTimerLoop() {
 if (timerAnimationFrame) { cancelAnimationFrame(timerAnimationFrame); timerAnimationFrame = null; }
 if (timerBackgroundInterval) { clearInterval(timerBackgroundInterval); timerBackgroundInterval = null; }
+if (timerTickWorker) { try { timerTickWorker.postMessage('stop'); } catch (e) {} }
 }
 function startTimer() {
 if (timerSecondsTotal <= 0) { showToast('Set a time first', 'warning'); return; }
